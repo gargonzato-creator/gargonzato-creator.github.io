@@ -1,2 +1,1 @@
-# gargonzato-creator.github.io
-Formulador TG
+Formulador TG — app estática para abrir en el navegador.
