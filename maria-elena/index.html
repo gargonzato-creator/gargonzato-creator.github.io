@@ -34,6 +34,8 @@
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --nav: 74px;
+  --plus-overhang: 28px;
+  --content-bottom: calc(var(--nav) + var(--plus-overhang) + var(--safe-b) + 16px);
   color-scheme: light;
 }
 * { box-sizing: border-box; }
@@ -73,7 +75,7 @@ button { cursor: pointer; }
 }
 .sync.pending, .sync.offline { background: #ffe8c2; color: var(--warn); }
 .screen {
-  padding: 16px 14px calc(var(--nav) + var(--safe-b) + 18px);
+  padding: 16px 14px var(--content-bottom);
   max-width: 880px; margin: 0 auto;
 }
 h2, h3 { font-family: Fraunces, Palatino, Georgia, serif; font-weight: 560; letter-spacing: -0.02em; }
@@ -158,6 +160,8 @@ h3 { font-size: 20px; margin: 14px 0 8px; }
   font-size: 48px; margin: 4px 0 0; line-height: 1;
 }
 label.f { display: flex; flex-direction: column; align-items: stretch; margin: 0 0 12px; font-weight: 650; font-size: 17px; color: var(--muted); }
+.f-date-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.fecha-vista { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
 input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="number"], input[type="search"], select, textarea {
   width: 100%; min-height: 56px; border-radius: 14px; border: 1px solid #d9cbb8;
   background: #fff; padding: 10px 12px; font-size: 20px; margin-top: 6px; color: var(--ink);
@@ -2350,7 +2354,7 @@ var FIREBASE_CONFIG = {
     html += "<h3>Sexo</h3>" + chips([["hembra", "Hembra"], ["macho", "Macho"]], "sexo");
     html += "<h3>Categoría</h3>" + chips(L.CATEGORIAS.map(function (c) { return [c.id, c.nombre]; }), "categoria");
     html += "<h3>Raza</h3>" + chips(L.RAZAS.map(function (r) { return [r.id, r.nombre]; }), "raza");
-    html += '<label class="f">Nacimiento<input type="date" data-bind="nacimiento" value="' + esc(S.b.nacimiento) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Nacimiento<span class="fecha-vista">' + esc(L.fmtFecha(S.b.nacimiento) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="nacimiento" data-live="1" value="' + esc(S.b.nacimiento) + '"></label>';
     html += "<h3>Estado</h3>" + chips([["activo", "En el campo"], ["vendido", "Vendido"], ["muerto", "Muerto"]], "estado");
     html += "<h3>Lugar</h3>" + chipsPotrero();
     html += "<h3>Madre</h3>" + selectorAnimal("madreId", function (x) { return x.sexo === "hembra" && x.id !== a.id; });
@@ -2361,7 +2365,7 @@ var FIREBASE_CONFIG = {
 
   function pantallaParto() {
     var html = "<h2>Parto</h2>" + errBox();
-    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Fecha<span class="fecha-vista">' + esc(L.fmtFecha(S.b.fecha || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="fecha" data-live="1" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
     html += "<h3>Madre</h3>";
     html += buscador();
     var madres = filtrar(function (a) {
@@ -2427,8 +2431,8 @@ var FIREBASE_CONFIG = {
     var html = "<h2>" + (ia ? "Inseminación" : "Monta natural") + "</h2>" + errBox();
     html += "<h3>Carnero</h3>" + buscador() + listaEleccion(function (a) { return a.sexo === "macho" && a.estado === "activo"; }, "carneroId");
     if (ia) html += '<label class="f">Semen, si no es un carnero del campo<input data-bind="semen" value="' + esc(S.b.semen || "") + '"></label>';
-    html += '<label class="f">' + (ia ? "Fecha" : "Fecha que entró") + '<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
-    if (!ia) html += '<label class="f">Fecha que sale, si ya salió<input type="date" data-bind="salida" value="' + esc(S.b.salida || "") + '"></label>';
+    html += '<label class="f"><span class="f-date-head">' + (ia ? "Fecha" : "Fecha que entró") + '<span class="fecha-vista">' + esc(L.fmtFecha(S.b.fecha || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="fecha" data-live="1" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    if (!ia) html += '<label class="f"><span class="f-date-head">Fecha que sale, si ya salió<span class="fecha-vista">' + esc(L.fmtFecha(S.b.salida || "") || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="salida" data-live="1" value="' + esc(S.b.salida || "") + '"></label>';
     html += '<button type="button" class="btn" data-act="servicio-ovejas">Elegir ovejas</button>';
     return html;
   }
@@ -2464,7 +2468,7 @@ var FIREBASE_CONFIG = {
     var e = L.porId(S.db.eventos, S.b.servicioId);
     if (!e) return "<h2>No está el servicio</h2>";
     var html = "<h2>Salida del carnero</h2>";
-    html += '<label class="f">Fecha que sale<input type="date" data-bind="salida" value="' + esc(S.b.salida || L.hoyISO()) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Fecha que sale<span class="fecha-vista">' + esc(L.fmtFecha(S.b.salida || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="salida" data-live="1" value="' + esc(S.b.salida || L.hoyISO()) + '"></label>';
     html += '<button type="button" class="btn" data-act="guardar-salida">Guardar</button>';
     return html;
   }
@@ -2480,7 +2484,7 @@ var FIREBASE_CONFIG = {
       html += '<button type="button" class="rowbtn' + (S.b.servicioId === e.id ? " on" : "") + '" data-act="chip" data-bind="servicioId" data-val="' + esc(e.id) + '">' + esc(L.fmtFecha(e.datos.entrada || e.fecha)) + " · carnero " + esc(car ? L.etiquetaAnimal(car) : "") + "</button>";
     });
     var srv = L.porId(S.db.eventos, S.b.servicioId);
-    html += '<label class="f">Fecha del diagnóstico<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Fecha del diagnóstico<span class="fecha-vista">' + esc(L.fmtFecha(S.b.fecha || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="fecha" data-live="1" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
     if (srv) {
       (srv.datos.ovejaIds || []).forEach(function (id) {
         var a = L.porId(S.db.animales, id);
@@ -2498,10 +2502,17 @@ var FIREBASE_CONFIG = {
   function pantallaPesaje() {
     var html = "<h2>Pesaje</h2>" + errBox();
     html += '<p class="sub">Tocá la caravana y escribí el peso. El teclado es de números.</p>';
-    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Fecha<span class="fecha-vista">' + esc(L.fmtFecha(S.b.fecha || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="fecha" data-live="1" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
     html += buscador();
     var lista = filtrar(function (a) { return a.estado === "activo"; });
-    if (!lista.length) html += '<div class="card"><p>No hay animales con ese número.</p></div>';
+    if (!lista.length) {
+      if (String(S.b.q || "").trim()) {
+        html += '<div class="card"><p>No hay animales con ese número.</p></div>';
+      } else {
+        html += '<div class="card"><p>Todavía no hay animales cargados</p></div>';
+        html += '<button type="button" class="btn" data-act="ir" data-screen="alta" data-fresh="1">Cargar animales</button>';
+      }
+    }
     lista.forEach(function (a) {
       html += '<button type="button" class="rowbtn" data-act="pesar-id" data-id="' + esc(a.id) + '"><b>' + esc(L.etiquetaAnimal(a)) + "</b><small>" + esc(L.nombreDe(L.CATEGORIAS, a.categoria)) + "</small></button>";
     });
@@ -2516,7 +2527,7 @@ var FIREBASE_CONFIG = {
 
   function pantallaElegir(titulo, sub, lista, siguiente) {
     var html = "<h2>" + esc(titulo) + "</h2>" + errBox() + "<p class=\"sub\">" + esc(sub) + "</p>";
-    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Fecha<span class="fecha-vista">' + esc(L.fmtFecha(S.b.fecha || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="fecha" data-live="1" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
     if (!lista.length) return html + '<div class="card"><p>No hay animales en este grupo.</p></div>';
     lista.forEach(function (a) {
       var on = S.b.elegidos && S.b.elegidos[a.id];
@@ -2622,7 +2633,7 @@ var FIREBASE_CONFIG = {
 
   function pantallaSanidad() {
     var html = "<h2>Sanidad</h2>" + '<p class="sub">Primero el motivo y el producto. Después, a quién.</p>';
-    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Fecha<span class="fecha-vista">' + esc(L.fmtFecha(S.b.fecha || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="fecha" data-live="1" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
     html += "<h3>Motivo</h3>" + chips(L.MOTIVOS.map(function (m) { return [m.id, m.nombre]; }), "motivo");
     html += "<h3>Producto</h3>";
     html += '<label class="f">Buscar producto<input data-bind="productoQ" data-live="1" value="' + esc(S.b.productoQ || "") + '" placeholder="Nombre o principio"></label>';
@@ -2666,7 +2677,7 @@ var FIREBASE_CONFIG = {
     if (ev && ev.datos && ev.datos.hpgAntes != null) html += "<p>HPG antes: " + esc(ev.datos.hpgAntes) + "</p>";
     else html += "<p>No hay HPG de antes, así que no se puede calcular la baja.</p>";
     html += "</div>";
-    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Fecha<span class="fecha-vista">' + esc(L.fmtFecha(S.b.fecha || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="fecha" data-live="1" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
     html += '<label class="f">HPG<input inputmode="numeric" data-bind="hpg" data-focus="1" value="' + esc(S.b.hpg || "") + '"></label>';
     if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
     html += '<button type="button" class="btn" data-act="guardar-hpg">Guardar</button>';
@@ -2676,7 +2687,7 @@ var FIREBASE_CONFIG = {
   function pantallaMuerte() {
     var html = "<h2>Mortandad</h2>";
     if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
-    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Fecha<span class="fecha-vista">' + esc(L.fmtFecha(S.b.fecha || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="fecha" data-live="1" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
     if (!S.b.animalId) {
       html += "<h3>Animal</h3>" + buscador();
       filtrar(function (a) { return a.estado === "activo"; }).forEach(function (a) {
@@ -2783,7 +2794,7 @@ var FIREBASE_CONFIG = {
 
   function pantallaSuplemento() {
     var html = "<h2>Balanceado</h2><p class=\"sub\">Gramos por animal y por día.</p>";
-    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Fecha<span class="fecha-vista">' + esc(L.fmtFecha(S.b.fecha || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="fecha" data-live="1" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
     html += '<label class="f">Gramos por día<input inputmode="decimal" data-bind="gramos" data-focus="1" value="' + esc(S.b.gramos || "") + '"></label>';
     if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
     html += '<button type="button" class="btn" data-act="guardar-suplemento">Guardar</button>';
@@ -2813,8 +2824,8 @@ var FIREBASE_CONFIG = {
     var html = '<article class="sheet">';
     html += '<p class="no-print sub">Desde y hasta, si el reporte usa fechas.</p>';
     html += '<div class="no-print">';
-    html += '<label class="f">Desde<input type="date" data-bind="desde" value="' + esc(S.b.desde || ano() + "-01-01") + '"></label>';
-    html += '<label class="f">Hasta<input type="date" data-bind="hasta" value="' + esc(S.b.hasta || L.hoyISO()) + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Desde<span class="fecha-vista">' + esc(L.fmtFecha(S.b.desde || ano() + "-01-01") || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="desde" data-live="1" value="' + esc(S.b.desde || ano() + "-01-01") + '"></label>';
+    html += '<label class="f"><span class="f-date-head">Hasta<span class="fecha-vista">' + esc(L.fmtFecha(S.b.hasta || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="hasta" data-live="1" value="' + esc(S.b.hasta || L.hoyISO()) + '"></label>';
     html += '<button type="button" class="btn-ghost" data-act="refrescar">Actualizar</button>';
     html += '<button type="button" class="btn" data-act="compartir">Compartir por WhatsApp</button>';
     html += '<button type="button" class="btn-ghost" data-act="imprimir">Imprimir</button></div>';
@@ -2877,7 +2888,7 @@ var FIREBASE_CONFIG = {
 
   function pantallaRecordatorioEdit() {
     return "<h2>Recordatorio</h2>" +
-      '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>' +
+      '<label class="f"><span class="f-date-head">Fecha<span class="fecha-vista">' + esc(L.fmtFecha(S.b.fecha || L.hoyISO()) || "dd/mm/aaaa") + '</span></span><input type="date" lang="es-PY" data-bind="fecha" data-live="1" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>' +
       '<label class="f">Qué hay que hacer<input data-bind="texto" data-focus="1" value="' + esc(S.b.texto || "") + '"></label>' +
       (S.error ? '<div class="error">' + esc(S.error) + "</div>" : "") +
       '<button type="button" class="btn" data-act="guardar-recordatorio">Guardar</button>';
