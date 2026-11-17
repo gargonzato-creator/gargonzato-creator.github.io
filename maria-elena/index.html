@@ -256,6 +256,7 @@ input:focus, select:focus, textarea:focus { outline: 3px solid var(--gold); bord
 .login-sep::before, .login-sep::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .login-uid { margin: 12px 0 16px; font-size: 13px; color: var(--muted); word-break: break-all; line-height: 1.45; }
 .login-uid b { color: var(--ink); font-weight: 700; }
+.login-diag { font-size: 11px; color: var(--muted); background: #f4efe6; border-radius: 12px; padding: 10px 12px; margin-top: 14px; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, monospace; line-height: 1.4; }
 @media (min-width: 800px) {
   .tiles { grid-template-columns: repeat(3, 1fr); }
   .tile { min-height: 112px; }
@@ -1881,6 +1882,10 @@ var FIREBASE_CONFIG = {
     usuario: null,
     error: "",
     errorCodigo: "",
+    errorDetalle: "",
+    errorOrigen: "",
+    ultimoError: null,
+    firebaseVersion: "",
     nubeEstado: "",
     errorNube: "",
     sinPermiso: false,
@@ -1898,6 +1903,11 @@ var FIREBASE_CONFIG = {
     document.addEventListener("keydown", onKey);
     window.addEventListener("online", function () { if (S.modo === "cloud" && S.sync === "offline") marcarSync("pending"); });
     window.addEventListener("offline", function () { if (S.modo === "cloud") marcarSync("offline"); });
+    window.addEventListener("unhandledrejection", function (ev) {
+      if (S.modo !== "cloud" || S.usuario) return;
+      if (S.errorOrigen === "popup" || S.errorOrigen === "redirect-result") return;
+      mostrarErrorAuth(ev && ev.reason, "estado");
+    });
     var cfg = root.FIREBASE_CONFIG || {};
     if (cfg.apiKey) {
       S.modo = "cloud";
@@ -2002,7 +2012,7 @@ var FIREBASE_CONFIG = {
     var cuerpo;
     if (S.modo === "cloud" && !S.usuario) {
       cuerpo = S.nubeEstado === "cargando"
-        ? '<div class="login-card"><h2>Abriendo…</h2><p class="sub">Conectando con la cabaña.</p></div>'
+        ? '<div class="login-card"><h2>Abriendo…</h2><p class="sub">Conectando con la cabaña.</p>' + htmlDiag() + "</div>"
         : pantallaLogin();
     } else if (S.modo === "cloud" && S.sinPermiso) cuerpo = pantallaSinPermiso();
     else cuerpo = pantalla();
@@ -2259,10 +2269,7 @@ var FIREBASE_CONFIG = {
   function pantallaLogin() {
     var html = '<div class="login-card"><div class="brand"><img class="brand-logo" src="logo-header.png" width="46" height="46" alt=""><div><h1>Cabaña María Elena</h1><p>Coronel Oviedo · Dorper</p></div></div>';
     html += '<h2>Entrar</h2><p class="sub">Con tu cuenta queda una copia en la nube. Después podés cargar datos aunque no haya señal.</p>';
-    if (S.error) {
-      html += '<div class="error">' + esc(S.error) + "</div>";
-      if (S.errorCodigo) html += '<p class="login-uid">código: ' + esc(S.errorCodigo) + "</p>";
-    }
+    html += htmlErrorLogin();
     html += '<button type="button" class="btn-google" data-act="login-google">Entrar con Google</button>';
     if (!S.b.loginMail) {
       html += '<button type="button" class="btn-mail-sec" data-act="login-mail">Entrar con correo y contraseña</button>';
@@ -2272,6 +2279,7 @@ var FIREBASE_CONFIG = {
       html += '<label class="f">Contraseña<input type="password" autocomplete="current-password" data-bind="clave" value="' + esc(S.b.clave || "") + '"></label>';
       html += '<button type="button" class="btn" data-act="login">Entrar</button>';
     }
+    html += htmlDiag();
     html += "</div>";
     return html;
   }
@@ -2283,7 +2291,10 @@ var FIREBASE_CONFIG = {
     html += '<p class="login-uid">';
     if (S.usuario && S.usuario.email) html += "<b>" + esc(S.usuario.email) + "</b><br>";
     html += "UID: " + esc(S.usuario && S.usuario.uid ? S.usuario.uid : "") + "</p>";
-    html += '<button type="button" class="btn-mail-sec" data-act="salir">Usar otra cuenta</button></div>';
+    html += htmlErrorLogin();
+    html += '<button type="button" class="btn-mail-sec" data-act="salir">Usar otra cuenta</button>';
+    html += htmlDiag();
+    html += "</div>";
     return html;
   }
 
@@ -3402,7 +3413,7 @@ var FIREBASE_CONFIG = {
       return pintar();
     }
     if (act === "login-google") return entrarGoogle();
-    if (act === "login-mail") { S.b.loginMail = true; S.error = ""; S.errorCodigo = ""; return pintar(); }
+    if (act === "login-mail") { S.b.loginMail = true; limpiarError(); return pintar(); }
     if (act === "login") return entrar();
     if (act === "empezar-caravanas") {
       if (!S.b.sexo || !S.b.categoria) { S.error = "Elegí sexo y categoría."; return pintar(); }
@@ -3846,69 +3857,159 @@ var FIREBASE_CONFIG = {
     inicio();
   }
 
+
+  function diagnosticoActivo() {
+    try {
+      return /(?:^|[?&])diag=1(?:&|$)/.test(String(location.search || ""));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function htmlDiag() {
+    if (!diagnosticoActivo()) return "";
+    var user = cloud.auth && cloud.auth.currentUser;
+    var cfg = root.FIREBASE_CONFIG || {};
+    var last = S.ultimoError;
+    var lastTxt = "ninguno";
+    if (last) {
+      try { lastTxt = JSON.stringify(last); } catch (e) { lastTxt = String(last); }
+    }
+    var lineas = [
+      "SDK: " + (S.firebaseVersion || "?"),
+      "authDomain: " + (cfg.authDomain || ""),
+      "resolver: " + (cloud.authApi && cloud.authApi.browserPopupRedirectResolver ? "sí" : "no"),
+      "usuario: " + (user ? ((user.email || "") + " " + user.uid + (user.isAnonymous ? " (anónimo)" : "")) : "ninguno"),
+      "último error: " + lastTxt
+    ];
+    return '<pre class="login-diag">' + esc(lineas.join("\n")) + "</pre>";
+  }
+
+  function htmlErrorLogin() {
+    if (!S.error && !S.errorCodigo && !S.errorDetalle && !S.errorOrigen) return "";
+    var html = "";
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += '<p class="login-uid">';
+    html += "código: " + esc(S.errorCodigo || "sin código");
+    if (S.errorOrigen) html += " · origen: " + esc(S.errorOrigen);
+    if (S.errorDetalle) html += "<br>" + esc(S.errorDetalle);
+    html += "</p>";
+    return html;
+  }
+
+  function limpiarError() {
+    S.error = "";
+    S.errorCodigo = "";
+    S.errorDetalle = "";
+    S.errorOrigen = "";
+  }
+
+  function describirError(err) {
+    var d = { code: "", name: "", message: "", tipo: typeof err };
+    if (err == null) {
+      d.message = "sin objeto de error";
+      return d;
+    }
+    if (typeof err === "string" || typeof err === "number") {
+      d.message = String(err);
+      return d;
+    }
+    d.name = err.name ? String(err.name) : "";
+    if (err.message) d.message = String(err.message);
+    else if (typeof err.toString === "function") {
+      try { d.message = String(err.toString()); } catch (e) { d.message = ""; }
+    }
+    if (typeof err.code === "string" && err.code) d.code = err.code;
+    else if (err.customData && typeof err.customData.code === "string" && err.customData.code) d.code = err.customData.code;
+    else if (typeof err.code === "number") {
+      d.message = (d.message ? d.message + " " : "") + "(code=" + err.code + ")";
+    }
+    if (d.message && d.message.length > 240) d.message = d.message.slice(0, 237) + "…";
+    return d;
+  }
+
   function mensajeAuth(err) {
-    var c = err && err.code ? String(err.code) : "";
+    var c = describirError(err).code;
     if (c === "auth/invalid-email") return "Ese correo no es válido.";
     if (c === "auth/user-disabled") return "Esa cuenta está deshabilitada.";
     if (c === "auth/user-not-found" || c === "auth/wrong-password" || c === "auth/invalid-credential") return "Correo o contraseña incorrectos.";
     if (c === "auth/too-many-requests") return "Demasiados intentos. Probá en un rato.";
     if (c === "auth/network-request-failed") return "Sin conexión. Probá cuando haya señal.";
-    if (c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request") return "";
+    if (c === "auth/popup-closed-by-user") return "Cerraste la ventana de Google.";
+    if (c === "auth/cancelled-popup-request") return "Se canceló la ventana de Google.";
     if (c === "auth/popup-blocked") return "El navegador bloqueó la ventana de Google. Permití ventanas emergentes y probá de nuevo.";
     if (c === "auth/unauthorized-domain") return "Este dominio no está autorizado en Firebase.";
     if (c === "auth/operation-not-supported-in-this-environment") return "Este navegador no pudo abrir la ventana de Google.";
     return "No se pudo entrar. Probá de nuevo.";
   }
 
-  function mostrarErrorAuth(err) {
-    var msg = mensajeAuth(err);
-    S.error = msg || "";
-    S.errorCodigo = err && err.code ? String(err.code) : "";
-    if (!S.error && S.errorCodigo) S.error = "No se pudo entrar. Probá de nuevo.";
+  function mostrarErrorAuth(err, origen) {
+    var d = describirError(err);
+    S.errorOrigen = origen || S.errorOrigen || "";
+    S.errorCodigo = d.code || "";
+    S.errorDetalle = ((d.name || "") + (d.name && d.message ? ": " : "") + (d.message || "")).trim();
+    S.error = mensajeAuth(err);
+    S.ultimoError = {
+      origen: S.errorOrigen,
+      code: d.code || "sin código",
+      name: d.name || "",
+      message: d.message || "",
+      tipo: d.tipo
+    };
     var btn = document.querySelector('[data-act="login-google"]');
     if (btn) btn.disabled = false;
-    if (S.error) pintar();
+    pintar();
   }
 
   function debeUsarRedirect(err) {
-    var c = err && err.code ? String(err.code) : "";
-    return c === "auth/popup-blocked";
+    return describirError(err).code === "auth/popup-blocked";
   }
 
   function entrar() {
-    if (!cloud.auth || !cloud.authApi) { S.error = "La nube no está lista."; S.errorCodigo = ""; return pintar(); }
+    if (!cloud.auth || !cloud.authApi) {
+      mostrarErrorAuth({ name: "Error", message: "La nube no está lista." }, "init");
+      S.error = "La nube no está lista.";
+      return pintar();
+    }
     var email = String(S.b.email || "").trim();
     var clave = S.b.clave || "";
-    if (!email || !clave) { S.error = "Escribí el correo y la contraseña."; S.errorCodigo = ""; return pintar(); }
-    S.error = "";
-    S.errorCodigo = "";
+    if (!email || !clave) {
+      limpiarError();
+      S.error = "Escribí el correo y la contraseña.";
+      return pintar();
+    }
+    limpiarError();
     pintar();
     cloud.authApi.signInWithEmailAndPassword(cloud.auth, email, clave).catch(function (err) {
-      mostrarErrorAuth(err);
+      mostrarErrorAuth(err, "estado");
     });
   }
 
   function entrarGoogle() {
     if (!cloud.auth || !cloud.authApi || !cloud.authApi.signInWithPopup) {
+      mostrarErrorAuth({ name: "Error", message: "La nube no está lista o falta signInWithPopup." }, "init");
       S.error = "La nube no está lista.";
-      S.errorCodigo = "";
       return pintar();
     }
-    S.error = "";
-    S.errorCodigo = "";
+    limpiarError();
     var btn = document.querySelector('[data-act="login-google"]');
     if (btn) btn.disabled = true;
-    var provider = new cloud.authApi.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
-    var resolver = cloud.authApi.browserPopupRedirectResolver;
-    cloud.authApi.signInWithPopup(cloud.auth, provider, resolver).catch(function (err) {
-      if (debeUsarRedirect(err)) {
-        return cloud.authApi.signInWithRedirect(cloud.auth, provider, resolver).catch(function (err2) {
-          mostrarErrorAuth(err2 || err);
-        });
-      }
-      mostrarErrorAuth(err);
-    });
+    try {
+      var provider = new cloud.authApi.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      var resolver = cloud.authApi.browserPopupRedirectResolver;
+      cloud.authApi.signInWithPopup(cloud.auth, provider, resolver).catch(function (err) {
+        if (debeUsarRedirect(err)) {
+          mostrarErrorAuth(err, "popup");
+          return cloud.authApi.signInWithRedirect(cloud.auth, provider, resolver).catch(function (err2) {
+            mostrarErrorAuth(err2 || err, "popup");
+          });
+        }
+        mostrarErrorAuth(err, "popup");
+      });
+    } catch (err) {
+      mostrarErrorAuth(err, "popup");
+    }
   }
 
   function descargar(nombre, texto, tipo) {
@@ -3997,6 +4098,7 @@ var FIREBASE_CONFIG = {
 
   function prepararNube(cfg) {
     var v = "10.14.1";
+    S.firebaseVersion = v;
     var base = "https://www.gstatic.com/firebasejs/" + v + "/";
     Promise.all([
       import(base + "firebase-app.js"),
@@ -4032,30 +4134,35 @@ var FIREBASE_CONFIG = {
       cloud.signOut = function () { return authMod.signOut(auth).catch(function () {}); };
       S.nubeEstado = "lista";
       return authMod.getRedirectResult(auth).catch(function (err) {
-        var c = err && err.code ? String(err.code) : "";
-        if (c && c !== "auth/no-auth-event") {
-          S.error = mensajeAuth(err) || "No se pudo terminar el ingreso.";
-          S.errorCodigo = c;
-        }
+        var c = describirError(err).code;
+        if (c !== "auth/no-auth-event") mostrarErrorAuth(err, "redirect-result");
       }).then(function () {
         authMod.onAuthStateChanged(auth, function (user) {
-          alCambiarUsuario(user);
+          try {
+            alCambiarUsuario(user);
+          } catch (err) {
+            mostrarErrorAuth(err, "estado");
+          }
         });
       });
-    }).catch(function () {
+    }).catch(function (err) {
       S.modo = "local";
       S.sync = "local";
       S.nubeEstado = "falla";
       S.banner = "No se pudo abrir la nube. Seguís en este aparato.";
-      pintar();
+      mostrarErrorAuth(err, "init");
     });
   }
 
   function alCambiarUsuario(user) {
     detenerEscucha();
     if (!user || user.isAnonymous) {
-      S.usuario = user ? { uid: user.uid, email: user.email || "" } : null;
-      S.sinPermiso = !!user;
+      if (user && user.isAnonymous && cloud.signOut) {
+        cloud.signOut();
+        return;
+      }
+      S.usuario = null;
+      S.sinPermiso = false;
       pintar();
       return;
     }
@@ -4068,13 +4175,14 @@ var FIREBASE_CONFIG = {
         return;
       }
       S.sinPermiso = false;
+      limpiarError();
       return migrarLocalANube().then(function () {
         escuchar();
         pintar();
       });
-    }).catch(function () {
+    }).catch(function (err) {
       S.sinPermiso = true;
-      pintar();
+      mostrarErrorAuth(err, "accesos");
     });
   }
 

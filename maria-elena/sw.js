@@ -1,4 +1,4 @@
-const CACHE = "me-registros-v9";
+const CACHE = "me-registros-v10";
 const ASSETS = ["./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png", "./logo-header.png"];
 
 self.addEventListener("install", function (event) {
