@@ -4017,8 +4017,11 @@ var FIREBASE_CONFIG = {
       cloud.signOut = function () { return authMod.signOut(auth).catch(function () {}); };
       S.nubeEstado = "lista";
       return authMod.getRedirectResult(auth).catch(function (err) {
-        var msg = mensajeAuth(err);
-        if (msg) S.error = msg;
+        var c = err && err.code ? String(err.code) : "";
+        if (c === "auth/account-exists-with-different-credential" || c === "auth/credential-already-in-use" || c === "auth/user-disabled") {
+          var msg = mensajeAuth(err);
+          if (msg) S.error = msg;
+        }
       }).then(function () {
         authMod.onAuthStateChanged(auth, function (user) {
           alCambiarUsuario(user);
