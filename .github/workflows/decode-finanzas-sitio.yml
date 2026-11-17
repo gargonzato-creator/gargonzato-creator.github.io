@@ -1,0 +1,69 @@
+name: Decode Finanzas TG site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "finanzas/.publish/sitio.tar.gz.b64"
+      - ".github/workflows/decode-finanzas-sitio.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Decode and extract into finanzas/
+        run: |
+          python3 - <<'PY'
+          import base64, pathlib, tarfile, io, hashlib
+          payload = pathlib.Path("finanzas/.publish/sitio.tar.gz.b64")
+          if not payload.exists():
+              raise SystemExit("missing finanzas/.publish/sitio.tar.gz.b64")
+          raw = base64.b64decode(payload.read_text().strip())
+          dest = pathlib.Path("finanzas")
+          dest.mkdir(parents=True, exist_ok=True)
+          with tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz") as tf:
+              # Python 3.13 + safeguard
+              def ok(m, dest_path):
+                  name = pathlib.Path(m.name)
+                  if name.is_absolute() or ".." in name.parts:
+                      raise SystemExit(f"blocked path {m.name}")
+                  return dest / name
+              try:
+                  tf.extractall(dest, filter="data")
+              except TypeError:
+                  for m in tf.getmembers():
+                      if m.name.startswith("/") or ".." in pathlib.Path(m.name).parts:
+                          raise SystemExit(f"blocked path {m.name}")
+                  tf.extractall(dest)
+          # remove the publish payload so it is not served
+          pub = dest / ".publish"
+          if pub.exists():
+              for p in pub.rglob("*"):
+                  if p.is_file():
+                      p.unlink()
+              for p in sorted(pub.rglob("*"), reverse=True):
+                  if p.is_dir():
+                      p.rmdir()
+              pub.rmdir()
+          files = [p for p in dest.rglob("*") if p.is_file()]
+          print("extracted", len(files), "files")
+          for p in sorted(files)[:15]:
+              print(p, p.stat().st_size)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add finanzas
+          if git diff --cached --quiet; then
+            echo "No extracted changes to commit"
+          else
+            git commit -m "Agrega los archivos de Finanzas TG en /finanzas/"
+            git pull --rebase --quiet || git pull --rebase
+            git push
+          fi
