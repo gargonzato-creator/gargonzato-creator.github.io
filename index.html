@@ -82,8 +82,9 @@ h2 { font-size: 22px; }
 .grow { flex: 1; }
 label.f { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); margin-bottom: 10px; }
 label.f span { letter-spacing: 0.02em; }
-input[type="text"], input[type="number"], input[type="date"], select, textarea {
+input:not([type]), input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select, textarea {
   width: 100%;
+  box-sizing: border-box;
   min-height: 52px;
   padding: 10px 12px;
   border-radius: 12px;
@@ -3559,8 +3560,53 @@ var FIREBASE_CONFIG = {
     modo: "cloud", estado: "iniciando", usuario: null, sinPermiso: false, verificando: false, listo: false,
     sync: "local", porCol: {}, meta: {}, base: true, unsubs: [], timer: null, repintar: null,
     error: "", errorCodigo: "", errorDetalle: "", errorOrigen: "", ultimoError: null, version: "",
-    loginMail: false, cloud: {}
+    loginMail: false, cloud: {}, errorCarga: "", cacheTipo: "", enVuelo: {}, pendDesde: 0
   };
+
+  function conTiempo(promesa, ms, etiqueta) {
+    return new Promise(function (resolve, reject) {
+      var t = setTimeout(function () {
+        var e = new Error(etiqueta + ": sin respuesta en " + Math.round(ms / 1000) + " s");
+        e.code = "timeout";
+        reject(e);
+      }, ms);
+      promesa.then(function (v) { clearTimeout(t); resolve(v); }, function (e) { clearTimeout(t); reject(e); });
+    });
+  }
+  function probarIndexedDB(ms) {
+    return new Promise(function (resolve) {
+      var hecho = false;
+      function fin(ok, por) { if (hecho) return; hecho = true; resolve({ ok: ok, por: por }); }
+      setTimeout(function () { fin(false, "IndexedDB no responde"); }, ms);
+      try {
+        if (!root.indexedDB) return fin(false, "sin IndexedDB");
+        var req = root.indexedDB.open("tg-formulador-prueba", 1);
+        req.onsuccess = function () { try { req.result.close(); } catch (e) {} fin(true, ""); };
+        req.onerror = function () { fin(false, "IndexedDB con error"); };
+        req.onblocked = function () { fin(false, "IndexedDB bloqueado"); };
+      } catch (e) { fin(false, "IndexedDB: " + (e && e.message ? e.message : e)); }
+    });
+  }
+  var vigia = null;
+  function armarVigia(motivo) {
+    if (vigia) clearTimeout(vigia);
+    vigia = setTimeout(function () {
+      vigia = null;
+      if (N.modo !== "cloud" || !(N.estado === "iniciando" || N.verificando)) return;
+      N.ultimoError = { origen: "vigía", code: "timeout", message: "más de 10 s esperando (" + motivo + ")" };
+      if (lsGet(ACCESO_KEY)) {
+        N.modo = "local-temp";
+        N.verificando = false;
+        marcarSync("offline");
+        esperarSenal();
+      } else {
+        N.errorCarga = navigator.onLine === false
+          ? "Este aparato no tiene señal y todavía no entraste nunca acá. Conectate y tocá Reintentar."
+          : "La nube tarda demasiado en responder. Revisá la señal y tocá Reintentar.";
+      }
+      render();
+    }, 10000);
+  }
 
   function hashStr(s) {
     var h = 5381;
@@ -3655,8 +3701,9 @@ var FIREBASE_CONFIG = {
       listaLocal(c).forEach(function (it, i) { if (it && it.id != null) porId[String(it.id)] = { it: it, i: i }; });
       Object.keys(m).forEach(function (id) {
         var x = m[id];
-        if (x.d) { if (x.s !== "†") ops.push({ c: c, id: id, x: x, borrar: true }); }
-        else if (x.s !== x.h && porId[id]) ops.push({ c: c, id: id, x: x, it: porId[id].it, orden: porId[id].i });
+        var k = c.col + "/" + id;
+        if (x.d) { if (x.s !== "†" && N.enVuelo[k] !== "†") ops.push({ c: c, id: id, x: x, borrar: true }); }
+        else if (x.s !== x.h && porId[id] && N.enVuelo[k] !== x.h) ops.push({ c: c, id: id, x: x, it: porId[id].it, orden: porId[id].i });
       });
     });
     return ops;
@@ -3676,27 +3723,39 @@ var FIREBASE_CONFIG = {
       lote.forEach(function (op) {
         if (!op.x.u) op.x.u = now;
         var data;
+        op.k = op.c.col + "/" + op.id;
         if (op.borrar) {
           data = { id: op.id, json: "", nombre: "", deleted: true, updatedAt: op.x.u, por: por, servidor: FS.serverTimestamp() };
-          op.x.s = "†";
+          op.tok = "†";
         } else {
           var json = JSON.stringify(op.it);
           data = {
             id: op.id, json: json, nombre: String(op.it.nombre || op.it.titulo || ""), orden: op.orden,
             deleted: false, updatedAt: op.x.u, por: por, servidor: FS.serverTimestamp()
           };
-          op.x.s = op.x.h;
+          op.tok = op.x.h;
         }
+        N.enVuelo[op.k] = op.tok;
+        if (N.cacheTipo === "persistente") op.x.s = op.tok;
         batch.set(docRef(op.c, op.id), data);
       });
-      return batch.commit();
+      return batch.commit().then(function () {
+        lote.forEach(function (op) {
+          if (N.enVuelo[op.k] === op.tok) delete N.enVuelo[op.k];
+          var x = (N.meta[op.c.col] || {})[op.id];
+          if (x && ((op.tok === "†" && x.d) || x.h === op.tok)) x.s = op.tok;
+        });
+        guardarMeta();
+      });
     });
     guardarMeta();
     marcarSync(navigator.onLine === false ? "offline" : "pending");
+    /* No se espera la confirmación para nada de la pantalla: si la nube no confirma (cuota o sin señal), queda en cola. */
     return Promise.all(promesas).then(function () {
-      marcarSync("ok");
+      marcarSync(pendientes().length || Object.keys(N.enVuelo).length ? "pending" : estadoGlobal());
     }).catch(function (err) {
       N.ultimoError = describirError(err);
+      ops.forEach(function (op) { if (N.enVuelo[op.k] === op.tok) delete N.enVuelo[op.k]; });
       if (err && err.code === "permission-denied") {
         ops.forEach(function (op) { op.x.s = null; });
         guardarMeta();
@@ -3792,6 +3851,7 @@ var FIREBASE_CONFIG = {
       if (v === "offline") e = "offline";
       else if (v === "pending" && e !== "offline") e = "pending";
     });
+    if (e === "ok" && Object.keys(N.enVuelo).length) e = "pending";
     if (navigator.onLine === false) e = "offline";
     return e;
   }
@@ -3824,7 +3884,7 @@ var FIREBASE_CONFIG = {
   function primeraSync(user) {
     var FS = N.cloud.fsApi;
     marcarSync("pending");
-    return Promise.all(COLS.map(function (c) { return FS.getDocsFromServer(colRef(c)); })).then(function (snaps) {
+    return conTiempo(Promise.all(COLS.map(function (c) { return FS.getDocsFromServer(colRef(c)); })), 20000, "lectura inicial").then(function (snaps) {
       if (!N.usuario || N.usuario.uid !== user.uid) return;
       var vacio = snaps.every(function (s) { return s.empty; });
       if (!lsGet(ANTES_KEY)) lsSet(ANTES_KEY, JSON.stringify(S.db));
@@ -3862,7 +3922,7 @@ var FIREBASE_CONFIG = {
 
   function verificarAcceso(user) {
     var FS = N.cloud.fsApi;
-    return FS.getDoc(FS.doc(N.cloud.fs, "accesos", user.uid)).then(function (snap) {
+    return conTiempo(FS.getDoc(FS.doc(N.cloud.fs, "accesos", user.uid)), 8000, "permiso").then(function (snap) {
       if (!snap.exists()) return false;
       var d = snap.data() || {};
       var apps = d.apps || [];
@@ -3890,10 +3950,14 @@ var FIREBASE_CONFIG = {
     N.sinPermiso = false;
     N.verificando = true;
     N.estado = "lista";
+    N.errorCarga = "";
     render();
+    armarVigia("permiso");
     verificarAcceso(user).then(function (ok) {
+      if (!N.usuario || N.usuario.uid !== user.uid) return;
       N.verificando = false;
       if (!ok) { N.sinPermiso = true; render(); return; }
+      if (N.modo === "local-temp") N.modo = "cloud";
       lsSet(ACCESO_KEY, user.uid);
       limpiarError();
       render();
@@ -3904,13 +3968,17 @@ var FIREBASE_CONFIG = {
       } else primeraSync(user);
     }).catch(function (err) {
       N.verificando = false;
-      mostrarErrorAuth(err, "accesos");
-      if (lsGet(ACCESO_KEY)) {
+      N.ultimoError = describirError(err);
+      if (lsGet(ACCESO_KEY) === user.uid) {
         N.modo = "local-temp";
         marcarSync("offline");
-        render();
         esperarSenal();
+      } else {
+        N.errorCarga = navigator.onLine === false
+          ? "Este aparato no tiene señal y todavía no hay permiso guardado. Conectate y tocá Reintentar."
+          : "No se pudo leer tu permiso. Tocá Reintentar.";
       }
+      render();
     });
   }
 
@@ -3930,36 +3998,45 @@ var FIREBASE_CONFIG = {
     var v = "10.14.1";
     N.version = v;
     var base = "https://www.gstatic.com/firebasejs/" + v + "/";
-    var vencido = setTimeout(function () {
-      if (N.estado === "iniciando" && lsGet(ACCESO_KEY)) {
-        N.modo = "local-temp";
-        marcarSync("offline");
-        render();
-      }
-    }, 9000);
-    Promise.all([
+    armarVigia("SDK");
+    var vencido = null;
+    var sdk = conTiempo(Promise.all([
       import(base + "firebase-app.js"),
       import(base + "firebase-auth.js"),
       import(base + "firebase-firestore.js")
-    ]).then(function (mods) {
+    ]), 15000, "SDK");
+    Promise.all([sdk, probarIndexedDB(2500)]).then(function (res) {
+      var mods = res[0], idb = res[1];
       var appMod = mods[0], authMod = mods[1], fsMod = mods[2];
       var app = appMod.initializeApp(cfg);
       var auth;
       try {
         auth = authMod.initializeAuth(app, {
-          persistence: [authMod.indexedDBLocalPersistence, authMod.browserLocalPersistence],
+          persistence: idb.ok
+            ? [authMod.indexedDBLocalPersistence, authMod.browserLocalPersistence]
+            : [authMod.browserLocalPersistence, authMod.inMemoryPersistence],
           popupRedirectResolver: authMod.browserPopupRedirectResolver
         });
       } catch (e) {
         auth = authMod.getAuth(app);
       }
-      var fs;
-      try {
-        fs = fsMod.initializeFirestore(app, {
-          localCache: fsMod.persistentLocalCache({ tabManager: fsMod.persistentMultipleTabManager() })
-        });
-      } catch (e) {
-        fs = fsMod.getFirestore(app);
+      var fs = null;
+      if (idb.ok) {
+        try {
+          fs = fsMod.initializeFirestore(app, {
+            localCache: fsMod.persistentLocalCache({ tabManager: fsMod.persistentMultipleTabManager() })
+          });
+          N.cacheTipo = "persistente";
+        } catch (e) { fs = null; }
+      }
+      if (!fs) {
+        try {
+          fs = fsMod.initializeFirestore(app, { localCache: fsMod.memoryLocalCache() });
+          N.cacheTipo = "memoria" + (idb.ok ? "" : " (" + idb.por + ")");
+        } catch (e) {
+          fs = fsMod.getFirestore(app);
+          N.cacheTipo = "memoria (por defecto)";
+        }
       }
       N.cloud = {
         app: app, auth: auth, fs: fs, authApi: authMod, fsApi: fsMod,
@@ -3975,7 +4052,7 @@ var FIREBASE_CONFIG = {
         });
       });
     }).catch(function (err) {
-      clearTimeout(vencido);
+      if (vigia) { clearTimeout(vigia); vigia = null; }
       N.estado = "falla";
       mostrarErrorAuth(err, "init");
       N.error = "No se pudo abrir la nube. Revisá la señal y probá de nuevo.";
@@ -3991,10 +4068,16 @@ var FIREBASE_CONFIG = {
   function textoSync() {
     if (N.modo === "local") return "Solo en este aparato";
     if (N.sync === "ok") return "Sincronizado";
-    if (N.sync === "pending") return "Guardando…";
+    if (N.sync === "pending") return N.pendDesde && Date.now() - N.pendDesde > 15000 ? "Guardado en el aparato, falta subir" : "Guardando…";
     return "Sin señal, guardado en el aparato";
   }
   function marcarSync(estado) {
+    if (estado === "pending") {
+      if (!N.pendDesde) {
+        N.pendDesde = Date.now();
+        setTimeout(function () { if (N.sync === "pending") marcarSync("pending"); }, 15500);
+      }
+    } else N.pendDesde = 0;
     N.sync = estado;
     var el = document.getElementById("sync-pill");
     if (el) {
@@ -4023,6 +4106,7 @@ var FIREBASE_CONFIG = {
       "resolver: " + (N.cloud.authApi && N.cloud.authApi.browserPopupRedirectResolver ? "sí" : "no"),
       "usuario: " + (user ? ((user.email || "") + " " + user.uid + (user.isAnonymous ? " (anónimo)" : "")) : "ninguno"),
       "modo: " + N.modo + " · estado: " + N.estado + " · sync: " + N.sync + " · lista: " + (N.listo ? "sí" : "no"),
+      "caché: " + (N.cacheTipo || "?") + " · en vuelo: " + Object.keys(N.enVuelo).length,
       "pendientes: " + (S.db ? pendientes().length : 0),
       "último error: " + lastTxt
     ];
@@ -4126,6 +4210,9 @@ var FIREBASE_CONFIG = {
   }
   function pantallaNube() {
     if (N.modo !== "cloud") return "";
+    if (N.errorCarga && (N.estado === "iniciando" || N.verificando || N.usuario)) {
+      return '<div class="card login-card">' + marca() + '<h2>No se pudo abrir</h2><div class="alert bad">' + esc(N.errorCarga) + '</div><button type="button" class="btn" data-act="nube-reintentar">Reintentar</button>' + (N.usuario ? '<button type="button" class="btn-ghost" data-act="salir">Usar otra cuenta</button>' : "") + htmlDiag() + "</div>";
+    }
     if (N.estado === "iniciando" || N.verificando) {
       return '<div class="card login-card">' + marca() + '<h2>Abriendo…</h2><p class="sub">Conectando con la nube.</p>' + htmlDiag() + "</div>";
     }
@@ -4193,7 +4280,13 @@ var FIREBASE_CONFIG = {
     if (act === "login") { entrarMail(); return true; }
     if (act === "salir") { salir(); return true; }
     if (act === "bajar-antes-nube") { bajarAntesNube(); return true; }
-    if (act === "nube-reintentar") { N.estado = "iniciando"; limpiarError(); render(); prepararNube(); return true; }
+    if (act === "nube-reintentar") {
+      N.errorCarga = "";
+      limpiarError();
+      if (N.cloud.auth) { N.modo = "cloud"; alCambiarUsuario(N.cloud.auth.currentUser); }
+      else { N.estado = "iniciando"; render(); prepararNube(); }
+      return true;
+    }
     return false;
   }
 
