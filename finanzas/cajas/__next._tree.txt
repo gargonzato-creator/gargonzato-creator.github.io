@@ -4,4 +4,4 @@
 :HL["/finanzas/_next/static/media/edb99fec956915f8-s.p.32sris142tqlb.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":"cajas","h":96,"c":"$Q2"}]]
-0:{"b":"Y91tHYd-62qwIHlDw29cz","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+0:{"b":"XR25G4QmhypQIbEfLn84V","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
