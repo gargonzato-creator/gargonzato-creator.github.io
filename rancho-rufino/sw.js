@@ -1,4 +1,4 @@
-const CACHE = "rufino-shell-v5";
+const CACHE = "rufino-shell-v6";
 const BASE = new URL(self.registration.scope).pathname;
 
 function url(path) {
@@ -42,6 +42,8 @@ async function networkFirst(request) {
 
 self.addEventListener("fetch", (event) => {
   const requestUrl = new URL(event.request.url);
+  if (requestUrl.pathname.includes("/__/auth")) return;
+  if (requestUrl.hostname.endsWith("firebaseapp.com") || requestUrl.hostname.endsWith("googleapis.com") || requestUrl.hostname.endsWith("google.com")) return;
   if (requestUrl.origin !== self.location.origin) return;
   if (!requestUrl.pathname.startsWith(BASE.replace(/\/$/, "") || "/")) return;
   if (event.request.method !== "GET") return;
