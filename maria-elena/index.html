@@ -1880,6 +1880,7 @@ var FIREBASE_CONFIG = {
     modo: "local",
     usuario: null,
     error: "",
+    errorCodigo: "",
     nubeEstado: "",
     errorNube: "",
     sinPermiso: false,
@@ -2258,7 +2259,10 @@ var FIREBASE_CONFIG = {
   function pantallaLogin() {
     var html = '<div class="login-card"><div class="brand"><img class="brand-logo" src="logo-header.png" width="46" height="46" alt=""><div><h1>Cabaña María Elena</h1><p>Coronel Oviedo · Dorper</p></div></div>';
     html += '<h2>Entrar</h2><p class="sub">Con tu cuenta queda una copia en la nube. Después podés cargar datos aunque no haya señal.</p>';
-    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    if (S.error) {
+      html += '<div class="error">' + esc(S.error) + "</div>";
+      if (S.errorCodigo) html += '<p class="login-uid">código: ' + esc(S.errorCodigo) + "</p>";
+    }
     html += '<button type="button" class="btn-google" data-act="login-google">Entrar con Google</button>';
     if (!S.b.loginMail) {
       html += '<button type="button" class="btn-mail-sec" data-act="login-mail">Entrar con correo y contraseña</button>';
@@ -3398,7 +3402,7 @@ var FIREBASE_CONFIG = {
       return pintar();
     }
     if (act === "login-google") return entrarGoogle();
-    if (act === "login-mail") { S.b.loginMail = true; S.error = ""; return pintar(); }
+    if (act === "login-mail") { S.b.loginMail = true; S.error = ""; S.errorCodigo = ""; return pintar(); }
     if (act === "login") return entrar();
     if (act === "empezar-caravanas") {
       if (!S.b.sexo || !S.b.categoria) { S.error = "Elegí sexo y categoría."; return pintar(); }
@@ -3849,51 +3853,61 @@ var FIREBASE_CONFIG = {
     if (c === "auth/user-not-found" || c === "auth/wrong-password" || c === "auth/invalid-credential") return "Correo o contraseña incorrectos.";
     if (c === "auth/too-many-requests") return "Demasiados intentos. Probá en un rato.";
     if (c === "auth/network-request-failed") return "Sin conexión. Probá cuando haya señal.";
-    if (c === "auth/popup-closed-by-user") return "";
+    if (c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request") return "";
+    if (c === "auth/popup-blocked") return "El navegador bloqueó la ventana de Google. Permití ventanas emergentes y probá de nuevo.";
+    if (c === "auth/unauthorized-domain") return "Este dominio no está autorizado en Firebase.";
+    if (c === "auth/operation-not-supported-in-this-environment") return "Este navegador no pudo abrir la ventana de Google.";
     return "No se pudo entrar. Probá de nuevo.";
   }
 
-  function esAppPantallaInicio() {
-    try {
-      if (window.navigator.standalone === true) return true;
-      if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) return true;
-    } catch (e) {}
-    return false;
+  function mostrarErrorAuth(err) {
+    var msg = mensajeAuth(err);
+    S.error = msg || "";
+    S.errorCodigo = err && err.code ? String(err.code) : "";
+    if (!S.error && S.errorCodigo) S.error = "No se pudo entrar. Probá de nuevo.";
+    var btn = document.querySelector('[data-act="login-google"]');
+    if (btn) btn.disabled = false;
+    if (S.error) pintar();
   }
 
   function debeUsarRedirect(err) {
     var c = err && err.code ? String(err.code) : "";
-    if (c === "auth/popup-blocked" || c === "auth/operation-not-supported-in-this-environment" || c === "auth/web-storage-unsupported") return true;
-    if (c === "auth/cancelled-popup-request") return true;
-    if (c === "auth/popup-closed-by-user" && esAppPantallaInicio()) return true;
-    return false;
+    return c === "auth/popup-blocked";
   }
 
   function entrar() {
-    if (!cloud.auth || !cloud.authApi) { S.error = "La nube no está lista."; return pintar(); }
+    if (!cloud.auth || !cloud.authApi) { S.error = "La nube no está lista."; S.errorCodigo = ""; return pintar(); }
     var email = String(S.b.email || "").trim();
     var clave = S.b.clave || "";
-    if (!email || !clave) { S.error = "Escribí el correo y la contraseña."; return pintar(); }
+    if (!email || !clave) { S.error = "Escribí el correo y la contraseña."; S.errorCodigo = ""; return pintar(); }
     S.error = "";
+    S.errorCodigo = "";
     pintar();
     cloud.authApi.signInWithEmailAndPassword(cloud.auth, email, clave).catch(function (err) {
-      S.error = mensajeAuth(err) || "Correo o contraseña incorrectos.";
-      pintar();
+      mostrarErrorAuth(err);
     });
   }
 
   function entrarGoogle() {
-    if (!cloud.auth || !cloud.authApi) { S.error = "La nube no está lista."; return pintar(); }
+    if (!cloud.auth || !cloud.authApi || !cloud.authApi.signInWithPopup) {
+      S.error = "La nube no está lista.";
+      S.errorCodigo = "";
+      return pintar();
+    }
     S.error = "";
-    pintar();
+    S.errorCodigo = "";
+    var btn = document.querySelector('[data-act="login-google"]');
+    if (btn) btn.disabled = true;
     var provider = new cloud.authApi.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
-    cloud.authApi.signInWithPopup(cloud.auth, provider).catch(function (err) {
+    var resolver = cloud.authApi.browserPopupRedirectResolver;
+    cloud.authApi.signInWithPopup(cloud.auth, provider, resolver).catch(function (err) {
       if (debeUsarRedirect(err)) {
-        return cloud.authApi.signInWithRedirect(cloud.auth, provider);
+        return cloud.authApi.signInWithRedirect(cloud.auth, provider, resolver).catch(function (err2) {
+          mostrarErrorAuth(err2 || err);
+        });
       }
-      var msg = mensajeAuth(err);
-      if (msg) { S.error = msg; pintar(); }
+      mostrarErrorAuth(err);
     });
   }
 
@@ -3994,7 +4008,8 @@ var FIREBASE_CONFIG = {
       var auth;
       try {
         auth = authMod.initializeAuth(app, {
-          persistence: [authMod.indexedDBLocalPersistence, authMod.browserLocalPersistence]
+          persistence: [authMod.indexedDBLocalPersistence, authMod.browserLocalPersistence],
+          popupRedirectResolver: authMod.browserPopupRedirectResolver
         });
       } catch (e) {
         auth = authMod.getAuth(app);
@@ -4018,9 +4033,9 @@ var FIREBASE_CONFIG = {
       S.nubeEstado = "lista";
       return authMod.getRedirectResult(auth).catch(function (err) {
         var c = err && err.code ? String(err.code) : "";
-        if (c === "auth/account-exists-with-different-credential" || c === "auth/credential-already-in-use" || c === "auth/user-disabled") {
-          var msg = mensajeAuth(err);
-          if (msg) S.error = msg;
+        if (c && c !== "auth/no-auth-event") {
+          S.error = mensajeAuth(err) || "No se pudo terminar el ingreso.";
+          S.errorCodigo = c;
         }
       }).then(function () {
         authMod.onAuthStateChanged(auth, function (user) {
