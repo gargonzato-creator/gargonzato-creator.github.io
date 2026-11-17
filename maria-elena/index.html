@@ -142,6 +142,10 @@ input:focus, select:focus, textarea:focus { outline: 4px solid #e2b15a; }
   object-fit: cover;
   background: #000;
 }
+
+.grupo-prod { margin: 12px 0 4px; font-size: 18px; }
+.chip-prod { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; }
+.chip-prod small { display: block; font-weight: 650; font-size: 15px; opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -301,15 +305,166 @@ var FIREBASE_CONFIG = {
     return null;
   }
 
+  var GRUPOS_PRODUCTO = [
+    { id: "antiparasitarios", nombre: "Antiparasitarios" },
+    { id: "vacunas", nombre: "Vacunas" },
+    { id: "vitaminas", nombre: "Vitaminas y minerales" },
+    { id: "antibioticos", nombre: "Antibióticos" },
+    { id: "otros", nombre: "Otros" }
+  ];
+
   function productosIniciales() {
     return [
-      { id: "albendazol", nombre: "Albendazol", via: "oral", retiroDias: 7, motivo: "desparasitacion" },
-      { id: "levamisol", nombre: "Levamisol", via: "oral", retiroDias: 3, motivo: "desparasitacion" },
-      { id: "doramectina", nombre: "Doramectina", via: "inyectable", retiroDias: 35, motivo: "desparasitacion" },
-      { id: "ivermectina", nombre: "Ivermectina", via: "inyectable", retiroDias: 21, motivo: "desparasitacion" },
-      { id: "praziquantel", nombre: "Praziquantel", via: "oral", retiroDias: 7, motivo: "desparasitacion" },
-      { id: "oligin", nombre: "Oligin", via: "inyectable", retiroDias: 0, motivo: "curacion" },
-      { id: "clostridial", nombre: "Vacuna clostridial", via: "inyectable", retiroDias: 0, motivo: "vacuna-clostridial" }
+      { id: "abamek-1", nombre: "Abamek 1%", principio: "Abamectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "acarmic-amitraz-12-5", nombre: "Acarmic (Amitraz 12,5%)", principio: "Amitraz 12,5%", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "amitek", nombre: "Amitek", principio: "Amitraz", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "avamek", nombre: "Avamek", principio: "Abamectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "bertac", nombre: "Bertac", principio: "", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "bioxan", nombre: "Bioxan", principio: "", grupo: "antiparasitarios", via: "oral", motivo: "desparasitacion", retiroDias: "" },
+      { id: "bonlam", nombre: "Bonlam", principio: "Albendazol", grupo: "antiparasitarios", via: "oral", motivo: "desparasitacion", retiroDias: "" },
+      { id: "bovecto-pour-on", nombre: "Bovecto Pour-On", principio: "", grupo: "antiparasitarios", via: "pour-on", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "butox", nombre: "Butox", principio: "Deltametrina", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "cacique", nombre: "Cacique", principio: "", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "closantek", nombre: "Closantek", principio: "Closantel", grupo: "antiparasitarios", via: "oral", motivo: "desparasitacion", retiroDias: "" },
+      { id: "closforte-12", nombre: "Closforte 12", principio: "Closantel", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "cooper-farvig-n-f", nombre: "Cooper Farvig N.F.", principio: "", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "dectomax", nombre: "Dectomax", principio: "Doramectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "doramectina-lasca-1", nombre: "Doramectina Lasca 1%", principio: "Doramectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "ectofly-pour-on", nombre: "Ectofly Pour On", principio: "", grupo: "antiparasitarios", via: "pour-on", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "ectoline-pour-on", nombre: "Ectoline Pour-On", principio: "", grupo: "antiparasitarios", via: "pour-on", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "ectoline-spray", nombre: "Ectoline Spray", principio: "", grupo: "antiparasitarios", via: "otra", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "ectonil-pour-on", nombre: "Ectonil Pour-On", principio: "", grupo: "antiparasitarios", via: "pour-on", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "epmox", nombre: "Epmox", principio: "", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "farvigsel", nombre: "Farvigsel", principio: "", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "fipecto", nombre: "Fipecto", principio: "Fipronil", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "fiprok", nombre: "Fiprok", principio: "Fipronil", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "fluamax", nombre: "Fluamax", principio: "", grupo: "antiparasitarios", via: "pour-on", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "fosfamisol-m-v", nombre: "Fosfamisol M.V.", principio: "Levamisol", grupo: "antiparasitarios", via: "oral", motivo: "desparasitacion", retiroDias: "" },
+      { id: "galmetrin-plus", nombre: "Galmetrin Plus", principio: "", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "iverm-1", nombre: "Iverm 1%", principio: "Ivermectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "iverm-la", nombre: "Iverm LA", principio: "Ivermectina LA", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "ivermectina-1-ja", nombre: "Ivermectina 1% JA", principio: "Ivermectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "ivermek-1", nombre: "Ivermek 1%", principio: "Ivermectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "ivermek-pora-ade", nombre: "Ivermek Pora ADE", principio: "Ivermectina + ADE", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "ivermek-power", nombre: "Ivermek Power", principio: "Ivermectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "ivermic-ade", nombre: "Ivermic ADE", principio: "Ivermectina + ADE", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "ivervet-premium", nombre: "Ivervet Premium", principio: "Ivermectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "ivomec", nombre: "Ivomec", principio: "Ivermectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "mectimax-gold-3-15", nombre: "Mectimax Gold 3,15%", principio: "Ivermectina 3,15%", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "pour-on-thion-c-15", nombre: "Pour On Thion C 15%", principio: "", grupo: "antiparasitarios", via: "pour-on", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "promectina-plus-3-15", nombre: "Promectina Plus 3,15", principio: "Ivermectina 3,15%", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "ranger-1", nombre: "Ranger 1%", principio: "Ivermectina", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "ricol-15", nombre: "Ricol 15%", principio: "Ricobendazol", grupo: "antiparasitarios", via: "oral", motivo: "desparasitacion", retiroDias: "" },
+      { id: "tickill-plus", nombre: "Tickill Plus", principio: "", grupo: "antiparasitarios", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "valvermisol", nombre: "Valvermisol", principio: "Levamisol", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "valvermisol-plus", nombre: "Valvermisol Plus", principio: "Levamisol", grupo: "antiparasitarios", via: "inyectable", motivo: "desparasitacion", retiroDias: "" },
+      { id: "carbuman", nombre: "Carbuman", principio: "Carbunco", grupo: "vacunas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "carbusan", nombre: "Carbusan", principio: "Carbunco", grupo: "vacunas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "clostrisan", nombre: "Clostrisan", principio: "Clostridial", grupo: "vacunas", via: "inyectable", motivo: "vacuna-clostridial", retiroDias: "" },
+      { id: "clostrisan-11", nombre: "Clostrisan 11", principio: "Clostridial", grupo: "vacunas", via: "inyectable", motivo: "vacuna-clostridial", retiroDias: "" },
+      { id: "rabatvac", nombre: "Rabatvac", principio: "Rabia", grupo: "vacunas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "raivacel", nombre: "Raivacel", principio: "Rabia", grupo: "vacunas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "vacuna-clostridial-10p", nombre: "Vacuna Clostridial 10P", principio: "Clostridial", grupo: "vacunas", via: "inyectable", motivo: "vacuna-clostridial", retiroDias: "" },
+      { id: "vacuna-clostridial-providean", nombre: "Vacuna Clostridial Providean", principio: "Clostridial", grupo: "vacunas", via: "inyectable", motivo: "vacuna-clostridial", retiroDias: "" },
+      { id: "vacuna-entero-plus-7", nombre: "Vacuna Entero Plus 7", principio: "Enterotoxemia / clostridial", grupo: "vacunas", via: "inyectable", motivo: "vacuna-clostridial", retiroDias: "" },
+      { id: "vacuna-lepto-8", nombre: "Vacuna Lepto 8", principio: "Leptospirosis", grupo: "vacunas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "vencosat-antitetanico", nombre: "Vencosat Antitetánico", principio: "Tétanos", grupo: "vacunas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "aminoacidos-ale-bet", nombre: "Aminoácidos Ale-Bet", principio: "Aminoácidos", grupo: "vitaminas", via: "oral", motivo: "otro", retiroDias: "" },
+      { id: "acido-folico-sj", nombre: "Ácido fólico SJ", principio: "Ácido fólico", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "aspartato", nombre: "Aspartato", principio: "", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "b-complex", nombre: "B Complex", principio: "Complejo B", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "b12-chinfield", nombre: "B12 Chinfield", principio: "Vitamina B12", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "bifetacel", nombre: "Bifetacel", principio: "Fósforo / vitaminas", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "bioanemin-b12", nombre: "Bioanemin B12", principio: "Vitamina B12", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "borogluconato-de-calcio", nombre: "Borogluconato de calcio", principio: "Calcio", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "calcio-50-vaca-caida", nombre: "Calcio 50 Vaca Caída", principio: "Calcio", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "chinfood-fuerte", nombre: "Chinfood Fuerte", principio: "", grupo: "vitaminas", via: "oral", motivo: "otro", retiroDias: "" },
+      { id: "cofolic-a", nombre: "Cofolic A", principio: "Ácido fólico", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "complejo-b-8-inyectable", nombre: "Complejo B-8 inyectable", principio: "Complejo B", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "eleval-ovinos", nombre: "Eleval Ovinos", principio: "", grupo: "vitaminas", via: "oral", motivo: "otro", retiroDias: "" },
+      { id: "esselem-oral", nombre: "Essele Oral", principio: "", grupo: "vitaminas", via: "oral", motivo: "otro", retiroDias: "" },
+      { id: "extracto-de-higado", nombre: "Extracto de hígado", principio: "", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "ferron-b12", nombre: "Ferron B12", principio: "Hierro + B12", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "galmevit-b12", nombre: "Galmevit B12", principio: "Vitamina B12", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "glucalcit", nombre: "Glucalcit", principio: "Calcio / glucosa", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "gordurant", nombre: "Gordurant", principio: "", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "gordurant-plus", nombre: "Gordurant Plus", principio: "", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "hematover-plus", nombre: "Hematover Plus", principio: "", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "hemofort", nombre: "Hemofort", principio: "", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "hemotonico-b12", nombre: "Hemotónico B12", principio: "Vitamina B12", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "hemovet", nombre: "Hemovet", principio: "", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "heptofer-b-compuesto", nombre: "Heptofer B Compuesto", principio: "", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "irondel-plus", nombre: "Irondel Plus", principio: "Hierro", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "layocal-plus", nombre: "Layocal Plus", principio: "Calcio", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "magnecal-plus-zing", nombre: "Magnecal Plus Zing", principio: "Calcio / magnesio", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "multicalcio-reforzado", nombre: "Multicalcio Reforzado", principio: "Calcio", grupo: "vitaminas", via: "oral", motivo: "otro", retiroDias: "" },
+      { id: "oli-vit-se", nombre: "Oli-Vit SE", principio: "Vitaminas + selenio", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "olivitasan", nombre: "Olivitasan", principio: "Vitaminas / minerales", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "olivitasan-plus", nombre: "Olivitasan Plus", principio: "Vitaminas / minerales", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "selfos-plus", nombre: "Selfos Plus", principio: "", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "stimovit-ade", nombre: "Stimovit ADE", principio: "Vitaminas ADE", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "valle-calcio", nombre: "Valle Calcio", principio: "Calcio", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "vit-ade", nombre: "Vit ADE", principio: "Vitaminas ADE", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "vit-ade-calbos", nombre: "Vit ADE Calbos", principio: "Vitaminas ADE", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "vitaminas-y-minerales", nombre: "Vitaminas y minerales", principio: "Vitaminas / minerales", grupo: "vitaminas", via: "oral", motivo: "otro", retiroDias: "" },
+      { id: "yodacalcio-b12", nombre: "Yodacalcio B12", principio: "Calcio + B12", grupo: "vitaminas", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "cef-50-mg", nombre: "Cef 50 mg", principio: "Ceftiofur", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "ceftiofur-over", nombre: "Ceftiofur Over", principio: "Ceftiofur", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "ceftiofur-rj", nombre: "Ceftiofur RJ", principio: "Ceftiofur", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "cursotril", nombre: "Cursotril", principio: "", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "gemicin-100", nombre: "Gemicin 100", principio: "Gentamicina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "gemicin-spray", nombre: "Gemicin Spray", principio: "Gentamicina", grupo: "antibioticos", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "gentamicina-rj-40", nombre: "Gentamicina RJ 40", principio: "Gentamicina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "gentopen-20-millones", nombre: "Gentopen 20 millones", principio: "Penicilina + gentamicina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "hefrotrim", nombre: "Hefrotrim", principio: "", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "lhifloxacina", nombre: "Lhifloxacina", principio: "", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "lhifloxacina-plus-t", nombre: "Lhifloxacina Plus T", principio: "", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "oleopen-3-000-000", nombre: "Oleopen 3.000.000", principio: "Penicilina oleosa", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "overbiotic", nombre: "Overbiotic", principio: "", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "oxiclina-plus", nombre: "Oxiclina Plus", principio: "Oxitetraciclina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "oximed-plus", nombre: "Oximed Plus", principio: "Oxitetraciclina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "oxitetraciclina-vit", nombre: "Oxitetraciclina Vit", principio: "Oxitetraciclina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "oxitrat-la-plus", nombre: "Oxitrat LA Plus", principio: "Oxitetraciclina LA", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "penicilina-oleosa", nombre: "Penicilina oleosa", principio: "Penicilina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "pentagal-reforzado-6-000-000", nombre: "Pentagal Reforzado 6.000.000", principio: "Penicilina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "pentagal-reforzado-12-000-000", nombre: "Pentagal Reforzado 12.000.000", principio: "Penicilina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "silverbac", nombre: "Silverbac", principio: "", grupo: "antibioticos", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "sulfatrop", nombre: "Sulfatrop", principio: "Sulfas", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "terracam-plus", nombre: "Terracam Plus", principio: "Oxitetraciclina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "terracortril-spray", nombre: "Terracortril Spray", principio: "", grupo: "antibioticos", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "terramicina", nombre: "Terramicina", principio: "Oxitetraciclina", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "terramicina-la", nombre: "Terramicina LA", principio: "Oxitetraciclina LA", grupo: "antibioticos", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "analgesica-cume", nombre: "Analgésica Cume", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "aut-pietin", nombre: "Aut Pietín", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "azul-de-metileno", nombre: "Azul de metileno", principio: "Azul de metileno", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "bactrovet-pasta", nombre: "Bactrovet Pasta", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "bactrovet-plata-aerosol", nombre: "Bactrovet Plata Aerosol", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "bicheron-pour-on", nombre: "Bicheron Pour On", principio: "", grupo: "otros", via: "pour-on", motivo: "curacion", retiroDias: "" },
+      { id: "cidental", nombre: "Cidental", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "cidental-ung-ento", nombre: "Cidental Ungüento", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "creolina-be", nombre: "Creolina BE", principio: "", grupo: "otros", via: "bano", motivo: "ectoparasitos", retiroDias: "" },
+      { id: "curapezunas-over", nombre: "Curapezuñas Over", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "desalgina", nombre: "Desalgina", principio: "", grupo: "otros", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "dexagal", nombre: "Dexagal", principio: "Dexametasona", grupo: "otros", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "diclofenaco", nombre: "Diclofenaco", principio: "Diclofenaco", grupo: "otros", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "diclotril", nombre: "Diclotril", principio: "Diclofenaco", grupo: "otros", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "diclovan", nombre: "Diclovan", principio: "Diclofenaco", grupo: "otros", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "diclvet", nombre: "Diclvet", principio: "Diclofenaco", grupo: "otros", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "dipirona-over", nombre: "Dipirona Over", principio: "Dipirona", grupo: "otros", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "flogidem", nombre: "Flogidem", principio: "", grupo: "otros", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "flumeg", nombre: "Flumeg", principio: "Flunixin", grupo: "otros", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "flunimin", nombre: "Flunimin", principio: "Flunixin", grupo: "otros", via: "inyectable", motivo: "curacion", retiroDias: "" },
+      { id: "iodopovidona-10", nombre: "Iodopovidona 10%", principio: "Iodopovidona", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "kill-ag-plata", nombre: "Kill Ag Plata", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "larvitex-pomada", nombre: "Larvitex Pomada", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "matabichera-fort-dodge", nombre: "Matabichera Fort Dodge", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "nopietin", nombre: "Nopietin", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "solucion-fisiologica", nombre: "Solución fisiológica", principio: "", grupo: "otros", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "suero-galmevit", nombre: "Suero Galmevit", principio: "", grupo: "otros", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "suero-glucosado", nombre: "Suero glucosado", principio: "Glucosa", grupo: "otros", via: "inyectable", motivo: "otro", retiroDias: "" },
+      { id: "tintura-de-iodo-5", nombre: "Tintura de iodo 5%", principio: "Iodo", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "tintura-de-iodo-10", nombre: "Tintura de iodo 10%", principio: "Iodo", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" },
+      { id: "umbicura", nombre: "Umbicura", principio: "", grupo: "otros", via: "otra", motivo: "curacion", retiroDias: "" }
     ].map(function (p) {
       var ahora = new Date().toISOString();
       p.deleted = false;
@@ -319,6 +474,38 @@ var FIREBASE_CONFIG = {
       p.createdBy = "";
       return p;
     });
+  }
+
+  var PRODUCTOS_VIEJOS = {
+    albendazol: "Albendazol",
+    levamisol: "Levamisol",
+    doramectina: "Doramectina",
+    ivermectina: "Ivermectina",
+    praziquantel: "Praziquantel",
+    oligin: "Oligin",
+    clostridial: "Vacuna clostridial"
+  };
+
+  function actualizarCatalogoProductos(existentes) {
+    var lista = (existentes || []).slice();
+    var porId = {};
+    lista.forEach(function (p) { porId[p.id] = p; });
+    var catalogo = productosIniciales();
+    catalogo.forEach(function (p) {
+      if (!porId[p.id]) {
+        lista.push(p);
+        porId[p.id] = p;
+      }
+    });
+    var ahora = new Date().toISOString();
+    lista.forEach(function (p) {
+      var original = PRODUCTOS_VIEJOS[p.id];
+      if (original && !p.deleted && p.nombre === original) {
+        p.deleted = true;
+        p.deletedAt = ahora;
+      }
+    });
+    return lista;
   }
 
   function crearBase() {
@@ -718,6 +905,8 @@ var FIREBASE_CONFIG = {
     TIPOS_LUGAR: TIPOS_LUGAR,
     MOTIVOS: MOTIVOS,
     VIAS: VIAS,
+    GRUPOS_PRODUCTO: GRUPOS_PRODUCTO,
+    actualizarCatalogoProductos: actualizarCatalogoProductos,
     CAUSAS: CAUSAS,
     TIPOS_PARTO: TIPOS_PARTO,
     nombreDe: nombreDe,
@@ -779,6 +968,7 @@ var FIREBASE_CONFIG = {
       if (!db.potreros) db.potreros = [];
       if (!db.lotes) db.lotes = [];
       if (!db.productos || !db.productos.length) db.productos = L.productosIniciales();
+      else db.productos = L.actualizarCatalogoProductos(db.productos);
       if (!db.recordatorios) db.recordatorios = [];
       if (!db.prefs) db.prefs = L.crearBase().prefs;
       return db;
@@ -2040,14 +2230,56 @@ var FIREBASE_CONFIG = {
     return html;
   }
 
+
+  function htmlProductos(q, elegido) {
+    var query = String(q || "").trim().toLowerCase();
+    var vivos = productosVivos();
+    var html = "";
+    var grupos = (L.GRUPOS_PRODUCTO || []).slice();
+    var usados = {};
+    grupos.forEach(function (g) {
+      var lista = vivos.filter(function (p) {
+        if ((p.grupo || "otros") !== g.id) return false;
+        usados[p.id] = true;
+        if (!query) return true;
+        var blob = (p.nombre + " " + (p.principio || "") + " " + g.nombre).toLowerCase();
+        return blob.indexOf(query) >= 0;
+      });
+      if (!lista.length) return;
+      html += '<h3 class="grupo-prod">' + esc(g.nombre) + "</h3><div class=\"chips\">";
+      lista.forEach(function (p) {
+        html += '<button type="button" class="chip chip-prod' + (elegido === p.id ? " on" : "") + '" data-act="elegir-producto" data-id="' + esc(p.id) + '"><span>' + esc(p.nombre) + "</span>";
+        if (p.principio) html += "<small>" + esc(p.principio) + "</small>";
+        html += "</button>";
+      });
+      html += "</div>";
+    });
+    var extras = vivos.filter(function (p) {
+      if (usados[p.id]) return false;
+      if (!query) return true;
+      var blob = (p.nombre + " " + (p.principio || "")).toLowerCase();
+      return blob.indexOf(query) >= 0;
+    });
+    if (extras.length) {
+      html += '<h3 class="grupo-prod">Tus productos</h3><div class="chips">';
+      extras.forEach(function (p) {
+        html += '<button type="button" class="chip chip-prod' + (elegido === p.id ? " on" : "") + '" data-act="elegir-producto" data-id="' + esc(p.id) + '"><span>' + esc(p.nombre) + "</span>";
+        if (p.principio) html += "<small>" + esc(p.principio) + "</small>";
+        html += "</button>";
+      });
+      html += "</div>";
+    }
+    if (!html) html = '<div class="card"><p>No hay un producto con esa búsqueda. Probá otra palabra o cargalo en «Otro producto».</p></div>';
+    return html;
+  }
+
   function pantallaSanidad() {
     var html = "<h2>Sanidad</h2>";
     html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
     html += "<h3>Motivo</h3>" + chips(L.MOTIVOS.map(function (m) { return [m.id, m.nombre]; }), "motivo");
     html += "<h3>Producto</h3>";
-    productosVivos().forEach(function (p) {
-      html += '<button type="button" class="chip' + (S.b.productoId === p.id ? " on" : "") + '" data-act="elegir-producto" data-id="' + esc(p.id) + '">' + esc(p.nombre) + "</button>";
-    });
+    html += '<label class="f">Buscar producto<input data-bind="productoQ" data-live="1" value="' + esc(S.b.productoQ || "") + '" placeholder="Nombre o principio"></label>';
+    html += htmlProductos(S.b.productoQ, S.b.productoId);
     html += '<label class="f">Otro producto<input data-bind="productoNombre" value="' + esc(S.b.productoNombre || "") + '"></label>';
     html += '<label class="f">Dosis<input data-bind="dosis" value="' + esc(S.b.dosis || "") + '" placeholder="Ej. 2 ml"></label>';
     html += "<h3>Vía</h3>" + chips(L.VIAS.map(function (v) { return [v.id, v.nombre]; }), "via");
@@ -2266,7 +2498,7 @@ var FIREBASE_CONFIG = {
   function pantallaProductos() {
     var html = "<h2>Productos</h2><p class=\"sub\">Los días de retiro salen del marbete. Cambialos si hace falta.</p>";
     productosVivos().forEach(function (p) {
-      html += '<button type="button" class="rowbtn" data-act="editar-producto" data-id="' + esc(p.id) + '">' + esc(p.nombre) + "<small>Retiro " + esc(p.retiroDias || 0) + " días</small></button>";
+      html += '<button type="button" class="rowbtn" data-act="editar-producto" data-id="' + esc(p.id) + '">' + esc(p.nombre) + "<small>" + ((p.principio ? esc(p.principio) + " · " : "") + (p.retiroDias === "" || p.retiroDias == null ? "Retiro no cargado" : ("Retiro " + esc(p.retiroDias) + " días"))) + "</small></button>";
     });
     html += '<button type="button" class="btn" data-act="ir" data-screen="producto-edit" data-fresh="1">Agregar producto</button>';
     return html;
@@ -2277,7 +2509,7 @@ var FIREBASE_CONFIG = {
     html += '<label class="f">Nombre<input data-bind="nombre" data-focus="1" value="' + esc(S.b.nombre || "") + '"></label>';
     html += "<h3>Vía</h3>" + chips(L.VIAS.map(function (v) { return [v.id, v.nombre]; }), "via");
     html += "<h3>Uso habitual</h3>" + chips(L.MOTIVOS.map(function (m) { return [m.id, m.nombre]; }), "motivo");
-    html += '<label class="f">Días de retiro<input inputmode="numeric" data-bind="retiroDias" value="' + esc(S.b.retiroDias == null ? "0" : S.b.retiroDias) + '"></label>';
+    html += '<label class="f">Días de retiro<input inputmode="numeric" data-bind="retiroDias" value="' + esc(S.b.retiroDias == null || S.b.retiroDias === "" ? "" : S.b.retiroDias) + '"></label>';
     html += '<button type="button" class="btn" data-act="guardar-producto">Guardar</button>';
     return html;
   }
@@ -2808,7 +3040,7 @@ var FIREBASE_CONFIG = {
       S.b.productoId = prod.id;
       S.b.productoNombre = "";
       S.b.via = prod.via;
-      S.b.retiroDias = String(prod.retiroDias || 0);
+      S.b.retiroDias = (prod.retiroDias === "" || prod.retiroDias == null) ? "" : String(prod.retiroDias);
       if (prod.motivo) S.b.motivo = prod.motivo;
       return pintar();
     }
@@ -2868,7 +3100,7 @@ var FIREBASE_CONFIG = {
     if (act === "guardar-producto") return guardarProducto();
     if (act === "editar-producto") {
       var pr = L.porId(S.db.productos, t.getAttribute("data-id"));
-      return ir("producto-edit", { id: pr.id, nombre: pr.nombre, via: pr.via, motivo: pr.motivo, retiroDias: String(pr.retiroDias || 0) });
+      return ir("producto-edit", { id: pr.id, nombre: pr.nombre, via: pr.via, motivo: pr.motivo, retiroDias: (pr.retiroDias === "" || pr.retiroDias == null) ? "" : String(pr.retiroDias) });
     }
     if (act === "guardar-recordatorio") return guardarRecordatorio();
     if (act === "hecho-rec") {
