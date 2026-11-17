@@ -3966,9 +3966,29 @@ var FIREBASE_CONFIG = {
     }
     N.usuario = { uid: user.uid, email: user.email || "" };
     N.sinPermiso = false;
-    N.verificando = true;
     N.estado = "lista";
     N.errorCarga = "";
+    if (lsGet(ACCESO_KEY) === user.uid) {
+      // Permiso ya confirmado antes en este aparato: entra directo (con o sin señal) y se revisa en segundo plano.
+      N.verificando = false;
+      if (vigia) { clearTimeout(vigia); vigia = null; }
+      render();
+      if (lsGet(NUBE_OK_KEY) === user.uid) {
+        N.listo = true;
+        escuchar();
+        empujarPronto();
+      } else primeraSync(user);
+      verificarAcceso(user).then(function (ok) {
+        if (ok || !N.usuario || N.usuario.uid !== user.uid) return;
+        detenerEscucha();
+        N.listo = false;
+        N.sinPermiso = true;
+        lsSet(ACCESO_KEY, "");
+        render();
+      }).catch(function () {});
+      return;
+    }
+    N.verificando = true;
     render();
     armarVigia("permiso");
     verificarAcceso(user).then(function (ok) {
@@ -4151,7 +4171,7 @@ var FIREBASE_CONFIG = {
     if (c === "auth/network-request-failed") return "Sin conexión. Probá cuando haya señal.";
     if (c === "auth/popup-closed-by-user") return "Cerraste la ventana de Google.";
     if (c === "auth/cancelled-popup-request") return "Se canceló la ventana de Google.";
-    if (c === "auth/popup-blocked") return "El navegador bloqueó la ventana de Google. Permití ventanas emergentes y probá de nuevo.";
+    if (c === "auth/popup-blocked") return "El iPhone bloqueó la ventana de Google. Tocá de nuevo «Entrar con Google».";
     if (c === "auth/unauthorized-domain") return "Este dominio no está autorizado en Firebase.";
     if (c === "auth/operation-not-supported-in-this-environment") return "Este navegador no pudo abrir la ventana de Google.";
     return "No se pudo entrar. Probá de nuevo.";
@@ -4188,11 +4208,8 @@ var FIREBASE_CONFIG = {
     provider.setCustomParameters({ prompt: "select_account" });
     var resolver = A.browserPopupRedirectResolver;
     try {
+      // Solo ventana emergente: en iPhone el redirect entre github.io y firebaseapp.com pierde la sesión.
       A.signInWithPopup(N.cloud.auth, provider, resolver).catch(function (err) {
-        if (describirError(err).code === "auth/popup-blocked") {
-          mostrarErrorAuth(err, "popup");
-          return A.signInWithRedirect(N.cloud.auth, provider, resolver).catch(function (err2) { mostrarErrorAuth(err2 || err, "popup"); });
-        }
         mostrarErrorAuth(err, "popup");
       });
     } catch (err) {

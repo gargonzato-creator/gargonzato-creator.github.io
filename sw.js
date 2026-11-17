@@ -1,5 +1,5 @@
 /* Formulador TG (raíz). Solo atiende la raíz; las otras apps (/maria-elena/, /rancho-rufino/, /finanzas/, /inventario/) quedan afuera. */
-const CACHE = "formulador-tg-v9";
+const CACHE = "formulador-tg-v10";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 const SDK = "https://www.gstatic.com/firebasejs/10.14.1/";
 const SDK_FILES = ["firebase-app.js", "firebase-auth.js", "firebase-firestore.js"];
