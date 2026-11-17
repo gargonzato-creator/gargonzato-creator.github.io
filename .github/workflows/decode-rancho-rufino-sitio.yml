@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "rancho-rufino/.publish/sitio.tar.gz.b64"
+      - ".github/pages-payloads/rancho-rufino.tar.gz.b64"
       - ".github/workflows/decode-rancho-rufino-sitio.yml"
   workflow_dispatch:
 
@@ -24,17 +24,17 @@ jobs:
           import base64, io, pathlib, tarfile, shutil
 
           folder = pathlib.Path("rancho-rufino")
-          payload = folder / ".publish" / "sitio.tar.gz.b64"
+          payload = pathlib.Path(".github/pages-payloads/rancho-rufino.tar.gz.b64")
           if not payload.exists():
               raise SystemExit("missing " + str(payload))
           raw = base64.b64decode(payload.read_text().strip())
 
           if folder.exists():
               for p in folder.rglob("*"):
-                  if p.is_file() and ".publish" not in p.parts:
+                  if p.is_file():
                       p.unlink()
               for p in sorted((p for p in folder.rglob("*") if p.is_dir()), reverse=True):
-                  if p == folder or ".publish" in p.parts:
+                  if p == folder:
                       continue
                   try:
                       p.rmdir()
@@ -52,16 +52,18 @@ jobs:
               except TypeError:
                   tf.extractall(folder)
 
-          pub = folder / ".publish"
-          if pub.exists():
-              shutil.rmtree(pub)
+          # drop the payload so it is not kept in the repo
+          try:
+              payload.unlink()
+          except FileNotFoundError:
+              pass
 
           files = [p for p in folder.rglob("*") if p.is_file()]
           print("extracted", len(files), "files into rancho-rufino/")
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A rancho-rufino
+          git add -A rancho-rufino .github/pages-payloads
           if git diff --cached --quiet; then
             echo "No extracted changes to commit"
           else
