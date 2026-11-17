@@ -1,0 +1,43 @@
+name: Decode María Elena icons
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "maria-elena/*.b64"
+      - ".github/workflows/decode-maria-elena-icons.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Decode icons and commit
+        run: |
+          python3 - <<'PY'
+          import base64, pathlib
+          root = pathlib.Path("maria-elena")
+          if not root.exists():
+              raise SystemExit("missing maria-elena/")
+          written = []
+          for src in sorted(root.glob("*.png.b64")):
+              dest = root / src.name[:-4]
+              dest.write_bytes(base64.b64decode(src.read_text().strip()))
+              written.append(f"{dest} {dest.stat().st_size}")
+          print("wrote", written)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add maria-elena/*.png
+          if git diff --cached --quiet; then
+            echo "Icons already committed"
+          else
+            git commit -m "Agrega los PNG decodificados de María Elena"
+            git push
+          fi
