@@ -237,8 +237,25 @@ input:focus, select:focus, textarea:focus { outline: 3px solid var(--gold); bord
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18); max-height: 70dvh; overflow: auto;
 }
 .menu-card h2 { font-size: 26px; margin-bottom: 8px; }
-.login-wrap { min-height: 100dvh; background: var(--black); padding: calc(28px + var(--safe-t)) 16px 24px; }
-.login-card { background: var(--bg); border-radius: 24px; padding: 18px; max-width: 520px; margin: 0 auto; }
+.login-wrap { min-height: 100dvh; background: var(--black); padding: calc(28px + var(--safe-t)) 16px 24px; display: flex; align-items: center; }
+.login-card { background: var(--bg); border-radius: 24px; padding: 22px 18px 20px; max-width: 420px; width: 100%; margin: 0 auto; box-shadow: 0 16px 40px rgba(0,0,0,.35); }
+.login-card .brand { margin-bottom: 16px; }
+.login-card .brand p { color: #8a7350; }
+.btn-google {
+  width: 100%; min-height: 56px; margin: 8px 0 10px; border: 0; border-radius: 16px;
+  background: var(--gold); color: var(--ink); font-weight: 700; font-size: 18px;
+  box-shadow: 0 8px 18px rgba(230,181,90,.28);
+}
+.btn-google:active { transform: scale(0.98); }
+.btn-mail-sec {
+  width: 100%; min-height: 52px; margin: 0 0 8px; border-radius: 16px;
+  background: transparent; border: 1px solid var(--line); color: var(--green);
+  font-weight: 700; font-size: 16px;
+}
+.login-sep { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; margin: 12px 0; }
+.login-sep::before, .login-sep::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.login-uid { margin: 12px 0 16px; font-size: 13px; color: var(--muted); word-break: break-all; line-height: 1.45; }
+.login-uid b { color: var(--ink); font-weight: 700; }
 @media (min-width: 800px) {
   .tiles { grid-template-columns: repeat(3, 1fr); }
   .tile { min-height: 112px; }
@@ -261,12 +278,12 @@ input:focus, select:focus, textarea:focus { outline: 3px solid var(--gold); bord
    Si apiKey queda vacío, la app funciona solo en este aparato.
    ========== */
 var FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyAOFcpSMEp2hsP9FWcc7f_zhyiH4Sm6G2Y",
+  authDomain: "tg-apps-bbde7.firebaseapp.com",
+  projectId: "tg-apps-bbde7",
+  storageBucket: "tg-apps-bbde7.firebasestorage.app",
+  messagingSenderId: "1058376237664",
+  appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 /* ========== FIN FIREBASE ========== */
 (function (root) {
@@ -1865,9 +1882,11 @@ var FIREBASE_CONFIG = {
     error: "",
     nubeEstado: "",
     errorNube: "",
+    sinPermiso: false,
     importPendiente: null
   };
-  var cloud = { fs: null, auth: null };
+  var cloud = { fs: null, auth: null, unsubs: [] };
+  var MIGRA_KEY = "tg-maria-elena-migrado-v1";
   var semilla = {};
 
   function boot() {
@@ -1980,9 +1999,13 @@ var FIREBASE_CONFIG = {
     var app = document.getElementById("app");
     if (!app) return;
     var cuerpo;
-    if (S.modo === "cloud" && !S.usuario) cuerpo = S.nubeEstado === "cargando" ? "<h2>Abriendo…</h2>" : pantallaLogin();
+    if (S.modo === "cloud" && !S.usuario) {
+      cuerpo = S.nubeEstado === "cargando"
+        ? '<div class="login-card"><h2>Abriendo…</h2><p class="sub">Conectando con la cabaña.</p></div>'
+        : pantallaLogin();
+    } else if (S.modo === "cloud" && S.sinPermiso) cuerpo = pantallaSinPermiso();
     else cuerpo = pantalla();
-    var login = S.modo === "cloud" && !S.usuario;
+    var login = S.modo === "cloud" && (!S.usuario || S.sinPermiso);
     app.innerHTML = (login ? "" : barra()) + '<main class="' + (login ? "login-wrap" : "screen") + '">' + (login ? "" : volverHtml()) + cuerpo + "</main>" + (login ? "" : tabBar()) + (S.menu && !login ? menuHtml() : "");
     var foco = document.querySelector("[data-focus]");
     if (foco) foco.focus();
@@ -1991,7 +2014,7 @@ var FIREBASE_CONFIG = {
   function textoSync() {
     if (S.sync === "ok") return "Sincronizado";
     if (S.sync === "pending") return "Pendiente de subir";
-    if (S.sync === "offline") return "Sin señal · se sube después";
+    if (S.sync === "offline") return "Sin conexión";
     return "En este aparato";
   }
 
@@ -2233,11 +2256,31 @@ var FIREBASE_CONFIG = {
   }
 
   function pantallaLogin() {
-    return '<div class="login-card"><div class="brand" style="margin-bottom:14px"><img class="brand-logo" src="logo-header.png" width="46" height="46" alt=""><div><h1>Cabaña María Elena</h1><p style="color:#5c5146">Coronel Oviedo · Dorper</p></div></div><h2>Entrar</h2><p class="sub">Después de la primera vez podés cargar datos sin señal.</p>' +
-      (S.error ? '<div class="error">' + esc(S.error) + "</div>" : "") +
-      '<label class="f">Correo<input type="email" autocomplete="username" data-bind="email" value="' + esc(S.b.email || "") + '" data-focus="1"></label>' +
-      '<label class="f">Contraseña<input type="password" autocomplete="current-password" data-bind="clave" value="' + esc(S.b.clave || "") + '"></label>' +
-      '<button type="button" class="btn" data-act="login">Entrar</button></div>';
+    var html = '<div class="login-card"><div class="brand"><img class="brand-logo" src="logo-header.png" width="46" height="46" alt=""><div><h1>Cabaña María Elena</h1><p>Coronel Oviedo · Dorper</p></div></div>';
+    html += '<h2>Entrar</h2><p class="sub">Con tu cuenta queda una copia en la nube. Después podés cargar datos aunque no haya señal.</p>';
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += '<button type="button" class="btn-google" data-act="login-google">Entrar con Google</button>';
+    if (!S.b.loginMail) {
+      html += '<button type="button" class="btn-mail-sec" data-act="login-mail">Entrar con correo y contraseña</button>';
+    } else {
+      html += '<div class="login-sep">o con correo</div>';
+      html += '<label class="f">Correo<input type="email" autocomplete="username" data-bind="email" value="' + esc(S.b.email || "") + '" data-focus="1"></label>';
+      html += '<label class="f">Contraseña<input type="password" autocomplete="current-password" data-bind="clave" value="' + esc(S.b.clave || "") + '"></label>';
+      html += '<button type="button" class="btn" data-act="login">Entrar</button>';
+    }
+    html += "</div>";
+    return html;
+  }
+
+  function pantallaSinPermiso() {
+    var html = '<div class="login-card"><div class="brand"><img class="brand-logo" src="logo-header.png" width="46" height="46" alt=""><div><h1>Cabaña María Elena</h1><p>Coronel Oviedo · Dorper</p></div></div>';
+    html += "<h2>Sin permiso</h2>";
+    html += '<p class="sub">Tu usuario todavía no tiene permiso. Avisale a Tomás.</p>';
+    html += '<p class="login-uid">';
+    if (S.usuario && S.usuario.email) html += "<b>" + esc(S.usuario.email) + "</b><br>";
+    html += "UID: " + esc(S.usuario && S.usuario.uid ? S.usuario.uid : "") + "</p>";
+    html += '<button type="button" class="btn-mail-sec" data-act="salir">Usar otra cuenta</button></div>';
+    return html;
   }
 
   function estaPrenada(a) {
@@ -3354,6 +3397,8 @@ var FIREBASE_CONFIG = {
       S.pila = [];
       return pintar();
     }
+    if (act === "login-google") return entrarGoogle();
+    if (act === "login-mail") { S.b.loginMail = true; S.error = ""; return pintar(); }
     if (act === "login") return entrar();
     if (act === "empezar-caravanas") {
       if (!S.b.sexo || !S.b.categoria) { S.error = "Elegí sexo y categoría."; return pintar(); }
@@ -3483,8 +3528,11 @@ var FIREBASE_CONFIG = {
       return inicio();
     }
     if (act === "salir") {
-      if (cloud.auth) cloud.auth.signOut();
+      detenerEscucha();
+      S.sinPermiso = false;
       S.usuario = null;
+      S.error = "";
+      if (cloud.signOut) cloud.signOut();
       return pintar();
     }
     if (act === "guardar-producto") return guardarProducto();
@@ -3794,12 +3842,58 @@ var FIREBASE_CONFIG = {
     inicio();
   }
 
+  function mensajeAuth(err) {
+    var c = err && err.code ? String(err.code) : "";
+    if (c === "auth/invalid-email") return "Ese correo no es válido.";
+    if (c === "auth/user-disabled") return "Esa cuenta está deshabilitada.";
+    if (c === "auth/user-not-found" || c === "auth/wrong-password" || c === "auth/invalid-credential") return "Correo o contraseña incorrectos.";
+    if (c === "auth/too-many-requests") return "Demasiados intentos. Probá en un rato.";
+    if (c === "auth/network-request-failed") return "Sin conexión. Probá cuando haya señal.";
+    if (c === "auth/popup-closed-by-user") return "";
+    return "No se pudo entrar. Probá de nuevo.";
+  }
+
+  function esAppPantallaInicio() {
+    try {
+      if (window.navigator.standalone === true) return true;
+      if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  function debeUsarRedirect(err) {
+    var c = err && err.code ? String(err.code) : "";
+    if (c === "auth/popup-blocked" || c === "auth/operation-not-supported-in-this-environment" || c === "auth/web-storage-unsupported") return true;
+    if (c === "auth/cancelled-popup-request") return true;
+    if (c === "auth/popup-closed-by-user" && esAppPantallaInicio()) return true;
+    return false;
+  }
+
   function entrar() {
-    if (!cloud.auth) { S.error = "La nube no está lista."; return pintar(); }
+    if (!cloud.auth || !cloud.authApi) { S.error = "La nube no está lista."; return pintar(); }
+    var email = String(S.b.email || "").trim();
+    var clave = S.b.clave || "";
+    if (!email || !clave) { S.error = "Escribí el correo y la contraseña."; return pintar(); }
     S.error = "";
-    cloud.auth.signInWithEmailAndPassword(String(S.b.email || "").trim(), S.b.clave || "").catch(function () {
-      S.error = "Correo o contraseña incorrectos.";
+    pintar();
+    cloud.authApi.signInWithEmailAndPassword(cloud.auth, email, clave).catch(function (err) {
+      S.error = mensajeAuth(err) || "Correo o contraseña incorrectos.";
       pintar();
+    });
+  }
+
+  function entrarGoogle() {
+    if (!cloud.auth || !cloud.authApi) { S.error = "La nube no está lista."; return pintar(); }
+    S.error = "";
+    pintar();
+    var provider = new cloud.authApi.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    cloud.authApi.signInWithPopup(cloud.auth, provider).catch(function (err) {
+      if (debeUsarRedirect(err)) {
+        return cloud.authApi.signInWithRedirect(cloud.auth, provider);
+      }
+      var msg = mensajeAuth(err);
+      if (msg) { S.error = msg; pintar(); }
     });
   }
 
@@ -3888,23 +3982,46 @@ var FIREBASE_CONFIG = {
   }
 
   function prepararNube(cfg) {
-    cargarScripts([
-      "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js",
-      "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js",
-      "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"
-    ]).then(function () {
-      if (!root.firebase) throw new Error("sin sdk");
-      root.firebase.initializeApp(cfg);
-      cloud.auth = root.firebase.auth();
-      cloud.fs = root.firebase.firestore();
-      cloud.auth.setPersistence(root.firebase.auth.Auth.Persistence.LOCAL).then(function () {
-        return cloud.fs.enablePersistence({ synchronizeTabs: true }).catch(function () {});
+    var v = "10.14.1";
+    var base = "https://www.gstatic.com/firebasejs/" + v + "/";
+    Promise.all([
+      import(base + "firebase-app.js"),
+      import(base + "firebase-auth.js"),
+      import(base + "firebase-firestore.js")
+    ]).then(function (mods) {
+      var appMod = mods[0], authMod = mods[1], fsMod = mods[2];
+      var app = appMod.initializeApp(cfg);
+      var auth;
+      try {
+        auth = authMod.initializeAuth(app, {
+          persistence: [authMod.indexedDBLocalPersistence, authMod.browserLocalPersistence]
+        });
+      } catch (e) {
+        auth = authMod.getAuth(app);
+      }
+      var fs;
+      try {
+        fs = fsMod.initializeFirestore(app, {
+          localCache: fsMod.persistentLocalCache({
+            tabManager: fsMod.persistentMultipleTabManager()
+          })
+        });
+      } catch (e) {
+        fs = fsMod.getFirestore(app);
+      }
+      cloud.app = app;
+      cloud.auth = auth;
+      cloud.fs = fs;
+      cloud.authApi = authMod;
+      cloud.fsApi = fsMod;
+      cloud.signOut = function () { return authMod.signOut(auth).catch(function () {}); };
+      S.nubeEstado = "lista";
+      return authMod.getRedirectResult(auth).catch(function (err) {
+        var msg = mensajeAuth(err);
+        if (msg) S.error = msg;
       }).then(function () {
-        S.nubeEstado = "lista";
-        cloud.auth.onAuthStateChanged(function (user) {
-          S.usuario = user ? { uid: user.uid, email: user.email || "" } : null;
-          if (user) escuchar();
-          pintar();
+        authMod.onAuthStateChanged(auth, function (user) {
+          alCambiarUsuario(user);
         });
       });
     }).catch(function () {
@@ -3916,30 +4033,116 @@ var FIREBASE_CONFIG = {
     });
   }
 
-  function cargarScripts(urls) {
-    var seq = Promise.resolve();
-    urls.forEach(function (url) {
-      seq = seq.then(function () {
-        return new Promise(function (resolve, reject) {
-          var s = document.createElement("script");
-          s.src = url;
-          s.onload = function () { resolve(); };
-          s.onerror = function () { reject(new Error(url)); };
-          document.head.appendChild(s);
+  function alCambiarUsuario(user) {
+    detenerEscucha();
+    if (!user || user.isAnonymous) {
+      S.usuario = user ? { uid: user.uid, email: user.email || "" } : null;
+      S.sinPermiso = !!user;
+      pintar();
+      return;
+    }
+    S.usuario = { uid: user.uid, email: user.email || "" };
+    S.sinPermiso = false;
+    verificarAcceso(user).then(function (ok) {
+      if (!ok) {
+        S.sinPermiso = true;
+        pintar();
+        return;
+      }
+      S.sinPermiso = false;
+      return migrarLocalANube().then(function () {
+        escuchar();
+        pintar();
+      });
+    }).catch(function () {
+      S.sinPermiso = true;
+      pintar();
+    });
+  }
+
+  function verificarAcceso(user) {
+    var FS = cloud.fsApi;
+    var ref = FS.doc(cloud.fs, "accesos", user.uid);
+    return FS.getDoc(ref).then(function (snap) {
+      if (!snap.exists()) return false;
+      var d = snap.data() || {};
+      var apps = d.apps || [];
+      return d.rol === "admin" || (Object.prototype.toString.call(apps) === "[object Array]" && apps.indexOf("maria-elena") >= 0);
+    }).catch(function (err) {
+      if (err && err.code === "permission-denied") return false;
+      throw err;
+    });
+  }
+
+  function detenerEscucha() {
+    (cloud.unsubs || []).forEach(function (u) { try { u(); } catch (e) {} });
+    cloud.unsubs = [];
+  }
+
+  function refEst() {
+    return cloud.fsApi.doc(cloud.fs, "establecimientos", "maria-elena");
+  }
+
+  function colEst(nombre) {
+    return cloud.fsApi.collection(cloud.fs, "establecimientos", "maria-elena", nombre);
+  }
+
+  function docEst(nombre, id) {
+    return cloud.fsApi.doc(cloud.fs, "establecimientos", "maria-elena", nombre, id);
+  }
+
+  function datoLimpio(row) {
+    return JSON.parse(JSON.stringify(row));
+  }
+
+  function migrarLocalANube() {
+    if (!cloud.fs || !S.usuario) return Promise.resolve();
+    var ya = false;
+    try { ya = localStorage.getItem(MIGRA_KEY) === "1"; } catch (e) {}
+    if (ya) return Promise.resolve();
+    var FS = cloud.fsApi;
+    var meta = {
+      nombre: "Cabaña María Elena",
+      lugar: "Coronel Oviedo",
+      hectareas: 5,
+      raza: "Dorper",
+      updatedAt: new Date().toISOString()
+    };
+    var cadena = FS.setDoc(refEst(), meta, { merge: true });
+    COLECCIONES.forEach(function (nombre) {
+      cadena = cadena.then(function () {
+        return FS.getDocs(colEst(nombre)).then(function (snap) {
+          var remoto = {};
+          snap.forEach(function (d) { remoto[d.id] = d.data() || {}; });
+          var ops = [];
+          (S.db[nombre] || []).forEach(function (row) {
+            if (!row.id) return;
+            var rem = remoto[row.id];
+            if (!rem || String(row.updatedAt || "") >= String(rem.updatedAt || "")) ops.push(row);
+          });
+          return enviarDocs(nombre, ops);
         });
       });
     });
-    return seq;
+    return cadena.then(function () {
+      try { localStorage.setItem(MIGRA_KEY, "1"); } catch (e) {}
+    }).catch(function (err) {
+      if (err && err.code === "permission-denied") {
+        S.sinPermiso = true;
+      }
+    });
   }
 
   function escuchar() {
-    var base = cloud.fs.collection("establecimientos").doc("maria-elena");
+    if (!cloud.fs || (cloud.unsubs && cloud.unsubs.length)) return;
+    cloud.unsubs = [];
+    var FS = cloud.fsApi;
     COLECCIONES.forEach(function (nombre) {
-      base.collection(nombre).onSnapshot({ includeMetadataChanges: true }, function (snap) {
+      var unsub = FS.onSnapshot(colEst(nombre), { includeMetadataChanges: true }, function (snap) {
         var rows = [];
-        snap.forEach(function (doc) {
-          var data = doc.data() || {};
-          if (!data.id) data.id = doc.id;
+        snap.forEach(function (d) {
+          var data = d.data() || {};
+          if (!data.id) data.id = d.id;
           rows.push(data);
         });
         fusionar(nombre, rows);
@@ -3949,10 +4152,12 @@ var FIREBASE_CONFIG = {
         if (!document.activeElement || document.activeElement.tagName !== "INPUT") pintar();
       }, function (err) {
         if (err && err.code === "permission-denied") {
-          S.errorNube = "Tu usuario no está habilitado en la cabaña. Pedile a Tomás que te agregue.";
+          S.sinPermiso = true;
+          detenerEscucha();
           pintar();
         } else marcarSync("offline");
       });
+      cloud.unsubs.push(unsub);
     });
   }
 
@@ -3984,10 +4189,9 @@ var FIREBASE_CONFIG = {
   }
 
   function subirNube() {
-    if (S.modo !== "cloud" || !S.usuario || !cloud.fs) return;
+    if (S.modo !== "cloud" || !S.usuario || !cloud.fs || S.sinPermiso) return;
     marcarSync(navigator.onLine ? "pending" : "offline");
-    var base = cloud.fs.collection("establecimientos").doc("maria-elena");
-    var ops = [{ ref: base, data: {
+    var ops = [{ ref: refEst(), data: {
       nombre: "Cabaña María Elena",
       lugar: "Coronel Oviedo",
       hectareas: 5,
@@ -3997,23 +4201,24 @@ var FIREBASE_CONFIG = {
     COLECCIONES.forEach(function (nombre) {
       (S.db[nombre] || []).forEach(function (row) {
         if (!row.id) return;
-        ops.push({ ref: base.collection(nombre).doc(row.id), data: JSON.parse(JSON.stringify(row)) });
+        ops.push({ ref: docEst(nombre, row.id), data: datoLimpio(row) });
       });
     });
     enviarLotes(ops).catch(function (err) {
       marcarSync("offline");
       if (err && err.code === "permission-denied") {
-        S.errorNube = "Tu usuario no está habilitado en la cabaña. Pedile a Tomás que te agregue.";
+        S.sinPermiso = true;
         pintar();
       }
     });
   }
 
   function enviarLotes(ops) {
+    var FS = cloud.fsApi;
     var i = 0;
     function paso() {
       if (i >= ops.length) return Promise.resolve();
-      var batch = cloud.fs.batch();
+      var batch = FS.writeBatch(cloud.fs);
       var fin = Math.min(i + 400, ops.length);
       for (; i < fin; i++) batch.set(ops[i].ref, ops[i].data, { merge: true });
       return batch.commit().then(paso);
@@ -4021,19 +4226,21 @@ var FIREBASE_CONFIG = {
     return paso();
   }
 
+  function enviarDocs(nombre, rows) {
+    if (!rows || !rows.length) return Promise.resolve();
+    var ops = rows.filter(function (row) { return row && row.id; }).map(function (row) {
+      return { ref: docEst(nombre, row.id), data: datoLimpio(row) };
+    });
+    return enviarLotes(ops);
+  }
+
   function subirColeccion(nombre) {
     subirDocs(nombre, S.db[nombre] || []);
   }
 
   function subirDocs(nombre, rows) {
-    if (!cloud.fs || !rows.length) return;
-    var base = cloud.fs.collection("establecimientos").doc("maria-elena").collection(nombre);
-    var batch = cloud.fs.batch();
-    rows.forEach(function (row) {
-      if (!row.id) return;
-      batch.set(base.doc(row.id), JSON.parse(JSON.stringify(row)), { merge: true });
-    });
-    batch.commit().catch(function () { marcarSync("offline"); });
+    if (!cloud.fs || !rows || !rows.length || S.sinPermiso) return;
+    enviarDocs(nombre, rows).catch(function () { marcarSync("offline"); });
   }
 
   root.MEUI = { boot: boot };
