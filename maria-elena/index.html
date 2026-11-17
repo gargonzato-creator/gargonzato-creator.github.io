@@ -90,7 +90,7 @@ h3 { font-size: 20px; margin: 14px 0 8px; }
   background: transparent; border: 0; color: var(--green);
   font-weight: 700; min-height: 48px; padding: 0 0 4px; font-size: 17px;
 }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
 .stat {
   border: 0; border-radius: 18px; padding: 12px 10px 10px; text-align: left;
   min-height: 92px; color: #f8f1e4; box-shadow: 0 8px 18px rgba(36, 28, 21, 0.08);
@@ -102,6 +102,7 @@ h3 { font-size: 20px; margin: 14px 0 8px; }
   font-size: 36px; font-weight: 560; line-height: 1;
 }
 .stat.olive { background: var(--green); }
+.stat.ink { background: var(--green-2); }
 .stat.gold { background: var(--gold); color: #241c15; }
 .stat.clay { background: var(--clay); }
 .sec { font-size: 26px; margin: 18px 0 8px; }
@@ -239,7 +240,7 @@ input:focus, select:focus, textarea:focus { outline: 3px solid var(--gold); bord
 @media (min-width: 800px) {
   .tiles { grid-template-columns: repeat(3, 1fr); }
   .tile { min-height: 112px; }
-  .stats { max-width: 640px; }
+  .stats { max-width: 640px; grid-template-columns: repeat(4, 1fr); }
 }
 @media print {
   .no-print, .tabs, .menu-back { display: none !important; }
@@ -331,7 +332,7 @@ var FIREBASE_CONFIG = {
   var CATEGORIAS = [
     { id: "ovejas-adultas", nombre: "Ovejas adultas", sexo: "hembra" },
     { id: "ovejas-recuperacion", nombre: "Ovejas destetadas en recuperación", sexo: "hembra" },
-    { id: "borregas-servicio", nombre: "Borregas pre-servicio", sexo: "hembra" },
+    { id: "borregas-servicio", nombre: "Borregas", sexo: "hembra" },
     { id: "corderos-pie", nombre: "Corderos al pie", sexo: "ambos" },
     { id: "corderos-destetados", nombre: "Corderos destetados", sexo: "ambos" },
     { id: "carneros", nombre: "Carneros", sexo: "macho" }
@@ -2129,6 +2130,7 @@ var FIREBASE_CONFIG = {
     var html = avisoHtml();
     html += '<div class="stats">';
     html += '<button type="button" class="stat olive" data-act="ver-grupo" data-val="ovejas"><span>Ovejas</span><b>' + r.ovejas + "</b></button>";
+    html += '<button type="button" class="stat ink" data-act="ver-grupo" data-val="borregas"><span>Borregas</span><b>' + r.borregas + "</b></button>";
     html += '<button type="button" class="stat gold" data-act="ver-grupo" data-val="corderos"><span>Corderos</span><b>' + r.corderos + "</b></button>";
     html += '<button type="button" class="stat clay" data-act="ver-grupo" data-val="prenadas"><span>Preñadas</span><b>' + r.prenadas + "</b></button>";
     html += "</div>";
@@ -2146,9 +2148,10 @@ var FIREBASE_CONFIG = {
     return html;
   }
   function resumenCampo() {
-    var ovejas = 0, corderos = 0, prenadas = 0;
+    var ovejas = 0, borregas = 0, corderos = 0, prenadas = 0;
     L.activos(S.db).forEach(function (a) {
       if (a.categoria === "corderos-pie" || a.categoria === "corderos-destetados") corderos++;
+      else if (a.categoria === "borregas-servicio") borregas++;
       else if (a.sexo === "hembra") ovejas++;
     });
     var ultimo = {};
@@ -2166,7 +2169,7 @@ var FIREBASE_CONFIG = {
       });
       if (!pario) prenadas++;
     });
-    return { ovejas: ovejas, corderos: corderos, prenadas: prenadas };
+    return { ovejas: ovejas, borregas: borregas, corderos: corderos, prenadas: prenadas };
   }
   function avisosCampo() {
     var hoy = L.hoyISO();
@@ -2248,7 +2251,8 @@ var FIREBASE_CONFIG = {
   function pasaFiltro(a, filtro) {
     var f = filtro || "campo";
     if (f === "todos") return true;
-    if (f === "ovejas") return a.estado === "activo" && a.sexo === "hembra" && a.categoria !== "corderos-pie" && a.categoria !== "corderos-destetados";
+    if (f === "ovejas") return a.estado === "activo" && a.sexo === "hembra" && a.categoria !== "corderos-pie" && a.categoria !== "corderos-destetados" && a.categoria !== "borregas-servicio";
+    if (f === "borregas") return a.estado === "activo" && a.categoria === "borregas-servicio";
     if (f === "corderos") return a.estado === "activo" && (a.categoria === "corderos-pie" || a.categoria === "corderos-destetados");
     if (f === "carneros") return a.estado === "activo" && a.categoria === "carneros";
     if (f === "prenadas") return estaPrenada(a);
@@ -2263,7 +2267,7 @@ var FIREBASE_CONFIG = {
     var html = '<div class="page-head"><h2>Animales</h2><button type="button" class="btn slim" data-act="ir" data-screen="alta" data-fresh="1">Cargar</button></div>';
     html += '<label class="f">Buscar caravana<input inputmode="numeric" data-bind="q" data-live="1" value="' + esc(q) + '" placeholder="Número"></label>';
     html += '<div class="chips">';
-    [["campo", "En el campo"], ["ovejas", "Ovejas"], ["corderos", "Corderos"], ["carneros", "Carneros"], ["todos", "Todos"]].forEach(function (f) {
+    [["campo", "En el campo"], ["ovejas", "Ovejas"], ["borregas", "Borregas"], ["corderos", "Corderos"], ["carneros", "Carneros"], ["todos", "Todos"]].forEach(function (f) {
       html += '<button type="button" class="chip' + (filtro === f[0] ? " on" : "") + '" data-act="filtro" data-val="' + f[0] + '">' + f[1] + "</button>";
     });
     html += "</div>";
