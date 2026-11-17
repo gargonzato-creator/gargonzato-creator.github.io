@@ -1,4 +1,4 @@
-const CACHE = "rufino-shell-v6";
+const CACHE = "rufino-shell-v7";
 const BASE = new URL(self.registration.scope).pathname;
 
 function url(path) {
@@ -15,7 +15,7 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)))).then(() => self.clients.claim()),
+    caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith("rufino-shell-") && key !== CACHE).map((key) => caches.delete(key)))).then(() => self.clients.claim()),
   );
 });
 
