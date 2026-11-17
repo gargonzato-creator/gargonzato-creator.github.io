@@ -1,0 +1,3429 @@
+<!DOCTYPE html>
+<html lang="es-PY">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="María Elena">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#0e4d2e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e4d2e'/%3E%3C/svg%3E">
+<title>Cabaña María Elena · Registros</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root {
+  --bg: #f3efe4;
+  --ink: #16130f;
+  --paper: #fffdf8;
+  --line: #241e16;
+  --green: #0e4d2e;
+  --green-2: #14663c;
+  --cream: #fffdf8;
+  --muted: #3d372f;
+  --bad: #8c1c16;
+  --warn: #7a3e00;
+  --chip: #efe4cf;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1.35;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+#app { min-height: 100dvh; }
+.top {
+  position: sticky; top: 0; z-index: 4;
+  background: var(--green); color: #f6fff8;
+  padding: calc(10px + var(--safe-t)) 14px 12px;
+}
+.top h1 { margin: 0; font-size: 26px; line-height: 1.15; font-weight: 750; }
+.top p { margin: 2px 0 0; font-size: 16px; }
+.top-row { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.sync {
+  display: inline-block; margin-top: 8px;
+  background: #f6fff8; color: var(--green);
+  border-radius: 999px; padding: 4px 10px; font-size: 15px; font-weight: 750;
+}
+.sync.pending, .sync.offline { background: #ffe8c2; color: var(--warn); }
+.linkish {
+  background: transparent; color: #f6fff8; border: 0;
+  min-height: 44px; font-weight: 750; padding: 0;
+}
+.screen { padding: 14px 14px calc(20px + var(--safe-b)); max-width: 860px; margin: 0 auto; }
+h2 { font-size: 28px; line-height: 1.15; margin: 0 0 12px; }
+.sub { color: var(--muted); margin: 0 0 12px; font-size: 18px; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile {
+  min-height: 104px; border-radius: 18px; border: 2px solid var(--line);
+  background: var(--paper); font-weight: 800; font-size: 22px; line-height: 1.15;
+  padding: 12px; text-align: left;
+}
+.tile.wide { grid-column: 1 / -1; }
+.btn, .btn-ghost, .btn-bad {
+  display: block; width: 100%; min-height: 64px; border-radius: 16px;
+  font-weight: 800; font-size: 22px; margin-top: 10px; padding: 12px 14px;
+}
+.btn { background: var(--green); color: #f6fff8; border: 0; }
+.btn-ghost { background: var(--paper); color: var(--ink); border: 2px solid var(--line); }
+.btn-bad { background: #fde8e4; color: var(--bad); border: 2px solid var(--bad); }
+.card {
+  background: var(--paper); border: 2px solid var(--line); border-radius: 18px;
+  padding: 14px; margin: 0 0 12px;
+}
+.card h3 { margin: 0 0 6px; font-size: 22px; }
+.card p { margin: 0; }
+label.f { display: block; margin: 0 0 12px; font-weight: 750; }
+input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="number"], select, textarea {
+  width: 100%; min-height: 64px; border-radius: 14px; border: 2px solid var(--line);
+  background: white; padding: 10px 12px; font-size: 24px; margin-top: 6px;
+}
+textarea { min-height: 96px; font-size: 20px; }
+input:focus, select:focus, textarea:focus { outline: 4px solid #e2b15a; }
+.chips { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.chip {
+  min-height: 60px; border-radius: 14px; border: 2px solid var(--line);
+  background: var(--chip); text-align: left; padding: 10px 12px; font-weight: 750;
+}
+.chip.on { background: var(--green); color: #f6fff8; }
+.rowbtn {
+  width: 100%; text-align: left; min-height: 64px; border-radius: 14px;
+  border: 2px solid var(--line); background: white; margin-top: 8px; padding: 10px 12px;
+  font-weight: 750;
+}
+.rowbtn small { display: block; font-weight: 650; color: var(--muted); font-size: 16px; }
+.rowbtn.on { background: var(--green); color: #f6fff8; }
+.rowbtn.on small { color: #e7f6ec; }
+.error {
+  background: #fde8e4; color: var(--bad); border: 2px solid var(--bad);
+  border-radius: 14px; padding: 12px; font-weight: 750; margin-bottom: 10px;
+}
+.ok {
+  background: #e5f6ea; border: 2px solid var(--green); border-radius: 14px;
+  padding: 12px; font-weight: 750; margin-bottom: 10px;
+}
+.aviso {
+  background: #fff3d6; border: 2px solid var(--warn); color: var(--warn);
+  border-radius: 14px; padding: 12px; font-weight: 750; margin-bottom: 10px;
+}
+.sheet { background: white; }
+.sheet h2 { font-size: 26px; }
+.sheet table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; }
+.sheet th, .sheet td { border-bottom: 1px solid #ccc; text-align: left; padding: 6px 4px; font-size: 18px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.foto { max-width: 100%; border-radius: 12px; margin-top: 8px; }
+@media (min-width: 800px) {
+  .tiles { grid-template-columns: 1fr 1fr 1fr; }
+  .tile { min-height: 120px; font-size: 24px; }
+}
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  .screen { max-width: none; padding: 0; }
+  .sheet { border: 0; }
+  @page { size: A4 portrait; margin: 12mm; }
+}
+
+
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+.brand-logo {
+  width: 52px; height: 52px; flex: none;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #000;
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ========== FIREBASE — pegá acá la configuración del proyecto ==========
+   Firebase console → Configuración del proyecto → Tus apps → SDK de la app.
+   Si apiKey queda vacío, la app funciona solo en este aparato.
+   ========== */
+var FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+/* ========== FIN FIREBASE ========== */
+(function (root) {
+  "use strict";
+
+  function hoyISO(d) {
+    var f = d || new Date();
+    return f.getFullYear() + "-" + dos(f.getMonth() + 1) + "-" + dos(f.getDate());
+  }
+
+  function dos(n) {
+    return (n < 10 ? "0" : "") + n;
+  }
+
+  function parseISO(iso) {
+    if (!iso || String(iso).length < 10) return null;
+    var p = String(iso).slice(0, 10).split("-");
+    var y = Number(p[0]);
+    var m = Number(p[1]);
+    var d = Number(p[2]);
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
+  }
+
+  function sumarDias(iso, n) {
+    var d = parseISO(iso);
+    if (!d) return "";
+    d.setDate(d.getDate() + Number(n || 0));
+    return hoyISO(d);
+  }
+
+  function diasEntre(a, b) {
+    var da = parseISO(a);
+    var db = parseISO(b);
+    if (!da || !db) return null;
+    return Math.round((db.getTime() - da.getTime()) / 86400000);
+  }
+
+  function fmtFecha(iso) {
+    if (!iso) return "";
+    var p = String(iso).slice(0, 10).split("-");
+    if (p.length < 3) return "";
+    return p[2] + "/" + p[1] + "/" + p[0];
+  }
+
+  function nuevoId() {
+    return Math.random().toString(36).slice(2, 8) + Date.now().toString(36);
+  }
+
+  function parseNum(v) {
+    if (v == null) return null;
+    var s = String(v).trim().replace(/\s/g, "");
+    if (!s) return null;
+    if (s.indexOf(",") >= 0) s = s.replace(/\./g, "").replace(",", ".");
+    var n = Number(s);
+    return isFinite(n) ? n : null;
+  }
+
+  function fmtNum(n, dec) {
+    if (n == null || n === "" || !isFinite(Number(n))) return "";
+    var d = dec == null ? 1 : dec;
+    return Number(n).toFixed(d).replace(".", ",");
+  }
+
+  var CATEGORIAS = [
+    { id: "ovejas-adultas", nombre: "Ovejas adultas", sexo: "hembra" },
+    { id: "ovejas-recuperacion", nombre: "Ovejas destetadas en recuperación", sexo: "hembra" },
+    { id: "borregas-servicio", nombre: "Borregas pre-servicio", sexo: "hembra" },
+    { id: "corderos-pie", nombre: "Corderos al pie", sexo: "ambos" },
+    { id: "corderos-destetados", nombre: "Corderos destetados", sexo: "ambos" },
+    { id: "carneros", nombre: "Carneros", sexo: "macho" }
+  ];
+
+  var RAZAS = [
+    { id: "puro", nombre: "Dorper puro" },
+    { id: "pc", nombre: "Dorper PC" },
+    { id: "cruza", nombre: "Cruza" }
+  ];
+
+  var PASTURAS = [
+    "Brachiaria brizantha Marandú",
+    "Piatá",
+    "Brachiaria humidícola",
+    "Panicum Zuri",
+    "Panicum Massai",
+    "Chloris gayana (Rhodes)",
+    "Pasto estrella",
+    "Capiaçu (corte)"
+  ];
+
+  var TIPOS_LUGAR = [
+    { id: "potrero", nombre: "Potrero" },
+    { id: "piquete", nombre: "Piquete carnero" },
+    { id: "estabulado", nombre: "Estabulado" }
+  ];
+
+  var MOTIVOS = [
+    { id: "desparasitacion", nombre: "Desparasitación" },
+    { id: "vacuna-clostridial", nombre: "Vacuna clostridial" },
+    { id: "ectoparasitos", nombre: "Ectoparásitos / baño" },
+    { id: "curacion", nombre: "Curación" },
+    { id: "atencion-parto", nombre: "Atención de parto" },
+    { id: "otro", nombre: "Otro" }
+  ];
+
+  var VIAS = [
+    { id: "oral", nombre: "Oral" },
+    { id: "inyectable", nombre: "Inyectable" },
+    { id: "pour-on", nombre: "Pour-on" },
+    { id: "bano", nombre: "Baño" },
+    { id: "otra", nombre: "Otra" }
+  ];
+
+  var CAUSAS = [
+    { id: "parto", nombre: "Problema de parto" },
+    { id: "debilidad", nombre: "Debilidad" },
+    { id: "neumonia", nombre: "Neumonía" },
+    { id: "diarrea", nombre: "Diarrea" },
+    { id: "pisoteo", nombre: "Pisoteo" },
+    { id: "depredador", nombre: "Depredador" },
+    { id: "desconocida", nombre: "No se sabe" },
+    { id: "otro", nombre: "Otra" }
+  ];
+
+  var TIPOS_PARTO = [
+    { id: "simple", nombre: "Simple", cantidad: 1 },
+    { id: "mellizos", nombre: "Mellizos", cantidad: 2 },
+    { id: "trillizos", nombre: "Trillizos", cantidad: 3 }
+  ];
+
+  function nombreDe(lista, id) {
+    var i;
+    for (i = 0; i < lista.length; i++) if (lista[i].id === id) return lista[i].nombre;
+    return "";
+  }
+
+  function porId(lista, id) {
+    var i;
+    if (!lista || !id) return null;
+    for (i = 0; i < lista.length; i++) if (lista[i].id === id) return lista[i];
+    return null;
+  }
+
+  function productosIniciales() {
+    return [
+      { id: "albendazol", nombre: "Albendazol", via: "oral", retiroDias: 7, motivo: "desparasitacion" },
+      { id: "levamisol", nombre: "Levamisol", via: "oral", retiroDias: 3, motivo: "desparasitacion" },
+      { id: "doramectina", nombre: "Doramectina", via: "inyectable", retiroDias: 35, motivo: "desparasitacion" },
+      { id: "ivermectina", nombre: "Ivermectina", via: "inyectable", retiroDias: 21, motivo: "desparasitacion" },
+      { id: "praziquantel", nombre: "Praziquantel", via: "oral", retiroDias: 7, motivo: "desparasitacion" },
+      { id: "oligin", nombre: "Oligin", via: "inyectable", retiroDias: 0, motivo: "curacion" },
+      { id: "clostridial", nombre: "Vacuna clostridial", via: "inyectable", retiroDias: 0, motivo: "vacuna-clostridial" }
+    ].map(function (p) {
+      var ahora = new Date().toISOString();
+      p.deleted = false;
+      p.ejemplo = false;
+      p.createdAt = ahora;
+      p.updatedAt = ahora;
+      p.createdBy = "";
+      return p;
+    });
+  }
+
+  function crearBase() {
+    return {
+      version: 1,
+      animales: [],
+      eventos: [],
+      potreros: [],
+      lotes: [],
+      productos: productosIniciales(),
+      recordatorios: [],
+      prefs: { ultimoPotreroId: "", raza: "puro", sexo: "hembra", categoria: "ovejas-adultas" }
+    };
+  }
+
+  function activos(db) {
+    return (db.animales || []).filter(function (a) { return !a.deleted && a.estado === "activo"; });
+  }
+
+  function categoriaPorEdad(animal, hoy, eventos) {
+    if (!animal) return "";
+    var fem = animal.sexo === "hembra";
+    var nac = animal.nacimiento;
+    var edad = nac ? diasEntre(nac, hoy || hoyISO()) : null;
+    var destetado = (eventos || []).some(function (e) {
+      return !e.deleted && e.tipo === "destete" && (e.animalId === animal.id || (e.animalIds || []).indexOf(animal.id) >= 0);
+    });
+    if (animal.categoria === "corderos-pie") return fem ? "Cordera" : "Cordero";
+    if (edad == null) {
+      if (animal.categoria === "carneros") return "Carnero";
+      if (animal.categoria === "ovejas-adultas" || animal.categoria === "ovejas-recuperacion") return "Oveja";
+      if (animal.categoria === "borregas-servicio") return "Borrega";
+      if (animal.categoria === "corderos-destetados") return fem ? "Cordera" : "Cordero";
+      return fem ? "Oveja" : "Carnero";
+    }
+    if (!destetado && edad < 180) return fem ? "Cordera" : "Cordero";
+    var pario = (eventos || []).some(function (e) {
+      return !e.deleted && e.tipo === "parto" && e.animalId === animal.id;
+    });
+    if (fem && !pario && edad < 540) return edad < 365 ? "Borrega" : "Borrega";
+    if (!fem && edad < 365) return "Borrego";
+    return fem ? "Oveja" : "Carnero";
+  }
+
+  function esDescendiente(animal, ancestroId, animales, profundidad) {
+    if (!animal || !ancestroId) return false;
+    if (profundidad == null) profundidad = 4;
+    if (profundidad < 0) return false;
+    if (animal.padreId === ancestroId || animal.madreId === ancestroId) return true;
+    var padre = porId(animales, animal.padreId);
+    var madre = porId(animales, animal.madreId);
+    if (padre && esDescendiente(padre, ancestroId, animales, profundidad - 1)) return true;
+    if (madre && esDescendiente(madre, ancestroId, animales, profundidad - 1)) return true;
+    return false;
+  }
+
+  function esNieta(animal, ancestroId, animales) {
+    var ids = [animal.padreId, animal.madreId];
+    var i, p;
+    for (i = 0; i < ids.length; i++) {
+      p = porId(animales, ids[i]);
+      if (p && (p.padreId === ancestroId || p.madreId === ancestroId)) return true;
+    }
+    return false;
+  }
+
+  function parentescoServicio(carneroId, ovejaIds, animales) {
+    var avisos = [];
+    var i, oveja, grado;
+    for (i = 0; i < (ovejaIds || []).length; i++) {
+      oveja = porId(animales, ovejaIds[i]);
+      if (!oveja || oveja.id === carneroId) continue;
+      if (oveja.padreId === carneroId || oveja.madreId === carneroId) grado = "hija";
+      else if (esNieta(oveja, carneroId, animales)) grado = "nieta";
+      else if (esDescendiente(oveja, carneroId, animales)) grado = "pariente";
+      else grado = "";
+      if (grado) avisos.push({ ovejaId: oveja.id, caravana: oveja.caravana || "", grado: grado });
+    }
+    return avisos;
+  }
+
+  function textoParentesco(aviso) {
+    var quien = aviso.caravana ? "La " + aviso.caravana : "Una oveja sin caravana";
+    if (aviso.grado === "hija") return quien + " es hija de este carnero.";
+    if (aviso.grado === "nieta") return quien + " es nieta de este carnero.";
+    return quien + " es pariente de este carnero.";
+  }
+
+  function paricionEsperada(entrada, salida) {
+    return {
+      desde: sumarDias(entrada, 150),
+      hasta: salida ? sumarDias(salida, 150) : sumarDias(entrada, 150)
+    };
+  }
+
+  function ventanaEcografia(fechaSale) {
+    return { desde: sumarDias(fechaSale, 42), hasta: sumarDias(fechaSale, 45) };
+  }
+
+  function gdpGramos(pesoAntes, pesoAhora, dias) {
+    if (pesoAntes == null || pesoAhora == null || !(Number(dias) > 0)) return null;
+    if (!isFinite(Number(pesoAntes)) || !isFinite(Number(pesoAhora))) return null;
+    return Math.round(((Number(pesoAhora) - Number(pesoAntes)) * 1000) / Number(dias));
+  }
+
+  function reduccionHpg(antes, despues) {
+    if (!(Number(antes) > 0) || despues == null || Number(despues) < 0) return null;
+    return Math.round(((Number(antes) - Number(despues)) / Number(antes)) * 1000) / 10;
+  }
+
+  function padreDeParto(madreId, fechaParto, eventos) {
+    var concepcion = sumarDias(fechaParto, -150);
+    var mejor = null;
+    var i, s, entrada, salida;
+    for (i = 0; i < (eventos || []).length; i++) {
+      s = eventos[i];
+      if (s.deleted || s.tipo !== "servicio") continue;
+      if ((s.datos.ovejaIds || []).indexOf(madreId) < 0 && (s.animalIds || []).indexOf(madreId) < 0) continue;
+      entrada = s.datos.entrada || s.fecha;
+      salida = s.datos.salida || fechaParto;
+      if (concepcion >= entrada && concepcion <= salida) {
+        if (!mejor || entrada > (mejor.datos.entrada || mejor.fecha)) mejor = s;
+      }
+    }
+    return mejor && mejor.datos ? (mejor.datos.carneroId || "") : "";
+  }
+
+  function ultimoPesaje(db, animalId, antesDe) {
+    var mejor = null;
+    var i, e;
+    for (i = 0; i < db.eventos.length; i++) {
+      e = db.eventos[i];
+      if (e.deleted || e.tipo !== "pesaje") continue;
+      if (e.animalId !== animalId && (e.animalIds || []).indexOf(animalId) < 0) continue;
+      if (antesDe && e.fecha >= antesDe) continue;
+      if (!mejor || e.fecha > mejor.fecha) mejor = e;
+    }
+    return mejor;
+  }
+
+  function pesoBase(db, animalId, fecha) {
+    var ant = ultimoPesaje(db, animalId, fecha);
+    if (ant && ant.datos && ant.datos.peso != null) return { peso: Number(ant.datos.peso), fecha: ant.fecha };
+    var destete = null;
+    var i, e, animal;
+    for (i = 0; i < db.eventos.length; i++) {
+      e = db.eventos[i];
+      if (e.deleted || e.tipo !== "destete") continue;
+      if (e.animalId !== animalId) continue;
+      if (fecha && e.fecha >= fecha) continue;
+      if (!destete || e.fecha > destete.fecha) destete = e;
+    }
+    if (destete && destete.datos && destete.datos.peso != null) return { peso: Number(destete.datos.peso), fecha: destete.fecha };
+    animal = porId(db.animales, animalId);
+    if (animal && animal.pesoNacer != null && animal.nacimiento && (!fecha || animal.nacimiento < fecha)) {
+      return { peso: Number(animal.pesoNacer), fecha: animal.nacimiento };
+    }
+    return null;
+  }
+
+  function enRango(fecha, desde, hasta) {
+    if (desde && fecha < desde) return false;
+    if (hasta && fecha > hasta) return false;
+    return true;
+  }
+
+  function reporteExistencias(db) {
+    var porCat = {};
+    var i, a, c;
+    for (i = 0; i < CATEGORIAS.length; i++) porCat[CATEGORIAS[i].id] = 0;
+    var lista = db.animales.filter(function (x) { return !x.deleted && x.estado === "activo"; });
+    for (i = 0; i < lista.length; i++) {
+      a = lista[i];
+      porCat[a.categoria] = (porCat[a.categoria] || 0) + 1;
+    }
+    return {
+      total: lista.length,
+      porCat: porCat,
+      vendidos: db.animales.filter(function (x) { return !x.deleted && x.estado === "vendido"; }).length,
+      muertos: db.animales.filter(function (x) { return !x.deleted && x.estado === "muerto"; }).length
+    };
+  }
+
+  function reportePartos(db, desde, hasta) {
+    var partos = db.eventos.filter(function (e) {
+      return !e.deleted && e.tipo === "parto" && enRango(e.fecha, desde, hasta);
+    });
+    var servicios = db.eventos.filter(function (e) {
+      return !e.deleted && e.tipo === "servicio" && enRango(e.datos.entrada || e.fecha, desde, hasta);
+    });
+    var paridas = {};
+    var servidas = {};
+    var corderos = [];
+    var i, j, p, ids;
+    for (i = 0; i < partos.length; i++) {
+      p = partos[i];
+      paridas[p.animalId] = true;
+      for (j = 0; j < (p.datos.corderos || []).length; j++) corderos.push(p.datos.corderos[j]);
+    }
+    for (i = 0; i < servicios.length; i++) {
+      ids = servicios[i].datos.ovejaIds || [];
+      for (j = 0; j < ids.length; j++) servidas[ids[j]] = true;
+    }
+    var nParidas = Object.keys(paridas).length;
+    var nServidas = Object.keys(servidas).length;
+    var vivos = corderos.filter(function (c) { return c.vivo !== false; });
+    return {
+      partos: partos.length,
+      ovejasParidas: nParidas,
+      ovejasServidas: nServidas,
+      corderos: corderos.length,
+      vivos: vivos.length,
+      muertos: corderos.length - vivos.length,
+      paricion: nServidas ? Math.round((nParidas / nServidas) * 1000) / 10 : null,
+      prolificidad: nParidas ? Math.round((vivos.length / nParidas) * 100) / 100 : null
+    };
+  }
+
+  function reporteMortandad(db, desde, hasta) {
+    var muertes = db.eventos.filter(function (e) {
+      return !e.deleted && e.tipo === "muerte" && enRango(e.fecha, desde, hasta);
+    });
+    var porCausa = {};
+    var i, id, nombre;
+    for (i = 0; i < CAUSAS.length; i++) porCausa[CAUSAS[i].id] = 0;
+    for (i = 0; i < muertes.length; i++) {
+      id = muertes[i].datos.causa || "otro";
+      porCausa[id] = (porCausa[id] || 0) + 1;
+    }
+    var base = activos(db).length + muertes.length;
+    return {
+      total: muertes.length,
+      porCausa: porCausa,
+      porcentaje: base ? Math.round((muertes.length / base) * 1000) / 10 : null,
+      causas: CAUSAS
+    };
+  }
+
+  function reporteDestete(db, desde, hasta) {
+    var lista = db.eventos.filter(function (e) {
+      return !e.deleted && e.tipo === "destete" && enRango(e.fecha, desde, hasta);
+    });
+    var pesos = [];
+    var gdps = [];
+    var i;
+    for (i = 0; i < lista.length; i++) {
+      if (lista[i].datos.peso != null) pesos.push(Number(lista[i].datos.peso));
+      if (lista[i].datos.gdp != null) gdps.push(Number(lista[i].datos.gdp));
+    }
+    return {
+      cantidad: lista.length,
+      pesoPromedio: pesos.length ? Math.round((pesos.reduce(function (s, n) { return s + n; }, 0) / pesos.length) * 10) / 10 : null,
+      gdpPromedio: gdps.length ? Math.round(gdps.reduce(function (s, n) { return s + n; }, 0) / gdps.length) : null
+    };
+  }
+
+  function reportePesajes(db) {
+    var lista = activos(db);
+    var filas = [];
+    var i, a, ult, base, gdp;
+    for (i = 0; i < lista.length; i++) {
+      a = lista[i];
+      ult = ultimoPesaje(db, a.id, null);
+      base = ult ? pesoBase(db, a.id, ult.fecha) : null;
+      gdp = ult && ult.datos ? ult.datos.gdp : null;
+      if (gdp == null && ult && base) gdp = gdpGramos(base.peso, ult.datos.peso, diasEntre(base.fecha, ult.fecha));
+      filas.push({
+        animalId: a.id,
+        caravana: a.caravana,
+        categoria: a.categoria,
+        fecha: ult ? ult.fecha : "",
+        peso: ult && ult.datos ? ult.datos.peso : null,
+        gdp: gdp
+      });
+    }
+    return filas;
+  }
+
+  function reporteSanidad(db, hoy) {
+    var dia = hoy || hoyISO();
+    var hechos = db.eventos.filter(function (e) { return !e.deleted && e.tipo === "sanidad"; });
+    hechos.sort(function (a, b) { return a.fecha < b.fecha ? 1 : -1; });
+    var retiros = hechos.filter(function (e) { return e.datos && e.datos.retiroHasta && e.datos.retiroHasta >= dia; });
+    var proximos = (db.recordatorios || []).filter(function (r) { return !r.deleted && !r.hecho && r.fecha >= dia; });
+    proximos.sort(function (a, b) { return a.fecha > b.fecha ? 1 : -1; });
+    return { hechos: hechos.slice(0, 40), retiros: retiros, proximos: proximos };
+  }
+
+  function reportePotreros(db, hoy) {
+    var dia = hoy || hoyISO();
+    return (db.potreros || []).filter(function (p) { return !p.deleted; }).map(function (p) {
+      var lote = porId(db.lotes, p.loteId);
+      var ocupado = !!(lote && !lote.deleted);
+      var dias = ocupado ? diasEntre(p.fechaEntrada, dia) : (p.fechaInicioDescanso ? diasEntre(p.fechaInicioDescanso, dia) : null);
+      return {
+        id: p.id,
+        nombre: p.nombre,
+        hectareas: p.hectareas,
+        pastura: p.pastura || "",
+        tipo: p.tipo || "potrero",
+        ocupado: ocupado,
+        lote: lote && !lote.deleted ? lote.nombre : "",
+        dias: dias
+      };
+    });
+  }
+
+  function textoExistencias(db, hoy) {
+    var r = reporteExistencias(db);
+    var lineas = ["Cabaña María Elena", "Animales en el campo al " + fmtFecha(hoy || hoyISO()), ""];
+    var i;
+    for (i = 0; i < CATEGORIAS.length; i++) {
+      lineas.push(CATEGORIAS[i].nombre + ": " + (r.porCat[CATEGORIAS[i].id] || 0));
+    }
+    lineas.push("");
+    lineas.push("Total: " + r.total);
+    if (r.vendidos) lineas.push("Vendidos (anotados): " + r.vendidos);
+    if (r.muertos) lineas.push("Muertos (anotados): " + r.muertos);
+    return lineas.join("\n");
+  }
+
+  function celda(v) {
+    var s = v == null ? "" : String(v);
+    if (s.indexOf(";") >= 0 || s.indexOf('"') >= 0 || s.indexOf("\n") >= 0) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function tablaCsv(filas) {
+    return "\uFEFF" + filas.map(function (fila) {
+      return fila.map(celda).join(";");
+    }).join("\r\n");
+  }
+
+  function csvAnimales(db) {
+    var filas = [["caravana", "sexo", "categoria", "raza", "nacimiento", "madre", "padre", "estado", "potrero", "peso_nacer"]];
+    db.animales.filter(function (a) { return !a.deleted; }).forEach(function (a) {
+      var madre = porId(db.animales, a.madreId);
+      var padre = porId(db.animales, a.padreId);
+      var pot = porId(db.potreros, a.potreroId);
+      filas.push([
+        a.caravana || "",
+        a.sexo || "",
+        nombreDe(CATEGORIAS, a.categoria),
+        nombreDe(RAZAS, a.raza),
+        a.nacimiento || "",
+        madre ? madre.caravana : "",
+        padre ? padre.caravana : "",
+        a.estado || "",
+        pot ? pot.nombre : "",
+        a.pesoNacer == null ? "" : String(a.pesoNacer).replace(".", ",")
+      ]);
+    });
+    return tablaCsv(filas);
+  }
+
+  function csvEventos(db, tipo) {
+    var filas = [["fecha", "tipo", "caravanas", "detalle"]];
+    db.eventos.filter(function (e) { return !e.deleted && (!tipo || e.tipo === tipo); }).forEach(function (e) {
+      var cars = (e.animalIds || []).map(function (id) {
+        var a = porId(db.animales, id);
+        return a ? (a.caravana || "sin caravana") : "";
+      }).filter(Boolean).join(" ");
+      filas.push([e.fecha || "", e.tipo, cars, detallar(e, db)]);
+    });
+    return tablaCsv(filas);
+  }
+
+  function detallar(e, db) {
+    var d = e.datos || {};
+    if (e.tipo === "parto") return (d.tipo || "") + " " + ((d.corderos || []).length) + " crías";
+    if (e.tipo === "servicio") return (d.modo || "monta") + " entra " + (d.entrada || "") + " sale " + (d.salida || "");
+    if (e.tipo === "pesaje" || e.tipo === "destete") return (d.peso != null ? String(d.peso).replace(".", ",") + " kg" : "");
+    if (e.tipo === "sanidad") return (d.productoNombre || "") + " " + (d.dosis || "");
+    if (e.tipo === "muerte") return nombreDe(CAUSAS, d.causa) || d.causaOtro || "";
+    if (e.tipo === "diagnostico") return d.resultado || "";
+    if (e.tipo === "hpg-control") return "HPG " + (d.hpg != null ? d.hpg : "") + (d.reduccion != null ? " reducción " + String(d.reduccion).replace(".", ",") + "%" : "");
+    return "";
+  }
+
+  function etiquetaAnimal(a) {
+    if (!a) return "Sin animal";
+    if (a.caravana) return a.caravana;
+    return "Sin caravana";
+  }
+
+  root.MELogic = {
+    hoyISO: hoyISO,
+    sumarDias: sumarDias,
+    diasEntre: diasEntre,
+    fmtFecha: fmtFecha,
+    nuevoId: nuevoId,
+    parseNum: parseNum,
+    fmtNum: fmtNum,
+    CATEGORIAS: CATEGORIAS,
+    RAZAS: RAZAS,
+    PASTURAS: PASTURAS,
+    TIPOS_LUGAR: TIPOS_LUGAR,
+    MOTIVOS: MOTIVOS,
+    VIAS: VIAS,
+    CAUSAS: CAUSAS,
+    TIPOS_PARTO: TIPOS_PARTO,
+    nombreDe: nombreDe,
+    porId: porId,
+    productosIniciales: productosIniciales,
+    crearBase: crearBase,
+    activos: activos,
+    categoriaPorEdad: categoriaPorEdad,
+    esDescendiente: esDescendiente,
+    parentescoServicio: parentescoServicio,
+    textoParentesco: textoParentesco,
+    paricionEsperada: paricionEsperada,
+    ventanaEcografia: ventanaEcografia,
+    gdpGramos: gdpGramos,
+    reduccionHpg: reduccionHpg,
+    padreDeParto: padreDeParto,
+    ultimoPesaje: ultimoPesaje,
+    pesoBase: pesoBase,
+    reporteExistencias: reporteExistencias,
+    reportePartos: reportePartos,
+    reporteMortandad: reporteMortandad,
+    reporteDestete: reporteDestete,
+    reportePesajes: reportePesajes,
+    reporteSanidad: reporteSanidad,
+    reportePotreros: reportePotreros,
+    textoExistencias: textoExistencias,
+    csvAnimales: csvAnimales,
+    csvEventos: csvEventos,
+    etiquetaAnimal: etiquetaAnimal
+  };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+(function (root) {
+  "use strict";
+  var L = root.MELogic;
+
+  function clonar(o) {
+    return JSON.parse(JSON.stringify(o));
+  }
+
+  function ahora() {
+    return new Date().toISOString();
+  }
+
+  function sellar(row, usuario, previo) {
+    var now = ahora();
+    row.updatedAt = now;
+    row.createdAt = previo && previo.createdAt ? previo.createdAt : now;
+    row.createdBy = previo && previo.createdBy ? previo.createdBy : (usuario || "");
+    if (row.deleted == null) row.deleted = false;
+    return row;
+  }
+
+  function cargar(raw) {
+    if (!raw) return L.crearBase();
+    try {
+      var db = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (!db || db.version !== 1 || !db.animales || !db.eventos) return L.crearBase();
+      if (!db.potreros) db.potreros = [];
+      if (!db.lotes) db.lotes = [];
+      if (!db.productos || !db.productos.length) db.productos = L.productosIniciales();
+      if (!db.recordatorios) db.recordatorios = [];
+      if (!db.prefs) db.prefs = L.crearBase().prefs;
+      return db;
+    } catch (e) {
+      return L.crearBase();
+    }
+  }
+
+  function guardarAnimal(db, animal, usuario) {
+    var copia = clonar(db);
+    var i = -1;
+    var k;
+    for (k = 0; k < copia.animales.length; k++) if (copia.animales[k].id === animal.id) i = k;
+    var previo = i >= 0 ? copia.animales[i] : null;
+    var row = sellar(Object.assign({}, previo || {}, animal), usuario, previo);
+    if (i >= 0) copia.animales[i] = row;
+    else copia.animales.push(row);
+    return { db: copia, animal: row };
+  }
+
+  function altaRapida(db, input, usuario) {
+    var current = db;
+    var creados = [];
+    var avisos = [];
+    var lista = input.caravanas || [];
+    var i, caravana, ya, r;
+    for (i = 0; i < lista.length; i++) {
+      caravana = String(lista[i] == null ? "" : lista[i]).trim();
+      if (!caravana) continue;
+      if (!/^\d+$/.test(caravana)) {
+        avisos.push("La " + caravana + " no es un número. No la cargué.");
+        continue;
+      }
+      ya = current.animales.some(function (a) { return !a.deleted && a.caravana === caravana; });
+      if (ya) {
+        avisos.push("La " + caravana + " ya está. No la cargué de nuevo.");
+        continue;
+      }
+      r = guardarAnimal(current, {
+        id: L.nuevoId(),
+        caravana: caravana,
+        sexo: input.sexo,
+        categoria: input.categoria,
+        raza: input.raza || "puro",
+        potreroId: input.potreroId || "",
+        nacimiento: "",
+        madreId: "",
+        padreId: "",
+        estado: "activo",
+        nacioMuerto: false,
+        pesoNacer: null,
+        ejemplo: false
+      }, usuario);
+      current = r.db;
+      creados.push(r.animal);
+    }
+    current = clonar(current);
+    current.prefs.sexo = input.sexo || current.prefs.sexo;
+    current.prefs.categoria = input.categoria || current.prefs.categoria;
+    current.prefs.raza = input.raza || current.prefs.raza;
+    if (input.potreroId) current.prefs.ultimoPotreroId = input.potreroId;
+    return { db: current, creados: creados, avisos: avisos };
+  }
+
+  function agregarEvento(db, evento, usuario) {
+    var copia = clonar(db);
+    var row = sellar(Object.assign({
+      id: evento.id || L.nuevoId(),
+      animalIds: evento.animalIds || [],
+      animalId: evento.animalId || "",
+      loteId: evento.loteId || "",
+      potreroId: evento.potreroId || "",
+      datos: evento.datos || {},
+      tipo: evento.tipo,
+      fecha: evento.fecha,
+      ejemplo: !!evento.ejemplo
+    }, evento), usuario, null);
+    var i;
+    for (i = 0; i < copia.eventos.length; i++) {
+      if (copia.eventos[i].id === row.id) {
+        row.createdAt = copia.eventos[i].createdAt;
+        row.createdBy = copia.eventos[i].createdBy;
+        copia.eventos[i] = row;
+        return { db: copia, evento: row };
+      }
+    }
+    copia.eventos.push(row);
+    return { db: copia, evento: row };
+  }
+
+  function registrarParto(db, input, usuario) {
+    if (!input.madreId) return { ok: false, error: "Elegí la madre." };
+    var madre = L.porId(db.animales, input.madreId);
+    if (!madre || madre.deleted || madre.sexo !== "hembra") return { ok: false, error: "Elegí una oveja." };
+    var tipo = L.TIPOS_PARTO.filter(function (t) { return t.id === input.tipo; })[0];
+    if (!tipo) return { ok: false, error: "Elegí si fue simple, mellizos o trillizos." };
+    var crías = input.corderos || [];
+    if (crías.length !== tipo.cantidad) return { ok: false, error: "Faltan datos de las crías." };
+    var padreId = input.padreId || L.padreDeParto(input.madreId, input.fecha, db.eventos);
+    var current = db;
+    var corderos = [];
+    var i, c, vivo, caravana, peso, r, ev;
+    for (i = 0; i < crías.length; i++) {
+      c = crías[i];
+      vivo = c.vivo !== false && c.vivo !== "muerto";
+      caravana = String(c.caravana || "").trim();
+      if (caravana && !/^\d+$/.test(caravana)) return { ok: false, error: "La caravana tiene que ser un número." };
+      if (caravana && current.animales.some(function (a) { return !a.deleted && a.caravana === caravana; })) {
+        return { ok: false, error: "La caravana " + caravana + " ya existe." };
+      }
+      peso = c.peso == null || c.peso === "" ? null : L.parseNum(c.peso);
+      r = guardarAnimal(current, {
+        id: L.nuevoId(),
+        caravana: caravana,
+        sexo: c.sexo === "macho" ? "macho" : "hembra",
+        categoria: "corderos-pie",
+        raza: madre.raza || "puro",
+        potreroId: madre.potreroId || "",
+        nacimiento: input.fecha,
+        madreId: input.madreId,
+        padreId: padreId,
+        estado: vivo ? "activo" : "muerto",
+        nacioMuerto: !vivo,
+        pesoNacer: peso,
+        ejemplo: false
+      }, usuario);
+      current = r.db;
+      ev = agregarEvento(current, {
+        tipo: "nacimiento",
+        fecha: input.fecha,
+        animalId: r.animal.id,
+        animalIds: [r.animal.id, input.madreId],
+        potreroId: r.animal.potreroId,
+        datos: {
+          madreId: input.madreId,
+          padreId: padreId,
+          sexo: r.animal.sexo,
+          peso: peso,
+          vivo: vivo,
+          facilidad: input.facilidad || "normal"
+        }
+      }, usuario);
+      current = ev.db;
+      corderos.push(r.animal);
+    }
+    ev = agregarEvento(current, {
+      tipo: "parto",
+      fecha: input.fecha,
+      animalId: input.madreId,
+      animalIds: [input.madreId].concat(corderos.map(function (x) { return x.id; })),
+      potreroId: madre.potreroId || "",
+      datos: {
+        tipo: input.tipo,
+        facilidad: input.facilidad || "normal",
+        padreId: padreId,
+        corderos: corderos.map(function (x) {
+          return { id: x.id, sexo: x.sexo, vivo: x.estado === "activo", peso: x.pesoNacer, caravana: x.caravana };
+        })
+      }
+    }, usuario);
+    return { ok: true, db: ev.db, padreId: padreId, corderos: corderos, evento: ev.evento };
+  }
+
+  function registrarServicio(db, input, usuario) {
+    var ovejaIds = (input.ovejaIds || []).slice();
+    if (!input.carneroId && !(input.modo === "ia" && input.semen)) return { ok: false, error: "Elegí el carnero." };
+    if (!ovejaIds.length) return { ok: false, error: "Elegí las ovejas." };
+    if (!input.entrada) return { ok: false, error: "Falta la fecha." };
+    var avisos = input.carneroId ? L.parentescoServicio(input.carneroId, ovejaIds, db.animales) : [];
+    if (avisos.length && !input.confirmarParentesco) {
+      return { ok: false, avisos: avisos, error: avisos.map(L.textoParentesco).join(" ") };
+    }
+    var loteId = input.loteId || "";
+    var current = db;
+    if (!loteId && input.crearLote !== false) {
+      var lote = guardarLote(current, {
+        id: L.nuevoId(),
+        nombre: input.nombreLote || ("Servicio " + L.fmtFecha(input.entrada)),
+        animalIds: ovejaIds.slice(),
+        potreroId: "",
+        fechaEntrada: "",
+        gramosDia: null,
+        ejemplo: false
+      }, usuario);
+      current = lote.db;
+      loteId = lote.lote.id;
+    }
+    var ev = agregarEvento(current, {
+      tipo: "servicio",
+      fecha: input.entrada,
+      animalId: input.carneroId || "",
+      animalIds: (input.carneroId ? [input.carneroId] : []).concat(ovejaIds),
+      loteId: loteId,
+      datos: {
+        modo: input.modo === "ia" ? "ia" : "monta",
+        carneroId: input.carneroId,
+        semen: input.semen || "",
+        entrada: input.entrada,
+        salida: input.salida || "",
+        ovejaIds: ovejaIds
+      }
+    }, usuario);
+    var baseEco = input.salida || input.entrada;
+    return {
+      ok: true,
+      db: ev.db,
+      evento: ev.evento,
+      avisos: avisos,
+      loteId: loteId,
+      ecografia: L.ventanaEcografia(baseEco),
+      paricion: L.paricionEsperada(input.entrada, input.salida || "")
+    };
+  }
+
+  function anotarSalida(db, servicioId, salida, usuario) {
+    var copia = clonar(db);
+    var i, e;
+    for (i = 0; i < copia.eventos.length; i++) {
+      if (copia.eventos[i].id === servicioId) e = copia.eventos[i];
+    }
+    if (!e || e.tipo !== "servicio") return { ok: false, error: "No encontré el servicio." };
+    e.datos.salida = salida;
+    e.updatedAt = ahora();
+    return { ok: true, db: copia, evento: e, ecografia: L.ventanaEcografia(salida), paricion: L.paricionEsperada(e.datos.entrada, salida) };
+  }
+
+  function registrarDiagnostico(db, input, usuario) {
+    var current = db;
+    var i, r, ev;
+    var ids = [];
+    if (!input.resultados || !input.resultados.length) return { ok: false, error: "Falta el diagnóstico." };
+    for (i = 0; i < input.resultados.length; i++) {
+      r = input.resultados[i];
+      if (!r.resultado) return { ok: false, error: "Marcá preñada, vacía o mellizos en cada oveja." };
+      ev = agregarEvento(current, {
+        tipo: "diagnostico",
+        fecha: input.fecha,
+        animalId: r.ovejaId,
+        animalIds: [r.ovejaId],
+        datos: { servicioId: input.servicioId || "", resultado: r.resultado }
+      }, usuario);
+      current = ev.db;
+      ids.push(ev.evento.id);
+    }
+    return { ok: true, db: current, ids: ids };
+  }
+
+  function registrarDestete(db, input, usuario) {
+    var items = input.items || [];
+    if (!items.length) return { ok: false, error: "Elegí los corderos." };
+    var current = db;
+    var filas = [];
+    var i, it, animal, edad, gdp, peso, ev, g;
+    for (i = 0; i < items.length; i++) {
+      it = items[i];
+      animal = L.porId(current.animales, it.animalId);
+      if (!animal) return { ok: false, error: "Falta un cordero." };
+      peso = L.parseNum(it.peso);
+      if (peso == null) return { ok: false, error: "Falta el peso de " + L.etiquetaAnimal(animal) + "." };
+      edad = animal.nacimiento ? L.diasEntre(animal.nacimiento, input.fecha) : null;
+      gdp = L.gdpGramos(animal.pesoNacer, peso, edad);
+      ev = agregarEvento(current, {
+        tipo: "destete",
+        fecha: input.fecha,
+        animalId: animal.id,
+        animalIds: [animal.id],
+        datos: { peso: peso, edad: edad, gdp: gdp, pesoNacer: animal.pesoNacer }
+      }, usuario);
+      current = ev.db;
+      if (animal.categoria === "corderos-pie") {
+        g = guardarAnimal(current, Object.assign({}, animal, { categoria: "corderos-destetados" }), usuario);
+        current = g.db;
+      }
+      filas.push({ animalId: animal.id, caravana: animal.caravana, peso: peso, edad: edad, gdp: gdp });
+    }
+    return { ok: true, db: current, filas: filas };
+  }
+
+  function registrarPesaje(db, input, usuario) {
+    var items = input.items || [];
+    if (!items.length) return { ok: false, error: "Elegí los animales." };
+    var current = db;
+    var filas = [];
+    var i, it, animal, peso, base, dias, gdp, ev;
+    for (i = 0; i < items.length; i++) {
+      it = items[i];
+      animal = L.porId(current.animales, it.animalId);
+      if (!animal) return { ok: false, error: "Falta un animal." };
+      peso = L.parseNum(it.peso);
+      if (peso == null) return { ok: false, error: "Falta el peso de " + L.etiquetaAnimal(animal) + "." };
+      base = L.pesoBase(current, animal.id, input.fecha);
+      dias = base ? L.diasEntre(base.fecha, input.fecha) : null;
+      gdp = base ? L.gdpGramos(base.peso, peso, dias) : null;
+      ev = agregarEvento(current, {
+        tipo: "pesaje",
+        fecha: input.fecha,
+        animalId: animal.id,
+        animalIds: [animal.id],
+        datos: {
+          peso: peso,
+          cc: it.cc || null,
+          famacha: it.famacha || null,
+          hpg: it.hpg == null || it.hpg === "" ? null : L.parseNum(it.hpg),
+          hematocrito: it.hematocrito == null || it.hematocrito === "" ? null : L.parseNum(it.hematocrito),
+          gdp: gdp,
+          pesoAnterior: base ? base.peso : null
+        }
+      }, usuario);
+      current = ev.db;
+      filas.push({ animalId: animal.id, caravana: animal.caravana, peso: peso, gdp: gdp });
+    }
+    return { ok: true, db: current, filas: filas };
+  }
+
+  function registrarSanidad(db, input, usuario) {
+    var ids = input.animalIds || [];
+    if (!ids.length) return { ok: false, error: "Elegí a quién." };
+    if (!input.motivo) return { ok: false, error: "Elegí el motivo." };
+    var producto = L.porId(db.productos, input.productoId);
+    var retiro = input.retiroDias == null || input.retiroDias === "" ? (producto ? Number(producto.retiroDias) || 0 : 0) : Number(input.retiroDias);
+    var hasta = retiro > 0 ? L.sumarDias(input.fecha, retiro) : "";
+    var ev = agregarEvento(db, {
+      tipo: "sanidad",
+      fecha: input.fecha,
+      animalIds: ids,
+      loteId: input.loteId || "",
+      potreroId: input.potreroId || "",
+      datos: {
+        motivo: input.motivo,
+        productoId: input.productoId || "",
+        productoNombre: input.productoNombre || (producto ? producto.nombre : ""),
+        dosis: input.dosis || "",
+        via: input.via || (producto ? producto.via : ""),
+        retiroDias: retiro,
+        retiroHasta: hasta,
+        hpgAntes: input.hpgAntes == null || input.hpgAntes === "" ? null : L.parseNum(input.hpgAntes)
+      }
+    }, usuario);
+    return { ok: true, db: ev.db, evento: ev.evento, retiroHasta: hasta };
+  }
+
+  function registrarControlHpg(db, input, usuario) {
+    var san = L.porId(db.eventos, input.sanidadId);
+    if (!san || san.tipo !== "sanidad") return { ok: false, error: "No encontré el tratamiento." };
+    var hpg = L.parseNum(input.hpg);
+    if (hpg == null) return { ok: false, error: "Falta el HPG." };
+    var antes = san.datos.hpgAntes;
+    var red = L.reduccionHpg(antes, hpg);
+    var ev = agregarEvento(db, {
+      tipo: "hpg-control",
+      fecha: input.fecha,
+      animalIds: san.animalIds || [],
+      datos: { sanidadId: san.id, hpg: hpg, hpgAntes: antes, reduccion: red }
+    }, usuario);
+    var copia = ev.db;
+    var i;
+    for (i = 0; i < copia.eventos.length; i++) {
+      if (copia.eventos[i].id === san.id) {
+        copia.eventos[i].datos.hpgDespues = hpg;
+        copia.eventos[i].datos.reduccion = red;
+        copia.eventos[i].updatedAt = ahora();
+      }
+    }
+    return { ok: true, db: copia, evento: ev.evento, reduccion: red };
+  }
+
+  function registrarMuerte(db, input, usuario) {
+    var animal = L.porId(db.animales, input.animalId);
+    if (!animal) return { ok: false, error: "Elegí el animal." };
+    if (!input.causa) return { ok: false, error: "Elegí la causa." };
+    var foto = input.foto || "";
+    if (foto && foto.length > 450000) foto = "";
+    var ev = agregarEvento(db, {
+      tipo: "muerte",
+      fecha: input.fecha,
+      animalId: animal.id,
+      animalIds: [animal.id],
+      potreroId: input.potreroId || animal.potreroId || "",
+      datos: { causa: input.causa, causaOtro: input.causaOtro || "", foto: foto }
+    }, usuario);
+    var g = guardarAnimal(ev.db, Object.assign({}, animal, { estado: "muerto" }), usuario);
+    return { ok: true, db: g.db, evento: ev.evento, sinFoto: !!(input.foto && !foto) };
+  }
+
+  function marcarVendido(db, animalId, fecha, usuario) {
+    var animal = L.porId(db.animales, animalId);
+    if (!animal) return { ok: false, error: "Elegí el animal." };
+    var ev = agregarEvento(db, {
+      tipo: "venta",
+      fecha: fecha,
+      animalId: animal.id,
+      animalIds: [animal.id],
+      datos: {}
+    }, usuario);
+    var g = guardarAnimal(ev.db, Object.assign({}, animal, { estado: "vendido" }), usuario);
+    return { ok: true, db: g.db, evento: ev.evento };
+  }
+
+  function guardarPotrero(db, pot, usuario) {
+    var copia = clonar(db);
+    var i = -1;
+    var k;
+    for (k = 0; k < copia.potreros.length; k++) if (copia.potreros[k].id === pot.id) i = k;
+    var previo = i >= 0 ? copia.potreros[i] : null;
+    var row = sellar(Object.assign({
+      hectareas: null,
+      pastura: "",
+      tipo: "potrero",
+      loteId: "",
+      fechaEntrada: "",
+      fechaInicioDescanso: "",
+      ejemplo: false
+    }, previo || {}, pot), usuario, previo);
+    if (i >= 0) copia.potreros[i] = row;
+    else copia.potreros.push(row);
+    return { db: copia, potrero: row };
+  }
+
+  function guardarLote(db, lote, usuario) {
+    var copia = clonar(db);
+    var i = -1;
+    var k;
+    for (k = 0; k < copia.lotes.length; k++) if (copia.lotes[k].id === lote.id) i = k;
+    var previo = i >= 0 ? copia.lotes[i] : null;
+    var row = sellar(Object.assign({
+      animalIds: [],
+      potreroId: "",
+      fechaEntrada: "",
+      gramosDia: null,
+      ejemplo: false
+    }, previo || {}, lote), usuario, previo);
+    if (i >= 0) copia.lotes[i] = row;
+    else copia.lotes.push(row);
+    return { db: copia, lote: row };
+  }
+
+  function moverLote(db, loteId, potreroId, fecha, usuario) {
+    var copia = clonar(db);
+    var lote = L.porId(copia.lotes, loteId);
+    var destino = L.porId(copia.potreros, potreroId);
+    if (!lote || lote.deleted) return { ok: false, error: "Elegí el lote." };
+    if (!destino || destino.deleted) return { ok: false, error: "Elegí el potrero." };
+    var origenId = lote.potreroId || "";
+    var i, p;
+    for (i = 0; i < copia.potreros.length; i++) {
+      p = copia.potreros[i];
+      if (p.id === origenId) {
+        p.loteId = "";
+        p.fechaInicioDescanso = fecha;
+        p.fechaEntrada = "";
+        p.updatedAt = ahora();
+      }
+      if (p.loteId === loteId && p.id !== potreroId) {
+        p.loteId = "";
+        p.fechaInicioDescanso = fecha;
+        p.fechaEntrada = "";
+        p.updatedAt = ahora();
+      }
+    }
+    destino.loteId = loteId;
+    destino.fechaEntrada = fecha;
+    destino.fechaInicioDescanso = "";
+    destino.updatedAt = ahora();
+    lote.potreroId = potreroId;
+    lote.fechaEntrada = fecha;
+    lote.updatedAt = ahora();
+    (lote.animalIds || []).forEach(function (id) {
+      var animal = L.porId(copia.animales, id);
+      if (animal && !animal.deleted) {
+        animal.potreroId = potreroId;
+        animal.updatedAt = ahora();
+      }
+    });
+    var ev = agregarEvento(copia, {
+      tipo: "movimiento",
+      fecha: fecha,
+      loteId: loteId,
+      potreroId: potreroId,
+      animalIds: lote.animalIds || [],
+      datos: { desde: origenId, hacia: potreroId }
+    }, usuario);
+    return { ok: true, db: ev.db, lote: lote, destino: destino };
+  }
+
+  function suplementar(db, loteId, gramos, fecha, usuario) {
+    var g = L.parseNum(gramos);
+    if (g == null) return { ok: false, error: "Faltan los gramos por día." };
+    var lote = L.porId(db.lotes, loteId);
+    if (!lote) return { ok: false, error: "Elegí el lote." };
+    var saved = guardarLote(db, Object.assign({}, lote, { gramosDia: g }), usuario);
+    var ev = agregarEvento(saved.db, {
+      tipo: "suplemento",
+      fecha: fecha,
+      loteId: loteId,
+      animalIds: lote.animalIds || [],
+      datos: { gramosDia: g }
+    }, usuario);
+    return { ok: true, db: ev.db };
+  }
+
+  function guardarProducto(db, prod, usuario) {
+    var copia = clonar(db);
+    var i = -1;
+    var k;
+    for (k = 0; k < copia.productos.length; k++) if (copia.productos[k].id === prod.id) i = k;
+    var previo = i >= 0 ? copia.productos[i] : null;
+    var row = sellar(Object.assign({ retiroDias: 0, via: "oral", motivo: "otro", ejemplo: false }, previo || {}, prod), usuario, previo);
+    if (i >= 0) copia.productos[i] = row;
+    else copia.productos.push(row);
+    return { db: copia, producto: row };
+  }
+
+  function guardarRecordatorio(db, rec, usuario) {
+    var copia = clonar(db);
+    var i = -1;
+    var k;
+    for (k = 0; k < copia.recordatorios.length; k++) if (copia.recordatorios[k].id === rec.id) i = k;
+    var previo = i >= 0 ? copia.recordatorios[i] : null;
+    var row = sellar(Object.assign({ hecho: false, ejemplo: false }, previo || {}, rec), usuario, previo);
+    if (i >= 0) copia.recordatorios[i] = row;
+    else copia.recordatorios.push(row);
+    return { db: copia, recordatorio: row };
+  }
+
+  function borrarSuave(db, coleccion, id, usuario) {
+    var copia = clonar(db);
+    var lista = copia[coleccion] || [];
+    var i;
+    for (i = 0; i < lista.length; i++) {
+      if (lista[i].id === id) {
+        lista[i].deleted = true;
+        lista[i].deletedAt = ahora();
+        lista[i].deletedBy = usuario || "";
+        lista[i].updatedAt = ahora();
+      }
+    }
+    return copia;
+  }
+
+  function deshacerContra(antes, ahoraDb, usuario) {
+    var merged = clonar(antes);
+    var cols = ["animales", "eventos", "potreros", "lotes", "productos", "recordatorios"];
+    var c, i, ids, row;
+    for (c = 0; c < cols.length; c++) {
+      ids = {};
+      (antes[cols[c]] || []).forEach(function (r) { ids[r.id] = true; });
+      (ahoraDb[cols[c]] || []).forEach(function (r) {
+        if (!ids[r.id]) {
+          row = clonar(r);
+          row.deleted = true;
+          row.deletedAt = ahora();
+          row.deletedBy = usuario || "";
+          row.updatedAt = ahora();
+          merged[cols[c]].push(row);
+        }
+      });
+    }
+    merged.prefs = clonar(antes.prefs || merged.prefs);
+    return merged;
+  }
+
+  function ponerCaravana(db, animalId, caravana, usuario) {
+    var n = String(caravana || "").trim();
+    if (!/^\d+$/.test(n)) return { ok: false, error: "La caravana tiene que ser un número." };
+    if (db.animales.some(function (a) { return !a.deleted && a.caravana === n && a.id !== animalId; })) {
+      return { ok: false, error: "Esa caravana ya está usada." };
+    }
+    var animal = L.porId(db.animales, animalId);
+    if (!animal) return { ok: false, error: "No encontré el animal." };
+    var g = guardarAnimal(db, Object.assign({}, animal, { caravana: n }), usuario);
+    return { ok: true, db: g.db, animal: g.animal };
+  }
+
+  function cargarEjemplo(db, usuario) {
+    if (db.animales.some(function (a) { return a.ejemplo && !a.deleted; })) return { ok: false, error: "Los datos de ejemplo ya están.", db: db };
+    var current = clonar(db);
+    var pot = guardarPotrero(current, {
+      id: "ej-potrero",
+      nombre: "Potrero ejemplo",
+      hectareas: 1,
+      pastura: "Brachiaria brizantha Marandú",
+      tipo: "potrero",
+      ejemplo: true,
+      deleted: false
+    }, usuario);
+    current = pot.db;
+    var carnero = guardarAnimal(current, animalEj("ej-carnero", "1", "macho", "carneros", "", ""), usuario);
+    current = carnero.db;
+    var madre = guardarAnimal(current, animalEj("ej-oveja", "10", "hembra", "ovejas-adultas", "", ""), usuario);
+    current = madre.db;
+    var hija = guardarAnimal(current, animalEj("ej-hija", "11", "hembra", "borregas-servicio", "", "ej-carnero"), usuario);
+    current = hija.db;
+    current.animales.forEach(function (a) { if (a.ejemplo) a.potreroId = "ej-potrero"; });
+    return { ok: true, db: current };
+  }
+
+  function animalEj(id, caravana, sexo, categoria, madreId, padreId) {
+    return {
+      id: id,
+      caravana: caravana,
+      sexo: sexo,
+      categoria: categoria,
+      raza: "puro",
+      potreroId: "",
+      nacimiento: "",
+      madreId: madreId,
+      padreId: padreId,
+      estado: "activo",
+      nacioMuerto: false,
+      pesoNacer: null,
+      ejemplo: true,
+      deleted: false
+    };
+  }
+
+  function borrarEjemplo(db, usuario) {
+    var copia = clonar(db);
+    ["animales", "eventos", "potreros", "lotes", "recordatorios"].forEach(function (col) {
+      (copia[col] || []).forEach(function (r) {
+        if (r.ejemplo && !r.deleted) {
+          r.deleted = true;
+          r.deletedAt = ahora();
+          r.deletedBy = usuario || "";
+          r.updatedAt = ahora();
+        }
+      });
+    });
+    return copia;
+  }
+
+  function serviciosAbiertos(db, hoy) {
+    var dia = hoy || L.hoyISO();
+    return db.eventos.filter(function (e) {
+      if (e.deleted || e.tipo !== "servicio") return false;
+      if (e.datos.modo === "ia") return false;
+      return !e.datos.salida || e.datos.salida >= dia;
+    });
+  }
+
+  root.MEStore = {
+    clonar: clonar,
+    cargar: cargar,
+    guardarAnimal: guardarAnimal,
+    altaRapida: altaRapida,
+    agregarEvento: agregarEvento,
+    registrarParto: registrarParto,
+    registrarServicio: registrarServicio,
+    anotarSalida: anotarSalida,
+    registrarDiagnostico: registrarDiagnostico,
+    registrarDestete: registrarDestete,
+    registrarPesaje: registrarPesaje,
+    registrarSanidad: registrarSanidad,
+    registrarControlHpg: registrarControlHpg,
+    registrarMuerte: registrarMuerte,
+    marcarVendido: marcarVendido,
+    guardarPotrero: guardarPotrero,
+    guardarLote: guardarLote,
+    moverLote: moverLote,
+    suplementar: suplementar,
+    guardarProducto: guardarProducto,
+    guardarRecordatorio: guardarRecordatorio,
+    borrarSuave: borrarSuave,
+    deshacerContra: deshacerContra,
+    ponerCaravana: ponerCaravana,
+    cargarEjemplo: cargarEjemplo,
+    borrarEjemplo: borrarEjemplo,
+    serviciosAbiertos: serviciosAbiertos
+  };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+(function (root) {
+  "use strict";
+  var L = root.MELogic;
+  var Store = root.MEStore;
+  var KEY = "tg-maria-elena-v1";
+  var COLECCIONES = ["animales", "eventos", "potreros", "lotes", "productos", "recordatorios"];
+  var S = {
+    db: null,
+    screen: "home",
+    pila: [],
+    b: {},
+    banner: "",
+    deshacer: null,
+    sync: "local",
+    modo: "local",
+    usuario: null,
+    error: "",
+    nubeEstado: "",
+    errorNube: "",
+    importPendiente: null
+  };
+  var cloud = { fs: null, auth: null };
+  var semilla = {};
+
+  function boot() {
+    S.db = Store.cargar(localStorage.getItem(KEY));
+    document.addEventListener("click", onClick);
+    document.addEventListener("input", onInput);
+    document.addEventListener("change", onChange);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("online", function () { if (S.modo === "cloud" && S.sync === "offline") marcarSync("pending"); });
+    window.addEventListener("offline", function () { if (S.modo === "cloud") marcarSync("offline"); });
+    var cfg = root.FIREBASE_CONFIG || {};
+    if (cfg.apiKey) {
+      S.modo = "cloud";
+      S.nubeEstado = "cargando";
+      S.sync = "pending";
+      pintar();
+      prepararNube(cfg);
+    } else {
+      S.modo = "local";
+      S.sync = "local";
+      pintar();
+    }
+  }
+
+  function guardarLocal() {
+    try { localStorage.setItem(KEY, JSON.stringify(S.db)); } catch (e) { S.error = "Este aparato no tiene lugar para guardar más."; }
+  }
+
+  function uid() { return S.usuario ? S.usuario.uid : ""; }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function ir(screen, b) {
+    S.pila.push({ screen: S.screen, b: S.b });
+    S.screen = screen;
+    S.b = b || {};
+    S.error = "";
+    if (!S.conservarBanner) S.banner = "";
+    S.conservarBanner = false;
+    pintar();
+    window.scrollTo(0, 0);
+  }
+
+  function volver() {
+    var prev = S.pila.pop();
+    S.screen = prev ? prev.screen : "home";
+    S.b = prev ? prev.b : {};
+    S.error = "";
+    pintar();
+    window.scrollTo(0, 0);
+  }
+
+  function inicio() {
+    S.pila = [];
+    S.screen = "home";
+    S.b = {};
+    S.error = "";
+    if (!S.conservarBanner) S.banner = "";
+    S.conservarBanner = false;
+    pintar();
+    window.scrollTo(0, 0);
+  }
+
+  function aplicar(res, texto) {
+    if (!res || res.ok === false) {
+      S.error = (res && res.error) || "No se pudo guardar.";
+      pintar();
+      return;
+    }
+    var antes = Store.clonar(S.db);
+    S.db = res.db;
+    guardarLocal();
+    subirNube();
+    S.deshacer = { db: antes };
+    S.pila = [];
+    S.b.texto = texto;
+    S.screen = "hecho";
+    S.error = "";
+    pintar();
+    window.scrollTo(0, 0);
+  }
+
+  function defaults(screen) {
+    var p = (S.db && S.db.prefs) || {};
+    var base = { fecha: L.hoyISO() };
+    if (screen === "alta") return { sexo: p.sexo || "hembra", categoria: p.categoria || "ovejas-adultas", raza: p.raza || "puro", potreroId: p.ultimoPotreroId || "", cargadas: [] };
+    if (screen === "parto") return Object.assign(base, { facilidad: "normal", corderos: [], n: 0 });
+    if (screen === "servicio") return base;
+    if (screen === "servicio-monta") return Object.assign(base, { modo: "monta", elegidos: {} });
+    if (screen === "servicio-ia") return Object.assign(base, { modo: "ia", elegidos: {} });
+    if (screen === "destete") return Object.assign(base, { elegidos: {} });
+    if (screen === "pesaje") return Object.assign(base, { elegidos: {} });
+    if (screen === "sanidad") return Object.assign(base, { elegidos: {}, motivo: "desparasitacion" });
+    if (screen === "muerte") return Object.assign(base, { causa: "desconocida" });
+    if (screen === "potrero-edit") return { tipo: "potrero", nombre: "", hectareas: "", pastura: L.PASTURAS[0] };
+    if (screen === "producto-edit") return { nombre: "", via: "oral", retiroDias: "0", motivo: "otro" };
+    if (screen === "recordatorio-edit") return Object.assign(base, { texto: "" });
+    if (screen === "lote-nuevo") return Object.assign(base, { elegidos: {}, nombre: "" });
+    return base;
+  }
+
+  function pintar() {
+    var app = document.getElementById("app");
+    if (!app) return;
+    var cuerpo;
+    if (S.modo === "cloud" && !S.usuario) cuerpo = S.nubeEstado === "cargando" ? "<h2>Abriendo…</h2>" : pantallaLogin();
+    else cuerpo = pantalla();
+    app.innerHTML = barra() + '<main class="screen">' + cuerpo + "</main>";
+    var foco = document.querySelector("[data-focus]");
+    if (foco) foco.focus();
+  }
+
+  function textoSync() {
+    if (S.sync === "ok") return "Sincronizado";
+    if (S.sync === "pending") return "Pendiente de subir";
+    if (S.sync === "offline") return "Sin señal · se sube después";
+    return "En este aparato";
+  }
+
+  function marcarSync(estado) {
+    S.sync = estado;
+    var el = document.getElementById("sync");
+    if (el) {
+      el.textContent = textoSync();
+      el.className = "sync " + (estado === "ok" || estado === "local" ? "" : estado);
+    }
+  }
+
+  function barra() {
+    var syncCls = S.sync === "ok" || S.sync === "local" ? "sync" : "sync " + S.sync;
+    if (S.screen === "home" || (S.modo === "cloud" && !S.usuario)) {
+      return '<header class="top no-print"><div class="top-row"><div class="brand"><img class="brand-logo" src="logo-header.png" width="52" height="52" alt=""><h1>Cabaña María Elena</h1></div>' +
+        (S.usuario ? '<button type="button" class="linkish" data-act="ir" data-screen="ajustes">Ajustes</button>' : "") +
+        "</div><p>Coronel Oviedo · Dorper</p><span id=\"sync\" class=\"" + syncCls + "\">" + esc(textoSync()) + "</span></header>";
+    }
+    return '<header class="top no-print"><div class="top-row"><button type="button" class="linkish" data-act="volver">Volver</button>' +
+      '<button type="button" class="linkish" data-act="inicio">Inicio</button></div>' +
+      '<span id="sync" class="' + syncCls + '">' + esc(textoSync()) + "</span></header>";
+  }
+
+  function pantalla() {
+    if (S.screen === "home") return pantallaHome();
+    if (S.screen === "animales") return pantallaAnimales();
+    if (S.screen === "alta") return pantallaAlta();
+    if (S.screen === "caravanas") return pantallaCaravanas();
+    if (S.screen === "animal") return pantallaAnimal();
+    if (S.screen === "animal-edit") return pantallaAnimalEdit();
+    if (S.screen === "parto") return pantallaParto();
+    if (S.screen === "parto-tipo") return pantallaPartoTipo();
+    if (S.screen === "parto-cria") return pantallaPartoCria();
+    if (S.screen === "servicio") return pantallaServicio();
+    if (S.screen === "servicio-monta" || S.screen === "servicio-ia") return pantallaServicioDatos();
+    if (S.screen === "servicio-ovejas") return pantallaServicioOvejas();
+    if (S.screen === "servicio-aviso") return pantallaServicioAviso();
+    if (S.screen === "servicio-salida") return pantallaSalida();
+    if (S.screen === "diagnostico") return pantallaDiagnostico();
+    if (S.screen === "destete") return pantallaElegir("Destete", "Elegí los corderos al pie.", corderosPie(), "destete-pesos");
+    if (S.screen === "destete-pesos") return pantallaDestetePesos();
+    if (S.screen === "pesaje") return pantallaPesaje();
+    if (S.screen === "pesaje-seq") return pantallaPesajeSeq();
+    if (S.screen === "sanidad") return pantallaSanidad();
+    if (S.screen === "sanidad-quien") return pantallaSanidadQuien();
+    if (S.screen === "hpg") return pantallaHpg();
+    if (S.screen === "muerte") return pantallaMuerte();
+    if (S.screen === "potreros") return pantallaPotreros();
+    if (S.screen === "potrero") return pantallaPotrero();
+    if (S.screen === "potrero-edit") return pantallaPotreroEdit();
+    if (S.screen === "mover") return pantallaMover();
+    if (S.screen === "lote") return pantallaLote();
+    if (S.screen === "lote-nuevo") return pantallaLoteNuevo();
+    if (S.screen === "suplemento") return pantallaSuplemento();
+    if (S.screen === "reportes") return pantallaReportes();
+    if (S.screen === "reporte") return pantallaReporte();
+    if (S.screen === "ajustes") return pantallaAjustes();
+    if (S.screen === "productos") return pantallaProductos();
+    if (S.screen === "producto-edit") return pantallaProductoEdit();
+    if (S.screen === "recordatorios") return pantallaRecordatorios();
+    if (S.screen === "recordatorio-edit") return pantallaRecordatorioEdit();
+    if (S.screen === "evento") return pantallaEvento();
+    if (S.screen === "hecho") return pantallaHecho();
+    if (S.screen === "importar") return pantallaImportar();
+    return pantallaHome();
+  }
+
+  function errBox() {
+    return S.error ? '<div class="error">' + esc(S.error) + "</div>" : "";
+  }
+
+  function avisoHtml() {
+    var html = "";
+    if (S.errorNube) html += '<div class="aviso">' + esc(S.errorNube) + "</div>";
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    if (S.banner && S.screen === "home") html += '<div class="ok">' + esc(S.banner) + (S.deshacer ? ' <button type="button" class="btn-ghost" data-act="deshacer">Deshacer</button>' : "") + "</div>";
+    return html;
+  }
+
+  function pantallaHome() {
+    var n = L.activos(S.db).length;
+    var tiles = [
+      ["parto", "Parto / Nacimiento"],
+      ["servicio", "Servicio"],
+      ["destete", "Destete"],
+      ["pesaje", "Pesaje"],
+      ["sanidad", "Sanidad"],
+      ["muerte", "Mortandad"],
+      ["potreros", "Potreros"],
+      ["animales", "Animales"],
+      ["reportes", "Reportes"]
+    ];
+    var html = avisoHtml();
+    html += "<h2>" + (n ? n + (n === 1 ? " animal" : " animales") : "Sin animales todavía") + "</h2>";
+    var rec = recordatoriosCercanos();
+    if (rec.length) {
+      html += '<div class="aviso">';
+      rec.forEach(function (r) { html += "<div>" + esc(L.fmtFecha(r.fecha)) + " · " + esc(r.texto) + "</div>"; });
+      html += '<button type="button" class="btn" data-act="ir" data-screen="recordatorios" data-fresh="1">Ver recordatorios</button></div>';
+    }
+    html += '<div class="tiles">';
+    tiles.forEach(function (t) {
+      html += '<button type="button" class="tile" data-act="ir" data-screen="' + t[0] + '" data-fresh="1">' + esc(t[1]) + "</button>";
+    });
+    html += "</div>";
+    html += '<button type="button" class="btn-ghost" data-act="ir" data-screen="ajustes" data-fresh="1">Ajustes y copia</button>';
+    return html;
+  }
+
+  function recordatoriosCercanos() {
+    var hoy = L.hoyISO();
+    var limite = L.sumarDias(hoy, 7);
+    return (S.db.recordatorios || []).filter(function (r) {
+      return !r.deleted && !r.hecho && r.fecha <= limite;
+    }).sort(function (a, b) { return a.fecha > b.fecha ? 1 : -1; });
+  }
+
+  function pantallaLogin() {
+    return '<h2>Entrar</h2><p class="sub">La misma cuenta en el teléfono y en el iPad.</p>' +
+      (S.error ? '<div class="error">' + esc(S.error) + "</div>" : "") +
+      '<label class="f">Correo<input type="email" autocomplete="username" data-bind="email" value="' + esc(S.b.email || "") + '" data-focus="1"></label>' +
+      '<label class="f">Contraseña<input type="password" autocomplete="current-password" data-bind="clave" value="' + esc(S.b.clave || "") + '"></label>' +
+      '<button type="button" class="btn" data-act="login">Entrar</button>';
+  }
+
+  function pantallaAnimales() {
+    var q = S.b.q || "";
+    var lista = S.db.animales.filter(function (a) { return !a.deleted; });
+    if (q) lista = lista.filter(function (a) { return String(a.caravana || "").indexOf(q) >= 0; });
+    lista.sort(ordenarCaravana);
+    var html = "<h2>Animales</h2>";
+    html += '<label class="f">Buscar caravana<input inputmode="numeric" data-bind="q" data-live="1" value="' + esc(q) + '" placeholder="Número"></label>';
+    html += '<button type="button" class="btn" data-act="ir" data-screen="alta" data-fresh="1">Cargar varios</button>';
+    if (!S.db.animales.some(function (a) { return !a.deleted; })) {
+      html += '<div class="card"><p>Todavía no hay animales. Cargá el plantel con los números de caravana.</p></div>';
+      return html;
+    }
+    lista.forEach(function (a) {
+      html += '<button type="button" class="rowbtn" data-act="abrir-animal" data-id="' + esc(a.id) + '"><b>' + esc(L.etiquetaAnimal(a)) + "</b><small>" +
+        esc(L.nombreDe(L.CATEGORIAS, a.categoria)) + " · " + esc(estadoTexto(a.estado)) + "</small></button>";
+    });
+    return html;
+  }
+
+  function pantallaAlta() {
+    var html = "<h2>Cargar varios</h2>" + errBox() + "<p class=\"sub\">Primero el grupo. Después, los números uno por uno.</p>";
+    html += "<h3>Sexo</h3>" + chips([["hembra", "Hembra"], ["macho", "Macho"]], "sexo");
+    html += "<h3>Categoría</h3>" + chips(categoriasDe(S.b.sexo || "hembra"), "categoria");
+    html += "<h3>Raza</h3>" + chips(L.RAZAS.map(function (r) { return [r.id, r.nombre]; }), "raza");
+    html += "<h3>Dónde están</h3>" + chipsPotrero();
+    html += '<button type="button" class="btn" data-act="empezar-caravanas">Empezar a cargar números</button>';
+    return html;
+  }
+
+  function pantallaCaravanas() {
+    var html = "<h2>Números</h2>";
+    html += '<div class="card"><p>' + esc(L.nombreDe(L.CATEGORIAS, S.b.categoria)) + " · " + esc(S.b.sexo === "macho" ? "Machos" : "Hembras") + " · " + esc(L.nombreDe(L.RAZAS, S.b.raza)) + "</p></div>";
+    if (S.banner) html += '<div class="ok">' + esc(S.banner) + (S.deshacer ? ' <button type="button" class="btn-ghost" data-act="deshacer">Deshacer</button>' : "") + "</div>";
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += '<label class="f">Caravana<input inputmode="numeric" data-bind="caravana" data-focus="1" value="' + esc(S.b.caravana || "") + '" placeholder="Número"></label>';
+    html += '<button type="button" class="btn" data-act="guardar-caravana">Guardar y otra</button>';
+    if ((S.b.cargadas || []).length) html += '<div class="card"><p>Cargadas: ' + esc(S.b.cargadas.join(", ")) + "</p></div>";
+    html += '<button type="button" class="btn-ghost" data-act="inicio">Listo</button>';
+    return html;
+  }
+
+  function pantallaAnimal() {
+    var a = L.porId(S.db.animales, S.b.id);
+    if (!a) return "<h2>No está</h2>";
+    var pot = L.porId(S.db.potreros, a.potreroId);
+    var madre = L.porId(S.db.animales, a.madreId);
+    var padre = L.porId(S.db.animales, a.padreId);
+    var html = "<h2>" + esc(L.etiquetaAnimal(a)) + "</h2>";
+    html += '<div class="card">';
+    html += "<p>" + esc(L.nombreDe(L.CATEGORIAS, a.categoria)) + "</p>";
+    html += "<p>Por la edad: " + esc(L.categoriaPorEdad(a, L.hoyISO(), S.db.eventos)) + "</p>";
+    html += "<p>" + esc(L.nombreDe(L.RAZAS, a.raza) || "Dorper") + " · " + esc(estadoTexto(a.estado)) + "</p>";
+    if (a.nacimiento) html += "<p>Nació el " + esc(L.fmtFecha(a.nacimiento)) + (a.pesoNacer != null ? " · " + esc(L.fmtNum(a.pesoNacer, 1)) + " kg" : "") + "</p>";
+    html += "<p>Madre: " + esc(madre ? L.etiquetaAnimal(madre) : "sin anotar") + "</p>";
+    html += "<p>Padre: " + esc(padre ? L.etiquetaAnimal(padre) : "sin anotar") + "</p>";
+    html += "<p>Lugar: " + esc(pot ? pot.nombre : "sin anotar") + "</p>";
+    html += "</div>";
+    if (!a.caravana) html += '<button type="button" class="btn" data-act="ir" data-screen="animal-edit">Poner caravana</button>';
+    html += '<button type="button" class="btn" data-act="pesar-este">Pesar</button>';
+    html += '<button type="button" class="btn" data-act="sanidad-este">Sanidad</button>';
+    if (a.categoria === "corderos-pie" && a.estado === "activo") html += '<button type="button" class="btn" data-act="destetar-este">Destetar</button>';
+    if (a.estado === "activo") {
+      html += '<button type="button" class="btn-ghost" data-act="muerte-este">Anotar muerte</button>';
+      html += '<button type="button" class="btn-ghost" data-act="vender">Se vendió</button>';
+    }
+    html += '<button type="button" class="btn-ghost" data-act="ir" data-screen="animal-edit">Corregir datos</button>';
+    html += "<h2>Historia</h2>";
+    var evs = eventosDe(a.id);
+    if (!evs.length) html += '<p class="sub">Todavía no hay registros.</p>';
+    evs.forEach(function (e) {
+      html += '<button type="button" class="rowbtn" data-act="abrir-evento" data-id="' + esc(e.id) + '">' + esc(L.fmtFecha(e.fecha)) + "<small>" + esc(textoEvento(e)) + "</small></button>";
+    });
+    return html;
+  }
+
+  function pantallaAnimalEdit() {
+    var a = L.porId(S.db.animales, S.b.id);
+    if (!a) return "<h2>No está</h2>";
+    if (S.b.caravana == null) {
+      S.b.caravana = a.caravana || "";
+      S.b.sexo = a.sexo;
+      S.b.categoria = a.categoria;
+      S.b.raza = a.raza || "puro";
+      S.b.nacimiento = a.nacimiento || "";
+      S.b.estado = a.estado || "activo";
+      S.b.potreroId = a.potreroId || "";
+      S.b.madreId = a.madreId || "";
+      S.b.padreId = a.padreId || "";
+    }
+    var html = "<h2>Corregir " + esc(L.etiquetaAnimal(a)) + "</h2>";
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += '<label class="f">Caravana<input inputmode="numeric" data-bind="caravana" value="' + esc(S.b.caravana) + '"></label>';
+    html += "<h3>Sexo</h3>" + chips([["hembra", "Hembra"], ["macho", "Macho"]], "sexo");
+    html += "<h3>Categoría</h3>" + chips(L.CATEGORIAS.map(function (c) { return [c.id, c.nombre]; }), "categoria");
+    html += "<h3>Raza</h3>" + chips(L.RAZAS.map(function (r) { return [r.id, r.nombre]; }), "raza");
+    html += '<label class="f">Nacimiento<input type="date" data-bind="nacimiento" value="' + esc(S.b.nacimiento) + '"></label>';
+    html += "<h3>Estado</h3>" + chips([["activo", "En el campo"], ["vendido", "Vendido"], ["muerto", "Muerto"]], "estado");
+    html += "<h3>Lugar</h3>" + chipsPotrero();
+    html += "<h3>Madre</h3>" + selectorAnimal("madreId", function (x) { return x.sexo === "hembra" && x.id !== a.id; });
+    html += "<h3>Padre</h3>" + selectorAnimal("padreId", function (x) { return x.sexo === "macho" && x.id !== a.id; });
+    html += '<button type="button" class="btn" data-act="guardar-animal">Guardar</button>';
+    return html;
+  }
+
+  function pantallaParto() {
+    var html = "<h2>Parto</h2>" + errBox();
+    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += "<h3>Madre</h3>";
+    html += buscador();
+    var madres = filtrar(function (a) {
+      return a.estado === "activo" && a.sexo === "hembra" && a.categoria !== "corderos-pie" && a.categoria !== "corderos-destetados";
+    });
+    if (!madres.length) html += '<div class="card"><p>Primero cargá las ovejas en Animales.</p></div>';
+    madres.forEach(function (a) {
+      html += '<button type="button" class="rowbtn' + (S.b.madreId === a.id ? " on" : "") + '" data-act="chip" data-bind="madreId" data-val="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "</button>";
+    });
+    html += '<button type="button" class="btn" data-act="parto-seguir">Siguiente</button>';
+    return html;
+  }
+
+  function pantallaPartoTipo() {
+    var html = "<h2>Cómo fue</h2>" + errBox();
+    html += chips(L.TIPOS_PARTO.map(function (t) { return [t.id, t.nombre]; }), "tipo");
+    html += "<h3>Facilidad</h3>" + chips([["normal", "Normal"], ["ayudado", "Ayudado"]], "facilidad");
+    html += '<button type="button" class="btn" data-act="parto-crias">Siguiente</button>';
+    return html;
+  }
+
+  function pantallaPartoCria() {
+    var tipo = L.TIPOS_PARTO.filter(function (t) { return t.id === S.b.tipo; })[0];
+    var n = (S.b.corderos || []).length + 1;
+    var total = tipo ? tipo.cantidad : 1;
+    var html = "<h2>Cría " + n + " de " + total + "</h2>";
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    var padre = S.b.padreId || L.padreDeParto(S.b.madreId, S.b.fecha, S.db.eventos);
+    var carnero = L.porId(S.db.animales, padre);
+    if (carnero) html += '<div class="card"><p>Padre, por el servicio: ' + esc(L.etiquetaAnimal(carnero)) + "</p></div>";
+    html += "<h3>Sexo</h3>" + chips([["hembra", "Hembra"], ["macho", "Macho"]], "sexo");
+    html += "<h3>Nació</h3>" + chips([["vivo", "Vivo"], ["muerto", "Muerto"]], "vivo");
+    html += '<label class="f">Peso al nacer, si lo tenés<input inputmode="decimal" data-bind="peso" value="' + esc(S.b.peso || "") + '" placeholder="kg"></label>';
+    html += '<label class="f">Caravana, si ya tiene<input inputmode="numeric" data-bind="caravana" value="' + esc(S.b.caravana || "") + '" placeholder="Podés dejarla vacía"></label>';
+    if (n < total) html += '<button type="button" class="btn" data-act="cria-siguiente">Siguiente cría</button>';
+    else html += '<button type="button" class="btn" data-act="cria-guardar">Guardar parto</button>';
+    return html;
+  }
+
+  function pantallaServicio() {
+    var html = "<h2>Servicio</h2>";
+    var abiertos = Store.serviciosAbiertos(S.db, L.hoyISO());
+    if (abiertos.length) {
+      html += "<h3>Carnero con las ovejas</h3>";
+      abiertos.forEach(function (e) {
+        var car = L.porId(S.db.animales, e.datos.carneroId);
+        html += '<div class="card"><p>Carnero ' + esc(car ? L.etiquetaAnimal(car) : "") + " desde el " + esc(L.fmtFecha(e.datos.entrada)) + "</p>";
+        html += '<button type="button" class="btn" data-act="ir-salida" data-id="' + esc(e.id) + '">Anotar salida</button>';
+        html += '<button type="button" class="btn-ghost" data-act="ir-diagnostico" data-id="' + esc(e.id) + '">Diagnóstico de preñez</button></div>';
+      });
+    }
+    var cerrados = S.db.eventos.filter(function (e) { return !e.deleted && e.tipo === "servicio" && e.datos.salida; });
+    if (cerrados.length) {
+      html += '<button type="button" class="btn-ghost" data-act="ir" data-screen="diagnostico" data-fresh="1">Diagnóstico de preñez</button>';
+    }
+    html += '<button type="button" class="btn" data-act="ir" data-screen="servicio-monta" data-fresh="1">Monta natural</button>';
+    html += '<button type="button" class="btn-ghost" data-act="ir" data-screen="servicio-ia" data-fresh="1">Inseminación</button>';
+    return html;
+  }
+
+  function pantallaServicioDatos() {
+    var ia = S.b.modo === "ia";
+    var html = "<h2>" + (ia ? "Inseminación" : "Monta natural") + "</h2>" + errBox();
+    html += "<h3>Carnero</h3>" + buscador() + listaEleccion(function (a) { return a.sexo === "macho" && a.estado === "activo"; }, "carneroId");
+    if (ia) html += '<label class="f">Semen, si no es un carnero del campo<input data-bind="semen" value="' + esc(S.b.semen || "") + '"></label>';
+    html += '<label class="f">' + (ia ? "Fecha" : "Fecha que entró") + '<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    if (!ia) html += '<label class="f">Fecha que sale, si ya salió<input type="date" data-bind="salida" value="' + esc(S.b.salida || "") + '"></label>';
+    html += '<button type="button" class="btn" data-act="servicio-ovejas">Elegir ovejas</button>';
+    return html;
+  }
+
+  function pantallaServicioOvejas() {
+    var html = "<h2>Ovejas del servicio</h2>";
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += buscador();
+    html += '<button type="button" class="btn-ghost" data-act="todas" data-cat="ovejas-adultas">Todas las ovejas adultas</button>';
+    html += '<button type="button" class="btn-ghost" data-act="todas" data-cat="borregas-servicio">Todas las borregas</button>';
+    html += '<button type="button" class="btn-ghost" data-act="todas" data-cat="ovejas-recuperacion">Todas en recuperación</button>';
+    var ovej = filtrar(function (a) {
+      return a.estado === "activo" && a.sexo === "hembra" && a.categoria !== "corderos-pie" && a.categoria !== "corderos-destetados";
+    });
+    ovej.forEach(function (a) {
+      var on = S.b.elegidos && S.b.elegidos[a.id];
+      html += '<button type="button" class="rowbtn' + (on ? " on" : "") + '" data-act="toggle" data-id="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "<small>" + esc(L.nombreDe(L.CATEGORIAS, a.categoria)) + "</small></button>";
+    });
+    html += '<button type="button" class="btn" data-act="servicio-guardar">Guardar servicio</button>';
+    return html;
+  }
+
+  function pantallaServicioAviso() {
+    var html = '<h2>Ojo con el parentesco</h2><div class="aviso">';
+    (S.b.avisos || []).forEach(function (a) { html += "<p>" + esc(L.textoParentesco(a)) + "</p>"; });
+    html += "</div>";
+    html += '<button type="button" class="btn-bad" data-act="servicio-igual">Guardar igual</button>';
+    html += '<button type="button" class="btn" data-act="volver">Volver y cambiar</button>';
+    return html;
+  }
+
+  function pantallaSalida() {
+    var e = L.porId(S.db.eventos, S.b.servicioId);
+    if (!e) return "<h2>No está el servicio</h2>";
+    var html = "<h2>Salida del carnero</h2>";
+    html += '<label class="f">Fecha que sale<input type="date" data-bind="salida" value="' + esc(S.b.salida || L.hoyISO()) + '"></label>';
+    html += '<button type="button" class="btn" data-act="guardar-salida">Guardar</button>';
+    return html;
+  }
+
+  function pantallaDiagnostico() {
+    var servicios = S.db.eventos.filter(function (e) { return !e.deleted && e.tipo === "servicio"; });
+    var html = "<h2>Preñez</h2>";
+    if (!S.b.servicioId && servicios.length) S.b.servicioId = servicios[servicios.length - 1].id;
+    if (!servicios.length) return html + '<div class="card"><p>Primero anotá un servicio.</p></div>';
+    html += "<h3>Servicio</h3>";
+    servicios.forEach(function (e) {
+      var car = L.porId(S.db.animales, e.datos.carneroId);
+      html += '<button type="button" class="rowbtn' + (S.b.servicioId === e.id ? " on" : "") + '" data-act="chip" data-bind="servicioId" data-val="' + esc(e.id) + '">' + esc(L.fmtFecha(e.datos.entrada || e.fecha)) + " · carnero " + esc(car ? L.etiquetaAnimal(car) : "") + "</button>";
+    });
+    var srv = L.porId(S.db.eventos, S.b.servicioId);
+    html += '<label class="f">Fecha del diagnóstico<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    if (srv) {
+      (srv.datos.ovejaIds || []).forEach(function (id) {
+        var a = L.porId(S.db.animales, id);
+        var marca = (S.b.resultados || {})[id] || "";
+        html += '<div class="card"><h3>' + esc(a ? L.etiquetaAnimal(a) : "Oveja") + "</h3>";
+        html += chipsMarca(id, marca);
+        html += "</div>";
+      });
+    }
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += '<button type="button" class="btn" data-act="guardar-diagnostico">Guardar</button>';
+    return html;
+  }
+
+  function pantallaPesaje() {
+    var html = "<h2>Pesaje</h2>" + errBox();
+    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += "<h3>A quién</h3>";
+    html += chips(L.CATEGORIAS.map(function (c) { return [c.id, c.nombre]; }), "categoria");
+    html += '<button type="button" class="btn" data-act="pesaje-categoria">Pesar esta categoría</button>';
+    var lotes = S.db.lotes.filter(function (l) { return !l.deleted; });
+    if (lotes.length) {
+      html += "<h3>O un lote</h3>";
+      lotes.forEach(function (l) {
+        html += '<button type="button" class="rowbtn" data-act="pesaje-lote" data-id="' + esc(l.id) + '">' + esc(l.nombre) + "</button>";
+      });
+    }
+    html += "<h3>O uno por uno</h3>" + buscador();
+    filtrar(function (a) { return a.estado === "activo"; }).forEach(function (a) {
+      html += '<button type="button" class="rowbtn" data-act="pesar-id" data-id="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "</button>";
+    });
+    return html;
+  }
+
+  function pantallaElegir(titulo, sub, lista, siguiente) {
+    var html = "<h2>" + esc(titulo) + "</h2>" + errBox() + "<p class=\"sub\">" + esc(sub) + "</p>";
+    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    if (!lista.length) return html + '<div class="card"><p>No hay animales en este grupo.</p></div>';
+    lista.forEach(function (a) {
+      var on = S.b.elegidos && S.b.elegidos[a.id];
+      html += '<button type="button" class="rowbtn' + (on ? " on" : "") + '" data-act="toggle" data-id="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "</button>";
+    });
+    html += '<button type="button" class="btn" data-act="armar-seq" data-screen="' + siguiente + '">Cargar pesos</button>';
+    return html;
+  }
+
+  function pantallaDestetePesos() {
+    return pantallaPesoSeq("Destete", true);
+  }
+
+  function pantallaPesajeSeq() {
+    return pantallaPesoSeq("Pesaje", false);
+  }
+
+  function pantallaPesoSeq(titulo, destete) {
+    var lista = S.b.lista || [];
+    var i = S.b.i || 0;
+    if (!lista.length) return "<h2>Elegí animales</h2>";
+    if (i >= lista.length) return resumenPesos(destete);
+    var a = L.porId(S.db.animales, lista[i]);
+    var html = "<h2>" + esc(titulo) + "</h2>";
+    html += '<div class="card"><h3>' + esc(a ? L.etiquetaAnimal(a) : "") + "</h3><p>" + (i + 1) + " de " + lista.length + "</p>";
+    if (destete && a && a.nacimiento) {
+      var edad = L.diasEntre(a.nacimiento, S.b.fecha);
+      html += "<p>Edad: " + (edad == null ? "sin fecha de nacimiento" : edad + " días") + "</p>";
+      if (a.pesoNacer != null) html += "<p>Al nacer: " + esc(L.fmtNum(a.pesoNacer, 1)) + " kg</p>";
+    }
+    html += "</div>";
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += '<label class="f">Peso, kg<input inputmode="decimal" data-bind="peso" data-focus="1" value="' + esc(S.b.peso || "") + '"></label>';
+    if (!destete) {
+      html += '<button type="button" class="btn-ghost" data-act="mas">' + (S.b.mas ? "Ocultar más datos" : "FAMACHA, condición, HPG") + "</button>";
+      if (S.b.mas) {
+        html += "<h3>Condición corporal</h3>" + chips([["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"], ["5", "5"]], "cc");
+        html += "<h3>FAMACHA</h3>" + chips([["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"], ["5", "5"]], "famacha");
+        html += '<label class="f">HPG, si lo tenés<input inputmode="numeric" data-bind="hpg" value="' + esc(S.b.hpg || "") + '"></label>';
+        html += '<label class="f">Hematocrito, si lo tenés<input inputmode="decimal" data-bind="hematocrito" value="' + esc(S.b.hematocrito || "") + '"></label>';
+      }
+    }
+    var previo = pesoVivo(a, destete);
+    if (previo && S.b.peso) {
+      var gdp = L.gdpGramos(previo.peso, L.parseNum(S.b.peso), L.diasEntre(previo.fecha, S.b.fecha));
+      if (gdp != null) html += '<div class="card"><p>Ganancia: ' + gdp + " g/día</p></div>";
+    }
+    html += '<button type="button" class="btn" data-act="' + (destete ? "destete-siguiente" : "pesaje-siguiente") + '">' + (i + 1 === lista.length ? "Guardar" : "Siguiente") + "</button>";
+    return html;
+  }
+
+  function resumenPesos(destete) {
+    var html = "<h2>Quedó así</h2>";
+    (S.b.items || []).forEach(function (it) {
+      html += '<div class="card"><p>' + esc(it.caravana || "Sin caravana") + " · " + esc(L.fmtNum(it.peso, 1)) + " kg" + (it.gdp != null ? " · " + it.gdp + " g/día" : "") + (it.edad != null ? " · " + it.edad + " días" : "") + "</p></div>";
+    });
+    html += '<button type="button" class="btn" data-act="inicio">Inicio</button>';
+    return html;
+  }
+
+  function pantallaSanidad() {
+    var html = "<h2>Sanidad</h2>";
+    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += "<h3>Motivo</h3>" + chips(L.MOTIVOS.map(function (m) { return [m.id, m.nombre]; }), "motivo");
+    html += "<h3>Producto</h3>";
+    productosVivos().forEach(function (p) {
+      html += '<button type="button" class="chip' + (S.b.productoId === p.id ? " on" : "") + '" data-act="elegir-producto" data-id="' + esc(p.id) + '">' + esc(p.nombre) + "</button>";
+    });
+    html += '<label class="f">Otro producto<input data-bind="productoNombre" value="' + esc(S.b.productoNombre || "") + '"></label>';
+    html += '<label class="f">Dosis<input data-bind="dosis" value="' + esc(S.b.dosis || "") + '" placeholder="Ej. 2 ml"></label>';
+    html += "<h3>Vía</h3>" + chips(L.VIAS.map(function (v) { return [v.id, v.nombre]; }), "via");
+    html += '<label class="f">Días de retiro<input inputmode="numeric" data-bind="retiroDias" value="' + esc(S.b.retiroDias == null ? "" : S.b.retiroDias) + '"></label>';
+    if (S.b.motivo === "desparasitacion") html += '<label class="f">HPG antes, si lo tenés<input inputmode="numeric" data-bind="hpgAntes" value="' + esc(S.b.hpgAntes || "") + '"></label>';
+    html += '<button type="button" class="btn" data-act="ir" data-screen="sanidad-quien">Elegir animales</button>';
+    html += '<button type="button" class="btn-ghost" data-act="ir" data-screen="recordatorios" data-fresh="1">Recordatorios</button>';
+    return html;
+  }
+
+  function pantallaSanidadQuien() {
+    var html = "<h2>A quién</h2>";
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += '<button type="button" class="btn-ghost" data-act="sanidad-todos">Todos los que están en el campo</button>';
+    L.CATEGORIAS.forEach(function (c) {
+      html += '<button type="button" class="btn-ghost" data-act="sanidad-cat" data-cat="' + c.id + '">' + esc(c.nombre) + "</button>";
+    });
+    S.db.lotes.filter(function (l) { return !l.deleted; }).forEach(function (l) {
+      html += '<button type="button" class="rowbtn" data-act="sanidad-lote" data-id="' + esc(l.id) + '">Lote ' + esc(l.nombre) + "</button>";
+    });
+    S.db.potreros.filter(function (p) { return !p.deleted; }).forEach(function (p) {
+      html += '<button type="button" class="rowbtn" data-act="sanidad-potrero" data-id="' + esc(p.id) + '">' + esc(p.nombre) + "</button>";
+    });
+    html += buscador();
+    filtrar(function (a) { return a.estado === "activo"; }).forEach(function (a) {
+      var on = S.b.elegidos && S.b.elegidos[a.id];
+      html += '<button type="button" class="rowbtn' + (on ? " on" : "") + '" data-act="toggle" data-id="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "</button>";
+    });
+    html += '<button type="button" class="btn" data-act="guardar-sanidad">Guardar</button>';
+    return html;
+  }
+
+  function pantallaHpg() {
+    var ev = L.porId(S.db.eventos, S.b.sanidadId);
+    var html = "<h2>HPG de control</h2>";
+    html += '<div class="card"><p>Conviene a los 10 a 14 días del tratamiento.</p>';
+    if (ev && ev.datos && ev.datos.hpgAntes != null) html += "<p>HPG antes: " + esc(ev.datos.hpgAntes) + "</p>";
+    else html += "<p>No hay HPG de antes, así que no se puede calcular la baja.</p>";
+    html += "</div>";
+    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += '<label class="f">HPG<input inputmode="numeric" data-bind="hpg" data-focus="1" value="' + esc(S.b.hpg || "") + '"></label>';
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += '<button type="button" class="btn" data-act="guardar-hpg">Guardar</button>';
+    return html;
+  }
+
+  function pantallaMuerte() {
+    var html = "<h2>Mortandad</h2>";
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    if (!S.b.animalId) {
+      html += "<h3>Animal</h3>" + buscador();
+      filtrar(function (a) { return a.estado === "activo"; }).forEach(function (a) {
+        html += '<button type="button" class="rowbtn" data-act="chip" data-bind="animalId" data-val="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "</button>";
+      });
+    } else {
+      var a = L.porId(S.db.animales, S.b.animalId);
+      html += '<div class="card"><p>' + esc(a ? L.etiquetaAnimal(a) : "") + "</p></div>";
+      html += "<h3>Causa</h3>" + chips(L.CAUSAS.map(function (c) { return [c.id, c.nombre]; }), "causa");
+      if (S.b.causa === "otro") html += '<label class="f">Cuál<input data-bind="causaOtro" value="' + esc(S.b.causaOtro || "") + '"></label>';
+      html += "<h3>Dónde</h3>" + chipsPotrero();
+      html += '<label class="f">Foto, si querés<input type="file" accept="image/*" capture="environment" data-foto="1"></label>';
+      if (S.b.foto) html += '<p class="sub">Foto lista.</p>';
+      if (S.b.sinFoto) html += '<p class="sub">La foto pesaba mucho y no se guardó.</p>';
+      html += '<button type="button" class="btn" data-act="guardar-muerte">Guardar</button>';
+    }
+    return html;
+  }
+
+  function pantallaPotreros() {
+    var html = "<h2>Potreros</h2>";
+    html += '<p class="sub">El campo son 5 hectáreas en Coronel Oviedo. Cargadas: ' + esc(L.fmtNum(hectareasCargadas(), 1)) + " ha.</p>";
+    var lista = S.db.potreros.filter(function (p) { return !p.deleted; });
+    if (!lista.length) html += '<div class="card"><p>Todavía no hay potreros. Agregá el primero.</p></div>';
+    lista.forEach(function (p) {
+      var info = infoPotrero(p);
+      html += '<button type="button" class="rowbtn" data-act="abrir-potrero" data-id="' + esc(p.id) + '"><b>' + esc(p.nombre) + "</b><small>" + esc(info) + "</small></button>";
+    });
+    html += '<button type="button" class="btn" data-act="ir" data-screen="potrero-edit" data-fresh="1">Agregar potrero</button>';
+    return html;
+  }
+
+  function pantallaPotrero() {
+    var p = L.porId(S.db.potreros, S.b.id);
+    if (!p) return "<h2>No está</h2>";
+    var lote = L.porId(S.db.lotes, p.loteId);
+    var html = "<h2>" + esc(p.nombre) + "</h2>";
+    html += '<div class="card"><p>' + esc(L.nombreDe(L.TIPOS_LUGAR, p.tipo || "potrero")) + "</p>";
+    if (p.pastura) html += "<p>" + esc(p.pastura) + "</p>";
+    if (p.hectareas != null) html += "<p>" + esc(L.fmtNum(p.hectareas, 1)) + " ha</p>";
+    html += "<p>" + esc(infoPotrero(p)) + "</p></div>";
+    if (lote && !lote.deleted) {
+      html += '<button type="button" class="btn" data-act="ir-mover" data-id="' + esc(lote.id) + '">Mover este lote</button>';
+      html += '<button type="button" class="btn-ghost" data-act="abrir-lote" data-id="' + esc(lote.id) + '">Ver lote</button>';
+    } else {
+      html += '<button type="button" class="btn" data-act="armar-aca">Armar un lote acá</button>';
+    }
+    html += '<button type="button" class="btn-ghost" data-act="editar-potrero">Corregir</button>';
+    return html;
+  }
+
+  function pantallaPotreroEdit() {
+    var html = "<h2>" + (S.b.id ? "Corregir lugar" : "Nuevo lugar") + "</h2>";
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += "<h3>Tipo</h3>" + chips(L.TIPOS_LUGAR.map(function (t) { return [t.id, t.nombre]; }), "tipo");
+    html += '<label class="f">Nombre<input data-bind="nombre" data-focus="1" value="' + esc(S.b.nombre || "") + '"></label>';
+    html += '<label class="f">Hectáreas<input inputmode="decimal" data-bind="hectareas" value="' + esc(S.b.hectareas || "") + '"></label>';
+    if ((S.b.tipo || "potrero") === "potrero") {
+      html += "<h3>Pastura</h3>" + chips(L.PASTURAS.map(function (p) { return [p, p]; }), "pastura");
+    }
+    html += '<button type="button" class="btn" data-act="guardar-potrero">Guardar</button>';
+    return html;
+  }
+
+  function pantallaMover() {
+    var lote = L.porId(S.db.lotes, S.b.loteId);
+    var html = "<h2>Mover " + esc(lote ? lote.nombre : "lote") + "</h2><p class=\"sub\">Tocá el lugar de destino.</p>";
+    S.db.potreros.filter(function (p) { return !p.deleted && p.id !== (lote && lote.potreroId); }).forEach(function (p) {
+      html += '<button type="button" class="btn" data-act="mover-a" data-id="' + esc(p.id) + '">' + esc(p.nombre) + "</button>";
+    });
+    if (!S.db.potreros.filter(function (p) { return !p.deleted; }).length) html += '<div class="card"><p>Primero agregá un potrero.</p></div>';
+    return html;
+  }
+
+  function pantallaLote() {
+    var lote = L.porId(S.db.lotes, S.b.id);
+    if (!lote) return "<h2>No está</h2>";
+    var pot = L.porId(S.db.potreros, lote.potreroId);
+    var html = "<h2>" + esc(lote.nombre) + "</h2>";
+    html += '<div class="card"><p>' + esc(pot ? pot.nombre : "Sin potrero") + "</p>";
+    html += "<p>" + (lote.animalIds || []).length + " animales</p>";
+    if (lote.gramosDia != null) html += "<p>Balanceado: " + esc(L.fmtNum(lote.gramosDia, 0)) + " g/día</p>";
+    html += "</div>";
+    (lote.animalIds || []).forEach(function (id) {
+      var a = L.porId(S.db.animales, id);
+      if (!a || a.deleted) return;
+      html += '<button type="button" class="rowbtn" data-act="abrir-animal" data-id="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "</button>";
+    });
+    html += '<button type="button" class="btn" data-act="ir-mover" data-id="' + esc(lote.id) + '">Mover de potrero</button>';
+    html += '<button type="button" class="btn-ghost" data-act="ir" data-screen="suplemento">Balanceado</button>';
+    return html;
+  }
+
+  function pantallaLoteNuevo() {
+    var html = "<h2>Armar lote</h2>" + errBox();
+    html += '<label class="f">Nombre<input data-bind="nombre" value="' + esc(S.b.nombre || "") + '" placeholder="Lote 1"></label>';
+    filtrar(function (a) { return a.estado === "activo"; }).forEach(function (a) {
+      var on = S.b.elegidos && S.b.elegidos[a.id];
+      html += '<button type="button" class="rowbtn' + (on ? " on" : "") + '" data-act="toggle" data-id="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "</button>";
+    });
+    html += '<button type="button" class="btn" data-act="guardar-lote">Guardar lote</button>';
+    return html;
+  }
+
+  function pantallaSuplemento() {
+    var html = "<h2>Balanceado</h2><p class=\"sub\">Gramos por animal y por día.</p>";
+    html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
+    html += '<label class="f">Gramos por día<input inputmode="decimal" data-bind="gramos" data-focus="1" value="' + esc(S.b.gramos || "") + '"></label>';
+    if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
+    html += '<button type="button" class="btn" data-act="guardar-suplemento">Guardar</button>';
+    return html;
+  }
+
+  function pantallaReportes() {
+    var items = [
+      ["existencias", "Existencias"],
+      ["partos", "Partos"],
+      ["mortandad", "Mortandad"],
+      ["destete", "Destete"],
+      ["pesajes", "Pesajes"],
+      ["sanidad", "Sanidad"],
+      ["potreros", "Potreros"]
+    ];
+    var html = "<h2>Reportes</h2>";
+    items.forEach(function (it) {
+      html += '<button type="button" class="btn" data-act="abrir-reporte" data-id="' + it[0] + '">' + esc(it[1]) + "</button>";
+    });
+    return html;
+  }
+
+  function pantallaReporte() {
+    var armado = armarReporte(S.b.reporte, S.b.desde || ano() + "-01-01", S.b.hasta || L.hoyISO());
+    S.b.textoCompartir = armado.texto;
+    var html = '<article class="sheet">';
+    html += '<p class="no-print sub">Desde y hasta, si el reporte usa fechas.</p>';
+    html += '<div class="no-print">';
+    html += '<label class="f">Desde<input type="date" data-bind="desde" value="' + esc(S.b.desde || ano() + "-01-01") + '"></label>';
+    html += '<label class="f">Hasta<input type="date" data-bind="hasta" value="' + esc(S.b.hasta || L.hoyISO()) + '"></label>';
+    html += '<button type="button" class="btn-ghost" data-act="refrescar">Actualizar</button>';
+    html += '<button type="button" class="btn" data-act="compartir">Compartir por WhatsApp</button>';
+    html += '<button type="button" class="btn-ghost" data-act="imprimir">Imprimir</button></div>';
+    html += armado.html;
+    html += "</article>";
+    return html;
+  }
+
+  function pantallaAjustes() {
+    var html = "<h2>Ajustes</h2>";
+    html += "<p class=\"sub\">" + esc(textoSync()) + (S.usuario ? " · " + esc(S.usuario.email) : "") + "</p>";
+    if (!root.FIREBASE_CONFIG || !root.FIREBASE_CONFIG.apiKey) html += '<div class="aviso">La nube no está configurada. Los datos quedan en este aparato.</div>';
+    html += '<button type="button" class="btn" data-act="export-json">Guardar una copia</button>';
+    html += '<button type="button" class="btn-ghost" data-act="pedir-import">Traer una copia</button>';
+    html += "<h3>Planillas</h3>";
+    [["animales", "Animales"], ["parto", "Partos"], ["servicio", "Servicios"], ["pesaje", "Pesajes"], ["sanidad", "Sanidad"], ["muerte", "Muertes"], ["destete", "Destetes"]].forEach(function (it) {
+      html += '<button type="button" class="btn-ghost" data-act="export-csv" data-tipo="' + it[0] + '">' + esc(it[1]) + " (Excel)</button>";
+    });
+    html += '<button type="button" class="btn-ghost" data-act="ir" data-screen="productos" data-fresh="1">Productos</button>';
+    html += '<button type="button" class="btn-ghost" data-act="ir" data-screen="recordatorios" data-fresh="1">Recordatorios</button>';
+    if (S.usuario) html += '<button type="button" class="btn-ghost" data-act="salir">Salir</button>';
+    html += '<div class="card"><h3>Para probar</h3><p>No lo uses en el campo. Se puede borrar todo junto.</p>';
+    html += '<button type="button" class="btn-ghost" data-act="ejemplo">Cargar datos de ejemplo</button>';
+    html += '<button type="button" class="btn-bad" data-act="borrar-ejemplo">Borrar datos de ejemplo</button></div>';
+    return html;
+  }
+
+  function pantallaProductos() {
+    var html = "<h2>Productos</h2><p class=\"sub\">Los días de retiro salen del marbete. Cambialos si hace falta.</p>";
+    productosVivos().forEach(function (p) {
+      html += '<button type="button" class="rowbtn" data-act="editar-producto" data-id="' + esc(p.id) + '">' + esc(p.nombre) + "<small>Retiro " + esc(p.retiroDias || 0) + " días</small></button>";
+    });
+    html += '<button type="button" class="btn" data-act="ir" data-screen="producto-edit" data-fresh="1">Agregar producto</button>';
+    return html;
+  }
+
+  function pantallaProductoEdit() {
+    var html = "<h2>Producto</h2>" + errBox();
+    html += '<label class="f">Nombre<input data-bind="nombre" data-focus="1" value="' + esc(S.b.nombre || "") + '"></label>';
+    html += "<h3>Vía</h3>" + chips(L.VIAS.map(function (v) { return [v.id, v.nombre]; }), "via");
+    html += "<h3>Uso habitual</h3>" + chips(L.MOTIVOS.map(function (m) { return [m.id, m.nombre]; }), "motivo");
+    html += '<label class="f">Días de retiro<input inputmode="numeric" data-bind="retiroDias" value="' + esc(S.b.retiroDias == null ? "0" : S.b.retiroDias) + '"></label>';
+    html += '<button type="button" class="btn" data-act="guardar-producto">Guardar</button>';
+    return html;
+  }
+
+  function pantallaRecordatorios() {
+    var html = "<h2>Recordatorios</h2>";
+    var lista = (S.db.recordatorios || []).filter(function (r) { return !r.deleted; });
+    lista.sort(function (a, b) { return a.fecha > b.fecha ? 1 : -1; });
+    if (!lista.length) html += '<div class="card"><p>No hay recordatorios. Agregá uno cuando lo necesites.</p></div>';
+    lista.forEach(function (r) {
+      html += '<div class="card"><p>' + (r.hecho ? "Hecho · " : "") + esc(L.fmtFecha(r.fecha)) + "</p><p>" + esc(r.texto) + "</p>";
+      if (!r.hecho) html += '<button type="button" class="btn" data-act="hecho-rec" data-id="' + esc(r.id) + '">Marcar hecho</button>';
+      html += "</div>";
+    });
+    html += '<button type="button" class="btn" data-act="ir" data-screen="recordatorio-edit" data-fresh="1">Agregar recordatorio</button>';
+    return html;
+  }
+
+  function pantallaRecordatorioEdit() {
+    return "<h2>Recordatorio</h2>" +
+      '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>' +
+      '<label class="f">Qué hay que hacer<input data-bind="texto" data-focus="1" value="' + esc(S.b.texto || "") + '"></label>' +
+      (S.error ? '<div class="error">' + esc(S.error) + "</div>" : "") +
+      '<button type="button" class="btn" data-act="guardar-recordatorio">Guardar</button>';
+  }
+
+  function pantallaEvento() {
+    var e = L.porId(S.db.eventos, S.b.id);
+    if (!e) return "<h2>No está</h2>";
+    var html = "<h2>" + esc(L.fmtFecha(e.fecha)) + "</h2>";
+    html += '<div class="card"><p>' + esc(textoEvento(e)) + "</p></div>";
+    if (e.datos && e.datos.foto) html += '<img class="foto" alt="Foto" src="' + e.datos.foto + '">';
+    if (e.tipo === "pesaje") {
+      html += '<label class="f">Peso corregido<input inputmode="decimal" data-bind="peso" value="' + esc(e.datos.peso) + '"></label>';
+      html += '<button type="button" class="btn" data-act="corregir-peso">Guardar corrección</button>';
+    }
+    if (e.tipo === "sanidad" && e.datos.motivo === "desparasitacion" && e.datos.hpgDespues == null) {
+      html += '<button type="button" class="btn" data-act="ir-hpg" data-id="' + esc(e.id) + '">Anotar HPG de control</button>';
+    }
+    if (e.tipo === "sanidad" && e.datos.reduccion != null) html += "<p>Baja de HPG: " + esc(String(e.datos.reduccion).replace(".", ",")) + " %</p>";
+    html += '<button type="button" class="btn-bad" data-act="ocultar-evento">Ocultar este registro</button>';
+    html += '<p class="sub">Ocultar no borra al animal. Si fue un error de muerte o venta, corregí el estado en la ficha.</p>';
+    return html;
+  }
+
+  function pantallaHecho() {
+    var html = '<h2>Quedó guardado</h2><div class="ok">' + esc(S.b.texto || "Listo.") + "</div>";
+    (S.b.filas || []).forEach(function (it) {
+      html += '<div class="card"><p>' + esc(it.caravana || "Sin caravana") + " · " + esc(L.fmtNum(it.peso, 1)) + " kg" + (it.gdp != null ? " · " + it.gdp + " g/día" : "") + (it.edad != null ? " · " + it.edad + " días" : "") + "</p></div>";
+    });
+    if (S.b.padreId) {
+      var padre = L.porId(S.db.animales, S.b.padreId);
+      if (padre) html += '<div class="card"><p>Padre: ' + esc(L.etiquetaAnimal(padre)) + "</p></div>";
+    }
+    if (S.b.paricion) {
+      html += '<div class="card"><p>Parición esperada alrededor del ' + esc(L.fmtFecha(S.b.paricion.desde));
+      if (S.b.paricion.hasta && S.b.paricion.hasta !== S.b.paricion.desde) html += " al " + esc(L.fmtFecha(S.b.paricion.hasta));
+      html += ".</p>";
+      if (S.b.ecografia) html += "<p>Ecografía entre el " + esc(L.fmtFecha(S.b.ecografia.desde)) + " y el " + esc(L.fmtFecha(S.b.ecografia.hasta)) + ".</p>";
+      html += "</div>";
+      html += '<button type="button" class="btn" data-act="eco-recordatorio">Anotar recordatorio de ecografía</button>';
+    }
+    if (S.b.retiroHasta) html += '<div class="aviso">No faenar ni vender hasta el ' + esc(L.fmtFecha(S.b.retiroHasta)) + ".</div>";
+    if (S.b.reduccion != null) html += '<div class="card"><p>Baja de HPG: ' + esc(String(S.b.reduccion).replace(".", ",")) + " %.</p></div>";
+    if (S.b.sinFoto) html += '<p class="sub">La foto no entró. El resto quedó guardado.</p>';
+    if (S.deshacer) html += '<button type="button" class="btn-ghost" data-act="deshacer">Deshacer</button>';
+    html += '<button type="button" class="btn" data-act="inicio">Inicio</button>';
+    return html;
+  }
+
+  function pantallaImportar() {
+    return '<h2>Traer copia</h2><div class="aviso">Esto reemplaza lo que hay en este aparato.</div>' +
+      '<button type="button" class="btn-bad" data-act="import-confirmar">Reemplazar</button>' +
+      '<button type="button" class="btn" data-act="volver">Cancelar</button>';
+  }
+
+  function chips(pares, bind) {
+    var html = '<div class="chips">';
+    pares.forEach(function (p) {
+      var on = String(S.b[bind] || "") === String(p[0]);
+      html += '<button type="button" class="chip' + (on ? " on" : "") + '" data-act="chip" data-bind="' + bind + '" data-val="' + esc(p[0]) + '">' + esc(p[1]) + "</button>";
+    });
+    html += "</div>";
+    return html;
+  }
+
+  function chipsMarca(id, marca) {
+    var html = "";
+    [["prenada", "Preñada"], ["vacia", "Vacía"], ["mellizos", "Mellizos"]].forEach(function (p) {
+      html += '<button type="button" class="chip' + (marca === p[0] ? " on" : "") + '" data-act="diag" data-id="' + esc(id) + '" data-val="' + p[0] + '">' + p[1] + "</button>";
+    });
+    return html;
+  }
+
+  function chipsPotrero() {
+    var pares = [["", "Sin lugar"]];
+    S.db.potreros.filter(function (p) { return !p.deleted; }).forEach(function (p) { pares.push([p.id, p.nombre]); });
+    return chips(pares, "potreroId");
+  }
+
+  function categoriasDe(sexo) {
+    return L.CATEGORIAS.filter(function (c) { return c.sexo === "ambos" || c.sexo === sexo; }).map(function (c) { return [c.id, c.nombre]; });
+  }
+
+  function buscador() {
+    return '<label class="f">Buscar caravana<input inputmode="numeric" data-bind="q" data-live="1" value="' + esc(S.b.q || "") + '"></label>';
+  }
+
+  function filtrar(fn) {
+    var q = String(S.b.q || "").trim();
+    return S.db.animales.filter(function (a) {
+      if (a.deleted) return false;
+      if (fn && !fn(a)) return false;
+      if (q && String(a.caravana || "").indexOf(q) < 0) return false;
+      return true;
+    }).sort(ordenarCaravana);
+  }
+
+  function listaEleccion(fn, bind) {
+    var html = "";
+    filtrar(fn).forEach(function (a) {
+      html += '<button type="button" class="rowbtn' + (S.b[bind] === a.id ? " on" : "") + '" data-act="chip" data-bind="' + bind + '" data-val="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "</button>";
+    });
+    if (!html) html = '<div class="card"><p>No hay animales en esta lista.</p></div>';
+    return html;
+  }
+
+  function selectorAnimal(bind, fn) {
+    var html = '<button type="button" class="chip' + (!S.b[bind] ? " on" : "") + '" data-act="chip" data-bind="' + bind + '" data-val="">Sin anotar</button>';
+    S.db.animales.filter(function (a) { return !a.deleted && fn(a); }).sort(ordenarCaravana).forEach(function (a) {
+      html += '<button type="button" class="chip' + (S.b[bind] === a.id ? " on" : "") + '" data-act="chip" data-bind="' + bind + '" data-val="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "</button>";
+    });
+    return html;
+  }
+
+  function ordenarCaravana(a, b) {
+    var na = Number(a.caravana);
+    var nb = Number(b.caravana);
+    if (a.caravana && b.caravana && isFinite(na) && isFinite(nb)) return na - nb;
+    if (!a.caravana) return 1;
+    if (!b.caravana) return -1;
+    return String(a.caravana).localeCompare(String(b.caravana));
+  }
+
+  function estadoTexto(estado) {
+    if (estado === "vendido") return "Vendido";
+    if (estado === "muerto") return "Muerto";
+    return "En el campo";
+  }
+
+  function productosVivos() {
+    return (S.db.productos || []).filter(function (p) { return !p.deleted; });
+  }
+
+  function corderosPie() {
+    return S.db.animales.filter(function (a) { return !a.deleted && a.estado === "activo" && a.categoria === "corderos-pie"; }).sort(ordenarCaravana);
+  }
+
+  function hectareasCargadas() {
+    return S.db.potreros.filter(function (p) { return !p.deleted; }).reduce(function (s, p) { return s + (Number(p.hectareas) || 0); }, 0);
+  }
+
+  function infoPotrero(p) {
+    var lote = L.porId(S.db.lotes, p.loteId);
+    var hoy = L.hoyISO();
+    if (lote && !lote.deleted) {
+      var dias = p.fechaEntrada ? L.diasEntre(p.fechaEntrada, hoy) : null;
+      return "Ocupado · " + lote.nombre + (dias != null ? " · " + dias + " días" : "");
+    }
+    var descanso = p.fechaInicioDescanso ? L.diasEntre(p.fechaInicioDescanso, hoy) : null;
+    return "En descanso" + (descanso != null ? " · " + descanso + " días" : "");
+  }
+
+  function eventosDe(id) {
+    return S.db.eventos.filter(function (e) {
+      return !e.deleted && (e.animalId === id || (e.animalIds || []).indexOf(id) >= 0);
+    }).sort(function (a, b) { return a.fecha < b.fecha ? 1 : -1; });
+  }
+
+  function textoEvento(e) {
+    var d = e.datos || {};
+    if (e.tipo === "nacimiento") return "Nacimiento" + (d.peso != null ? " · " + L.fmtNum(d.peso, 1) + " kg" : "") + (d.vivo === false ? " · muerto" : "");
+    if (e.tipo === "parto") return "Parto " + (d.tipo || "") + " · " + ((d.corderos || []).length) + " crías";
+    if (e.tipo === "servicio") return (d.modo === "ia" ? "Inseminación" : "Monta") + " · entra " + L.fmtFecha(d.entrada) + (d.salida ? " · sale " + L.fmtFecha(d.salida) : "");
+    if (e.tipo === "diagnostico") return "Preñez: " + ({ prenada: "preñada", vacia: "vacía", mellizos: "mellizos" }[d.resultado] || d.resultado);
+    if (e.tipo === "destete") return "Destete · " + L.fmtNum(d.peso, 1) + " kg" + (d.edad != null ? " · " + d.edad + " días" : "") + (d.gdp != null ? " · " + d.gdp + " g/día" : "");
+    if (e.tipo === "pesaje") return "Pesaje · " + L.fmtNum(d.peso, 1) + " kg" + (d.gdp != null ? " · " + d.gdp + " g/día" : "") + (d.famacha ? " · FAMACHA " + d.famacha : "") + (d.cc ? " · condición " + d.cc : "");
+    if (e.tipo === "sanidad") return (d.productoNombre || "Tratamiento") + (d.dosis ? " · " + d.dosis : "") + (d.retiroHasta ? " · no faenar hasta " + L.fmtFecha(d.retiroHasta) : "");
+    if (e.tipo === "hpg-control") return "HPG " + d.hpg + (d.reduccion != null ? " · baja " + String(d.reduccion).replace(".", ",") + " %" : "");
+    if (e.tipo === "muerte") return "Muerte · " + (L.nombreDe(L.CAUSAS, d.causa) || d.causaOtro || "");
+    if (e.tipo === "venta") return "Venta";
+    if (e.tipo === "movimiento") return "Cambio de potrero";
+    if (e.tipo === "suplemento") return "Balanceado " + L.fmtNum(d.gramosDia, 0) + " g/día";
+    return e.tipo;
+  }
+
+  function idsElegidos() {
+    return Object.keys(S.b.elegidos || {});
+  }
+
+  function pesoVivo(a, destete) {
+    if (!a) return null;
+    if (destete && a.pesoNacer != null) return { peso: a.pesoNacer, fecha: a.nacimiento };
+    return L.pesoBase(S.db, a.id, S.b.fecha);
+  }
+
+  function leerForm() {
+    document.querySelectorAll("input[data-bind], select[data-bind], textarea[data-bind]").forEach(function (el) {
+      S.b[el.getAttribute("data-bind")] = el.value;
+    });
+  }
+
+  function tomarCria() {
+    return { sexo: S.b.sexo, vivo: S.b.vivo || "vivo", peso: S.b.peso || "", caravana: S.b.caravana || "" };
+  }
+
+  function guardarServicio(confirmar) {
+    leerForm();
+    S.b.entrada = S.b.fecha;
+    S.b.ovejaIds = idsElegidos();
+    S.b.confirmarParentesco = !!confirmar;
+    var res = Store.registrarServicio(S.db, S.b, uid());
+    if (!res.ok && res.avisos && !confirmar) {
+      S.b.avisos = res.avisos;
+      S.screen = "servicio-aviso";
+      S.error = "";
+      pintar();
+      return;
+    }
+    if (res.ok) {
+      S.b.paricion = res.paricion;
+      S.b.ecografia = res.ecografia;
+      S.b.servicioId = res.evento.id;
+    }
+    aplicar(res, "Quedó guardado el servicio.");
+  }
+
+  function empezarSeq(ids, screen) {
+    var lista = ids.slice().sort(function (a, b) {
+      return ordenarCaravana(L.porId(S.db.animales, a) || {}, L.porId(S.db.animales, b) || {});
+    });
+    if (!lista.length) { S.error = "Elegí al menos uno."; pintar(); return; }
+    S.b.lista = lista;
+    S.b.i = 0;
+    S.b.items = [];
+    S.b.peso = "";
+    S.b.cc = "";
+    S.b.famacha = "";
+    S.b.hpg = "";
+    S.b.hematocrito = "";
+    S.error = "";
+    S.screen = screen;
+    pintar();
+  }
+
+  function guardarItemPeso(destete) {
+    leerForm();
+    var id = (S.b.lista || [])[S.b.i || 0];
+    var a = L.porId(S.db.animales, id);
+    var peso = L.parseNum(S.b.peso);
+    if (peso == null) { S.error = "Falta el peso."; pintar(); return; }
+    var item = { animalId: id, peso: S.b.peso, cc: S.b.cc || "", famacha: S.b.famacha || "", hpg: S.b.hpg || "", hematocrito: S.b.hematocrito || "" };
+    var items = (S.b.items || []).concat([item]);
+    var siguiente = (S.b.i || 0) + 1;
+    if (siguiente < (S.b.lista || []).length) {
+      S.b.items = items;
+      S.b.i = siguiente;
+      S.b.peso = "";
+      S.b.cc = "";
+      S.b.famacha = "";
+      S.b.hpg = "";
+      S.b.hematocrito = "";
+      S.error = "";
+      pintar();
+      return;
+    }
+    var res = destete
+      ? Store.registrarDestete(S.db, { fecha: S.b.fecha, items: items }, uid())
+      : Store.registrarPesaje(S.db, { fecha: S.b.fecha, items: items }, uid());
+    if (!res.ok) { S.error = res.error; pintar(); return; }
+    var antes = Store.clonar(S.db);
+    S.db = res.db;
+    guardarLocal();
+    subirNube();
+    S.deshacer = { db: antes };
+    S.b.filas = res.filas;
+    S.b.texto = destete ? "Quedó guardado el destete." : "Quedó guardado el pesaje.";
+    S.pila = [];
+    S.screen = "hecho";
+    S.error = "";
+    pintar();
+  }
+
+  function ano() { return String(new Date().getFullYear()); }
+
+  function armarReporte(id, desde, hasta) {
+    if (id === "existencias") return repExistencias();
+    if (id === "partos") return repPartos(desde, hasta);
+    if (id === "mortandad") return repMuertes(desde, hasta);
+    if (id === "destete") return repDestete(desde, hasta);
+    if (id === "pesajes") return repPesajes();
+    if (id === "sanidad") return repSanidad();
+    if (id === "potreros") return repPotreros();
+    return { html: "", texto: "Cabaña María Elena" };
+  }
+
+  function cabeza(titulo) {
+    return "<h2>Cabaña María Elena</h2><p>" + esc(titulo) + "</p>";
+  }
+
+  function repExistencias() {
+    var r = L.reporteExistencias(S.db);
+    var texto = L.textoExistencias(S.db, L.hoyISO());
+    var html = cabeza("Existencias al " + L.fmtFecha(L.hoyISO()));
+    html += "<table><tbody>";
+    L.CATEGORIAS.forEach(function (c) {
+      html += "<tr><td>" + esc(c.nombre) + "</td><td class=\"num\">" + (r.porCat[c.id] || 0) + "</td></tr>";
+    });
+    html += "<tr><td><b>Total en el campo</b></td><td class=\"num\"><b>" + r.total + "</b></td></tr>";
+    html += "</tbody></table>";
+    html += "<p>Vendidos anotados: " + r.vendidos + ". Muertos anotados: " + r.muertos + ".</p>";
+    return { html: html, texto: texto };
+  }
+
+  function repPartos(desde, hasta) {
+    var r = L.reportePartos(S.db, desde, hasta);
+    var html = cabeza("Partos del " + L.fmtFecha(desde) + " al " + L.fmtFecha(hasta));
+    html += "<p>Partos: " + r.partos + "</p>";
+    html += "<p>Ovejas que parieron: " + r.ovejasParidas + "</p>";
+    html += "<p>Ovejas servidas en el período: " + r.ovejasServidas + "</p>";
+    html += "<p>Crías: " + r.corderos + " · vivas " + r.vivos + " · muertas " + r.muertos + "</p>";
+    html += "<p>De cada 100 ovejas servidas, parieron " + (r.paricion == null ? "—" : String(r.paricion).replace(".", ",")) + ".</p>";
+    html += "<p>Crías vivas por oveja que parió: " + (r.prolificidad == null ? "—" : String(r.prolificidad).replace(".", ",")) + ".</p>";
+    var texto = "Cabaña María Elena\nPartos\nPartos: " + r.partos + "\nOvejas que parieron: " + r.ovejasParidas + "\nOvejas servidas: " + r.ovejasServidas + "\nCrías vivas: " + r.vivos + "\nParición: " + (r.paricion == null ? "-" : r.paricion) + " %\nCrías vivas por parto: " + (r.prolificidad == null ? "-" : r.prolificidad);
+    return { html: html, texto: texto };
+  }
+
+  function repMuertes(desde, hasta) {
+    var r = L.reporteMortandad(S.db, desde, hasta);
+    var html = cabeza("Muertes del " + L.fmtFecha(desde) + " al " + L.fmtFecha(hasta));
+    html += "<p>Total: " + r.total + (r.porcentaje == null ? "" : " · " + String(r.porcentaje).replace(".", ",") + " %") + "</p><table><tbody>";
+    var texto = "Cabaña María Elena\nMuertes: " + r.total + (r.porcentaje == null ? "" : " (" + r.porcentaje + "%)");
+    L.CAUSAS.forEach(function (c) {
+      if (!r.porCausa[c.id]) return;
+      html += "<tr><td>" + esc(c.nombre) + "</td><td class=\"num\">" + r.porCausa[c.id] + "</td></tr>";
+      texto += "\n" + c.nombre + ": " + r.porCausa[c.id];
+    });
+    html += "</tbody></table>";
+    return { html: html, texto: texto };
+  }
+
+  function repDestete(desde, hasta) {
+    var r = L.reporteDestete(S.db, desde, hasta);
+    var html = cabeza("Destete del " + L.fmtFecha(desde) + " al " + L.fmtFecha(hasta));
+    html += "<p>Destetados: " + r.cantidad + "</p>";
+    html += "<p>Peso promedio: " + (r.pesoPromedio == null ? "sin pesos" : L.fmtNum(r.pesoPromedio, 1) + " kg") + "</p>";
+    html += "<p>Ganancia promedio: " + (r.gdpPromedio == null ? "sin datos" : r.gdpPromedio + " g/día") + "</p>";
+    return { html: html, texto: "Cabaña María Elena\nDestete\nCantidad: " + r.cantidad + "\nPeso promedio: " + (r.pesoPromedio == null ? "-" : r.pesoPromedio) + " kg\nGanancia: " + (r.gdpPromedio == null ? "-" : r.gdpPromedio) + " g/día" };
+  }
+
+  function repPesajes() {
+    var filas = L.reportePesajes(S.db);
+    var html = cabeza("Último pesaje");
+    html += "<table><tbody>";
+    var texto = "Cabaña María Elena\nPesajes";
+    filas.forEach(function (f) {
+      html += "<tr><td>" + esc(f.caravana || "s/c") + "</td><td>" + esc(L.nombreDe(L.CATEGORIAS, f.categoria)) + "</td><td class=\"num\">" + (f.peso == null ? "—" : esc(L.fmtNum(f.peso, 1))) + "</td><td class=\"num\">" + (f.gdp == null ? "" : f.gdp + " g") + "</td></tr>";
+      texto += "\n" + (f.caravana || "s/c") + " " + (f.peso == null ? "sin pesaje" : f.peso + " kg") + (f.gdp == null ? "" : " " + f.gdp + " g/día");
+    });
+    html += "</tbody></table>";
+    if (!filas.length) html += "<p>No hay animales en el campo.</p>";
+    return { html: html, texto: texto };
+  }
+
+  function repSanidad() {
+    var r = L.reporteSanidad(S.db, L.hoyISO());
+    var html = cabeza("Sanidad");
+    html += "<h3>No faenar ni vender</h3>";
+    var texto = "Cabaña María Elena\nSanidad";
+    if (!r.retiros.length) html += "<p>Nadie está en retiro.</p>";
+    r.retiros.forEach(function (e) {
+      html += "<p>" + esc(e.datos.productoNombre || "Tratamiento") + " hasta el " + esc(L.fmtFecha(e.datos.retiroHasta)) + "</p>";
+      texto += "\nNo faenar " + (e.datos.productoNombre || "") + " hasta " + L.fmtFecha(e.datos.retiroHasta);
+    });
+    html += "<h3>Próximos</h3>";
+    if (!r.proximos.length) html += "<p>No hay recordatorios.</p>";
+    r.proximos.forEach(function (rec) {
+      html += "<p>" + esc(L.fmtFecha(rec.fecha)) + " · " + esc(rec.texto) + "</p>";
+      texto += "\n" + L.fmtFecha(rec.fecha) + " " + rec.texto;
+    });
+    html += "<h3>Hechos</h3>";
+    r.hechos.slice(0, 15).forEach(function (e) {
+      html += "<p>" + esc(L.fmtFecha(e.fecha)) + " · " + esc(textoEvento(e)) + "</p>";
+    });
+    return { html: html, texto: texto };
+  }
+
+  function repPotreros() {
+    var filas = L.reportePotreros(S.db, L.hoyISO());
+    var html = cabeza("Potreros");
+    var texto = "Cabaña María Elena\nPotreros";
+    if (!filas.length) html += "<p>Todavía no hay potreros.</p>";
+    filas.forEach(function (p) {
+      var estado = p.ocupado ? "Ocupado" + (p.lote ? " · " + p.lote : "") : "Descanso";
+      html += "<p><b>" + esc(p.nombre) + "</b> · " + esc(estado) + (p.dias != null ? " · " + p.dias + " días" : "") + (p.pastura ? " · " + esc(p.pastura) : "") + "</p>";
+      texto += "\n" + p.nombre + " " + estado + (p.dias != null ? " " + p.dias + " días" : "");
+    });
+    return { html: html, texto: texto };
+  }
+
+  function onClick(e) {
+    var t = e.target.closest("[data-act]");
+    if (!t) return;
+    var act = t.getAttribute("data-act");
+    if (act !== "chip" && act !== "toggle" && act !== "diag" && act !== "mas") leerForm();
+    if (act === "volver") return volver();
+    if (act === "inicio") return inicio();
+    if (act === "ir") {
+      var screen = t.getAttribute("data-screen");
+      if (t.getAttribute("data-fresh")) return ir(screen, defaults(screen));
+      return ir(screen, Object.assign({}, S.b));
+    }
+    if (act === "chip") {
+      S.b[t.getAttribute("data-bind")] = t.getAttribute("data-val");
+      S.error = "";
+      return pintar();
+    }
+    if (act === "toggle") {
+      var id = t.getAttribute("data-id");
+      S.b.elegidos = S.b.elegidos || {};
+      if (S.b.elegidos[id]) delete S.b.elegidos[id];
+      else S.b.elegidos[id] = true;
+      return pintar();
+    }
+    if (act === "todas") {
+      S.b.elegidos = S.b.elegidos || {};
+      var cat = t.getAttribute("data-cat");
+      S.db.animales.forEach(function (a) {
+        if (!a.deleted && a.estado === "activo" && a.categoria === cat) S.b.elegidos[a.id] = true;
+      });
+      return pintar();
+    }
+    if (act === "deshacer") {
+      if (!S.deshacer) return;
+      S.db = Store.deshacerContra(S.deshacer.db, S.db, uid());
+      guardarLocal();
+      subirNube();
+      S.deshacer = null;
+      S.banner = "Se deshizo.";
+      S.b = {};
+      S.screen = "home";
+      S.pila = [];
+      return pintar();
+    }
+    if (act === "login") return entrar();
+    if (act === "empezar-caravanas") {
+      if (!S.b.sexo || !S.b.categoria) { S.error = "Elegí sexo y categoría."; return pintar(); }
+      S.b.cargadas = [];
+      S.b.caravana = "";
+      S.banner = "";
+      return ir("caravanas", S.b);
+    }
+    if (act === "guardar-caravana") return guardarCaravana();
+    if (act === "abrir-animal") return ir("animal", { id: t.getAttribute("data-id") });
+    if (act === "guardar-animal") return guardarAnimal();
+    if (act === "parto-seguir") {
+      if (!S.b.madreId) { S.error = "Elegí la madre."; return pintar(); }
+      S.b.fecha = S.b.fecha || L.hoyISO();
+      return ir("parto-tipo", S.b);
+    }
+    if (act === "parto-crias") {
+      if (!S.b.tipo) { S.error = "Elegí simple, mellizos o trillizos."; return pintar(); }
+      S.b.facilidad = S.b.facilidad || "normal";
+      S.b.corderos = [];
+      S.b.sexo = "";
+      S.b.vivo = "vivo";
+      S.b.peso = "";
+      S.b.caravana = "";
+      return ir("parto-cria", S.b);
+    }
+    if (act === "cria-siguiente" || act === "cria-guardar") return guardarCria(act === "cria-guardar");
+    if (act === "servicio-ovejas") {
+      if (!S.b.carneroId && !S.b.semen) { S.error = "Elegí el carnero."; return pintar(); }
+      S.b.fecha = S.b.fecha || L.hoyISO();
+      S.b.elegidos = S.b.elegidos || {};
+      return ir("servicio-ovejas", S.b);
+    }
+    if (act === "servicio-guardar") return guardarServicio(false);
+    if (act === "servicio-igual") return guardarServicio(true);
+    if (act === "ir-salida") return ir("servicio-salida", { servicioId: t.getAttribute("data-id"), salida: L.hoyISO() });
+    if (act === "guardar-salida") return guardarSalida();
+    if (act === "ir-diagnostico") return ir("diagnostico", { servicioId: t.getAttribute("data-id"), fecha: L.hoyISO(), resultados: {} });
+    if (act === "diag") {
+      S.b.resultados = S.b.resultados || {};
+      S.b.resultados[t.getAttribute("data-id")] = t.getAttribute("data-val");
+      return pintar();
+    }
+    if (act === "guardar-diagnostico") return guardarDiagnostico();
+    if (act === "armar-seq") return empezarSeq(idsElegidos(), t.getAttribute("data-screen"));
+    if (act === "destete-siguiente") return guardarItemPeso(true);
+    if (act === "pesaje-categoria") {
+      var ids = S.db.animales.filter(function (a) { return !a.deleted && a.estado === "activo" && a.categoria === S.b.categoria; }).map(function (a) { return a.id; });
+      return empezarSeq(ids, "pesaje-seq");
+    }
+    if (act === "pesaje-lote") {
+      var lote = L.porId(S.db.lotes, t.getAttribute("data-id"));
+      return empezarSeq((lote && lote.animalIds) || [], "pesaje-seq");
+    }
+    if (act === "pesar-id" || act === "pesar-este") {
+      var uno = act === "pesar-este" ? S.b.id : t.getAttribute("data-id");
+      S.b.fecha = S.b.fecha || L.hoyISO();
+      return empezarSeq([uno], "pesaje-seq");
+    }
+    if (act === "pesaje-siguiente") return guardarItemPeso(false);
+    if (act === "mas") { S.b.mas = !S.b.mas; return pintar(); }
+    if (act === "destetar-este") {
+      S.b.fecha = L.hoyISO();
+      return empezarSeq([S.b.id], "destete-pesos");
+    }
+    if (act === "sanidad-este") {
+      var b = defaults("sanidad");
+      b.elegidos = {};
+      b.elegidos[S.b.id] = true;
+      return ir("sanidad", b);
+    }
+    if (act === "elegir-producto") {
+      var prod = L.porId(S.db.productos, t.getAttribute("data-id"));
+      S.b.productoId = prod.id;
+      S.b.productoNombre = "";
+      S.b.via = prod.via;
+      S.b.retiroDias = String(prod.retiroDias || 0);
+      if (prod.motivo) S.b.motivo = prod.motivo;
+      return pintar();
+    }
+    if (act === "sanidad-todos") return marcarSanidad(function (a) { return a.estado === "activo"; });
+    if (act === "sanidad-cat") return marcarSanidad(function (a) { return a.estado === "activo" && a.categoria === t.getAttribute("data-cat"); });
+    if (act === "sanidad-lote") {
+      var loteS = L.porId(S.db.lotes, t.getAttribute("data-id"));
+      S.b.elegidos = {};
+      ((loteS && loteS.animalIds) || []).forEach(function (id) { S.b.elegidos[id] = true; });
+      S.b.loteId = loteS ? loteS.id : "";
+      return pintar();
+    }
+    if (act === "sanidad-potrero") {
+      var pid = t.getAttribute("data-id");
+      S.b.elegidos = {};
+      S.b.potreroId = pid;
+      S.db.animales.forEach(function (a) { if (!a.deleted && a.estado === "activo" && a.potreroId === pid) S.b.elegidos[a.id] = true; });
+      return pintar();
+    }
+    if (act === "guardar-sanidad") return guardarSanidad();
+    if (act === "guardar-hpg") return guardarHpg();
+    if (act === "guardar-muerte") return guardarMuerte();
+    if (act === "abrir-potrero") return ir("potrero", { id: t.getAttribute("data-id") });
+    if (act === "guardar-potrero") return guardarPotrero();
+    if (act === "editar-potrero") {
+      var pot = L.porId(S.db.potreros, S.b.id);
+      return ir("potrero-edit", { id: pot.id, nombre: pot.nombre, tipo: pot.tipo || "potrero", pastura: pot.pastura || "", hectareas: pot.hectareas == null ? "" : String(pot.hectareas).replace(".", ",") });
+    }
+    if (act === "ir-mover") return ir("mover", { loteId: t.getAttribute("data-id"), fecha: L.hoyISO() });
+    if (act === "mover-a") return moverA(t.getAttribute("data-id"));
+    if (act === "armar-aca") return ir("lote-nuevo", { fecha: L.hoyISO(), elegidos: {}, nombre: "", potreroId: S.b.id });
+    if (act === "guardar-lote") return guardarLote();
+    if (act === "abrir-lote") return ir("lote", { id: t.getAttribute("data-id"), fecha: L.hoyISO() });
+    if (act === "guardar-suplemento") return guardarSuplemento();
+    if (act === "abrir-reporte") return ir("reporte", { reporte: t.getAttribute("data-id"), desde: ano() + "-01-01", hasta: L.hoyISO() });
+    if (act === "refrescar") return pintar();
+    if (act === "compartir") return compartir(S.b.textoCompartir || "Cabaña María Elena");
+    if (act === "imprimir") return window.print();
+    if (act === "export-json") return descargar("maria-elena-copia.json", JSON.stringify(S.db, null, 2), "application/json");
+    if (act === "export-csv") return bajarCsv(t.getAttribute("data-tipo"));
+    if (act === "pedir-import") return pedirImport();
+    if (act === "import-confirmar") return confirmarImport();
+    if (act === "ejemplo") return cargarEjemplo();
+    if (act === "borrar-ejemplo") {
+      S.db = Store.borrarEjemplo(S.db, uid());
+      guardarLocal();
+      subirNube();
+      S.banner = "Saqué los datos de ejemplo.";
+      S.conservarBanner = true;
+      return inicio();
+    }
+    if (act === "salir") {
+      if (cloud.auth) cloud.auth.signOut();
+      S.usuario = null;
+      return pintar();
+    }
+    if (act === "guardar-producto") return guardarProducto();
+    if (act === "editar-producto") {
+      var pr = L.porId(S.db.productos, t.getAttribute("data-id"));
+      return ir("producto-edit", { id: pr.id, nombre: pr.nombre, via: pr.via, motivo: pr.motivo, retiroDias: String(pr.retiroDias || 0) });
+    }
+    if (act === "guardar-recordatorio") return guardarRecordatorio();
+    if (act === "hecho-rec") {
+      var rec = L.porId(S.db.recordatorios, t.getAttribute("data-id"));
+      var rr = Store.guardarRecordatorio(S.db, Object.assign({}, rec, { hecho: true }), uid());
+      S.db = rr.db;
+      guardarLocal();
+      subirNube();
+      return pintar();
+    }
+    if (act === "eco-recordatorio") return anotarEco();
+    if (act === "abrir-evento") return ir("evento", { id: t.getAttribute("data-id"), peso: "" });
+    if (act === "corregir-peso") return corregirPeso();
+    if (act === "ocultar-evento") {
+      S.db = Store.borrarSuave(S.db, "eventos", S.b.id, uid());
+      guardarLocal();
+      subirNube();
+      S.banner = "Oculté el registro.";
+      S.conservarBanner = true;
+      return inicio();
+    }
+    if (act === "ir-hpg") return ir("hpg", { sanidadId: t.getAttribute("data-id"), fecha: L.hoyISO() });
+    if (act === "vender") return vender();
+    if (act === "muerte-este") {
+      var animalM = L.porId(S.db.animales, S.b.id);
+      return ir("muerte", { animalId: S.b.id, fecha: L.hoyISO(), causa: "desconocida", potreroId: animalM ? (animalM.potreroId || "") : "" });
+    }
+  }
+
+  function onInput(e) {
+    var el = e.target;
+    if (!el.getAttribute || !el.getAttribute("data-bind")) return;
+    S.b[el.getAttribute("data-bind")] = el.value;
+    if (el.getAttribute("data-live")) {
+      var pos = el.selectionStart;
+      var bind = el.getAttribute("data-bind");
+      pintar();
+      var nuevo = document.querySelector('[data-bind="' + bind + '"]');
+      if (nuevo) {
+        nuevo.focus();
+        if (nuevo.setSelectionRange && pos != null) nuevo.setSelectionRange(pos, pos);
+      }
+    }
+  }
+
+  function onChange(e) {
+    var el = e.target;
+    if (el.getAttribute && el.getAttribute("data-foto")) return cargarFoto(el.files && el.files[0]);
+    if (el.id === "archivo-copia" && el.files && el.files[0]) return leerCopia(el.files[0]);
+  }
+
+  function onKey(e) {
+    if (e.key !== "Enter") return;
+    var el = e.target;
+    if (!el || !el.getAttribute) return;
+    if (el.getAttribute("data-bind") === "caravana" && S.screen === "caravanas") {
+      e.preventDefault();
+      leerForm();
+      guardarCaravana();
+    }
+    if (el.getAttribute("data-bind") === "peso" && (S.screen === "pesaje-seq" || S.screen === "destete-pesos")) {
+      e.preventDefault();
+      leerForm();
+      guardarItemPeso(S.screen === "destete-pesos");
+    }
+  }
+
+  function guardarCaravana() {
+    var antes = Store.clonar(S.db);
+    var res = Store.altaRapida(S.db, {
+      caravanas: [S.b.caravana],
+      sexo: S.b.sexo,
+      categoria: S.b.categoria,
+      raza: S.b.raza,
+      potreroId: S.b.potreroId || ""
+    }, uid());
+    if (!res.creados.length) {
+      S.error = (res.avisos && res.avisos[0]) || "No se cargó.";
+      return pintar();
+    }
+    S.db = res.db;
+    guardarLocal();
+    subirNube();
+    S.deshacer = { db: antes };
+    S.b.cargadas = (S.b.cargadas || []).concat([res.creados[0].caravana]);
+    S.banner = "Guardé la " + res.creados[0].caravana + ".";
+    S.b.caravana = "";
+    S.error = "";
+    pintar();
+  }
+
+  function guardarAnimal() {
+    var a = L.porId(S.db.animales, S.b.id);
+    var caravana = String(S.b.caravana || "").trim();
+    if (caravana && !/^\d+$/.test(caravana)) { S.error = "La caravana tiene que ser un número."; return pintar(); }
+    if (caravana && S.db.animales.some(function (x) { return !x.deleted && x.caravana === caravana && x.id !== a.id; })) {
+      S.error = "Esa caravana ya está usada.";
+      return pintar();
+    }
+    var res = Store.guardarAnimal(S.db, Object.assign({}, a, {
+      caravana: caravana,
+      sexo: S.b.sexo,
+      categoria: S.b.categoria,
+      raza: S.b.raza,
+      nacimiento: S.b.nacimiento || "",
+      estado: S.b.estado,
+      potreroId: S.b.potreroId || "",
+      madreId: S.b.madreId || "",
+      padreId: S.b.padreId || ""
+    }), uid());
+    S.b.texto = "Quedaron guardados los datos.";
+    aplicar({ ok: true, db: res.db }, "Quedaron guardados los datos.");
+  }
+
+  function guardarCria(finalizar) {
+    if (!S.b.sexo) { S.error = "Elegí hembra o macho."; return pintar(); }
+    if (!S.b.vivo) S.b.vivo = "vivo";
+    S.b.corderos = (S.b.corderos || []).concat([tomarCria()]);
+    if (!finalizar) {
+      S.b.sexo = "";
+      S.b.vivo = "vivo";
+      S.b.peso = "";
+      S.b.caravana = "";
+      S.error = "";
+      return pintar();
+    }
+    var res = Store.registrarParto(S.db, {
+      madreId: S.b.madreId,
+      fecha: S.b.fecha,
+      tipo: S.b.tipo,
+      facilidad: S.b.facilidad || "normal",
+      corderos: S.b.corderos
+    }, uid());
+    if (res.ok) S.b.padreId = res.padreId;
+    aplicar(res, "Quedó guardado el parto.");
+  }
+
+  function guardarSalida() {
+    var res = Store.anotarSalida(S.db, S.b.servicioId, S.b.salida, uid());
+    if (res.ok) {
+      S.b.paricion = res.paricion;
+      S.b.ecografia = res.ecografia;
+    }
+    aplicar(res, "Quedó anotada la salida.");
+  }
+
+  function guardarDiagnostico() {
+    var srv = L.porId(S.db.eventos, S.b.servicioId);
+    if (!srv) { S.error = "Elegí el servicio."; return pintar(); }
+    var resultados = (srv.datos.ovejaIds || []).map(function (id) {
+      return { ovejaId: id, resultado: (S.b.resultados || {})[id] || "" };
+    });
+    var res = Store.registrarDiagnostico(S.db, { servicioId: srv.id, fecha: S.b.fecha || L.hoyISO(), resultados: resultados }, uid());
+    aplicar(res, "Quedó guardado el diagnóstico.");
+  }
+
+  function marcarSanidad(fn) {
+    S.b.elegidos = {};
+    S.db.animales.forEach(function (a) { if (!a.deleted && fn(a)) S.b.elegidos[a.id] = true; });
+    pintar();
+  }
+
+  function guardarSanidad() {
+    var res = Store.registrarSanidad(S.db, {
+      fecha: S.b.fecha || L.hoyISO(),
+      motivo: S.b.motivo,
+      productoId: S.b.productoNombre ? "" : (S.b.productoId || ""),
+      productoNombre: S.b.productoNombre || "",
+      dosis: S.b.dosis || "",
+      via: S.b.via || "",
+      retiroDias: S.b.retiroDias,
+      hpgAntes: S.b.hpgAntes || "",
+      animalIds: idsElegidos(),
+      loteId: S.b.loteId || "",
+      potreroId: S.b.potreroId || ""
+    }, uid());
+    if (res.ok) S.b.retiroHasta = res.retiroHasta;
+    aplicar(res, "Quedó guardado el tratamiento.");
+  }
+
+  function guardarHpg() {
+    var res = Store.registrarControlHpg(S.db, { sanidadId: S.b.sanidadId, fecha: S.b.fecha, hpg: S.b.hpg }, uid());
+    if (res.ok) S.b.reduccion = res.reduccion;
+    aplicar(res, "Quedó guardado el HPG.");
+  }
+
+  function guardarMuerte() {
+    var res = Store.registrarMuerte(S.db, {
+      animalId: S.b.animalId,
+      fecha: S.b.fecha,
+      causa: S.b.causa,
+      causaOtro: S.b.causaOtro || "",
+      potreroId: S.b.potreroId || "",
+      foto: S.b.foto || ""
+    }, uid());
+    if (res.ok) S.b.sinFoto = res.sinFoto;
+    aplicar(res, "Quedó anotada la muerte.");
+  }
+
+  function guardarPotrero() {
+    if (!String(S.b.nombre || "").trim()) { S.error = "Falta el nombre."; return pintar(); }
+    var ha = S.b.hectareas === "" || S.b.hectareas == null ? null : L.parseNum(S.b.hectareas);
+    var res = Store.guardarPotrero(S.db, {
+      id: S.b.id || L.nuevoId(),
+      nombre: String(S.b.nombre).trim(),
+      tipo: S.b.tipo || "potrero",
+      pastura: S.b.tipo === "potrero" ? (S.b.pastura || "") : "",
+      hectareas: ha
+    }, uid());
+    aplicar({ ok: true, db: res.db }, "Quedó guardado el lugar.");
+  }
+
+  function moverA(potreroId) {
+    var res = Store.moverLote(S.db, S.b.loteId, potreroId, L.hoyISO(), uid());
+    var dest = L.porId(res.ok ? res.db.potreros : S.db.potreros, potreroId);
+    aplicar(res, "El lote pasó a " + (dest ? dest.nombre : "ese lugar") + ".");
+  }
+
+  function guardarLote() {
+    var ids = idsElegidos();
+    if (!ids.length) { S.error = "Elegí los animales."; return pintar(); }
+    var creado = Store.guardarLote(S.db, {
+      id: L.nuevoId(),
+      nombre: String(S.b.nombre || "").trim() || "Lote",
+      animalIds: ids
+    }, uid());
+    var db = creado.db;
+    if (S.b.potreroId) {
+      var mov = Store.moverLote(db, creado.lote.id, S.b.potreroId, S.b.fecha || L.hoyISO(), uid());
+      if (!mov.ok) { S.error = mov.error; return pintar(); }
+      db = mov.db;
+    }
+    aplicar({ ok: true, db: db }, "Quedó armado el lote.");
+  }
+
+  function guardarSuplemento() {
+    var res = Store.suplementar(S.db, S.b.id, S.b.gramos, S.b.fecha || L.hoyISO(), uid());
+    aplicar(res, "Quedó anotado el balanceado.");
+  }
+
+  function guardarProducto() {
+    if (!String(S.b.nombre || "").trim()) { S.error = "Falta el nombre."; return pintar(); }
+    var res = Store.guardarProducto(S.db, {
+      id: S.b.id || L.nuevoId(),
+      nombre: String(S.b.nombre).trim(),
+      via: S.b.via || "oral",
+      motivo: S.b.motivo || "otro",
+      retiroDias: L.parseNum(S.b.retiroDias) || 0
+    }, uid());
+    aplicar({ ok: true, db: res.db }, "Quedó guardado el producto.");
+  }
+
+  function guardarRecordatorio() {
+    if (!String(S.b.texto || "").trim()) { S.error = "Falta qué hay que hacer."; return pintar(); }
+    var res = Store.guardarRecordatorio(S.db, {
+      id: S.b.id || L.nuevoId(),
+      fecha: S.b.fecha || L.hoyISO(),
+      texto: String(S.b.texto).trim(),
+      hecho: false
+    }, uid());
+    aplicar({ ok: true, db: res.db }, "Quedó anotado el recordatorio.");
+  }
+
+  function anotarEco() {
+    if (!S.b.ecografia) return;
+    var res = Store.guardarRecordatorio(S.db, {
+      id: L.nuevoId(),
+      fecha: S.b.ecografia.desde,
+      texto: "Ecografía. Ventana hasta el " + L.fmtFecha(S.b.ecografia.hasta) + ".",
+      hecho: false
+    }, uid());
+    aplicar({ ok: true, db: res.db }, "Quedó el recordatorio de ecografía.");
+  }
+
+  function corregirPeso() {
+    var ev = L.porId(S.db.eventos, S.b.id);
+    var peso = L.parseNum(S.b.peso);
+    if (!ev || peso == null) { S.error = "Falta el peso."; return pintar(); }
+    var base = L.pesoBase(S.db, ev.animalId, ev.fecha);
+    var gdp = base ? L.gdpGramos(base.peso, peso, L.diasEntre(base.fecha, ev.fecha)) : null;
+    var copia = Store.clonar(ev);
+    copia.datos.peso = peso;
+    copia.datos.gdp = gdp;
+    var res = Store.agregarEvento(S.db, copia, uid());
+    aplicar({ ok: true, db: res.db }, "Corregí el peso.");
+  }
+
+  function vender() {
+    var res = Store.marcarVendido(S.db, S.b.id, L.hoyISO(), uid());
+    aplicar(res, "Quedó anotada la venta.");
+  }
+
+  function cargarEjemplo() {
+    var res = Store.cargarEjemplo(S.db, uid());
+    if (!res.ok) { S.banner = res.error; S.conservarBanner = true; return inicio(); }
+    S.db = res.db;
+    guardarLocal();
+    subirNube();
+    S.banner = "Cargué datos de ejemplo. Los podés borrar en Ajustes.";
+    S.conservarBanner = true;
+    inicio();
+  }
+
+  function entrar() {
+    if (!cloud.auth) { S.error = "La nube no está lista."; return pintar(); }
+    S.error = "";
+    cloud.auth.signInWithEmailAndPassword(String(S.b.email || "").trim(), S.b.clave || "").catch(function () {
+      S.error = "Correo o contraseña incorrectos.";
+      pintar();
+    });
+  }
+
+  function descargar(nombre, texto, tipo) {
+    var blob = new Blob([texto], { type: tipo || "text/plain;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1500);
+  }
+
+  function bajarCsv(tipo) {
+    var csv = tipo === "animales" ? L.csvAnimales(S.db) : L.csvEventos(S.db, tipo);
+    descargar("maria-elena-" + tipo + ".csv", csv, "text/csv;charset=utf-8");
+  }
+
+  function pedirImport() {
+    var input = document.createElement("input");
+    input.type = "file";
+    input.id = "archivo-copia";
+    input.accept = "application/json";
+    input.addEventListener("change", onChange);
+    input.click();
+  }
+
+  function leerCopia(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var db = JSON.parse(String(reader.result || ""));
+        if (!db || db.version !== 1 || !db.animales) throw new Error("malo");
+        S.importPendiente = Store.cargar(db);
+        ir("importar", {});
+      } catch (err) {
+        S.error = "Ese archivo no es una copia de esta app.";
+        pintar();
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function confirmarImport() {
+    if (!S.importPendiente) return;
+    S.db = S.importPendiente;
+    S.importPendiente = null;
+    guardarLocal();
+    subirNube();
+    S.banner = "Traje la copia.";
+    S.conservarBanner = true;
+    inicio();
+  }
+
+  function compartir(texto) {
+    var data = { title: "Cabaña María Elena", text: texto };
+    if (navigator.share) navigator.share(data).catch(function () {});
+    else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texto).then(function () {
+        S.banner = "Copié el texto. Pegalo en WhatsApp.";
+        pintar();
+      }).catch(function () {});
+    }
+  }
+
+  function cargarFoto(file) {
+    if (!file) return;
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+    img.onload = function () {
+      var max = 900;
+      var escala = Math.min(1, max / Math.max(img.width, img.height));
+      var canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(img.width * escala));
+      canvas.height = Math.max(1, Math.round(img.height * escala));
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      var data = canvas.toDataURL("image/jpeg", 0.6);
+      URL.revokeObjectURL(url);
+      if (data.length > 450000) S.b.sinFoto = true;
+      else { S.b.foto = data; S.b.sinFoto = false; }
+      pintar();
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); };
+    img.src = url;
+  }
+
+  function prepararNube(cfg) {
+    cargarScripts([
+      "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js",
+      "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js",
+      "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"
+    ]).then(function () {
+      if (!root.firebase) throw new Error("sin sdk");
+      root.firebase.initializeApp(cfg);
+      cloud.auth = root.firebase.auth();
+      cloud.fs = root.firebase.firestore();
+      cloud.auth.setPersistence(root.firebase.auth.Auth.Persistence.LOCAL).then(function () {
+        return cloud.fs.enablePersistence({ synchronizeTabs: true }).catch(function () {});
+      }).then(function () {
+        S.nubeEstado = "lista";
+        cloud.auth.onAuthStateChanged(function (user) {
+          S.usuario = user ? { uid: user.uid, email: user.email || "" } : null;
+          if (user) escuchar();
+          pintar();
+        });
+      });
+    }).catch(function () {
+      S.modo = "local";
+      S.sync = "local";
+      S.nubeEstado = "falla";
+      S.banner = "No se pudo abrir la nube. Seguís en este aparato.";
+      pintar();
+    });
+  }
+
+  function cargarScripts(urls) {
+    var seq = Promise.resolve();
+    urls.forEach(function (url) {
+      seq = seq.then(function () {
+        return new Promise(function (resolve, reject) {
+          var s = document.createElement("script");
+          s.src = url;
+          s.onload = function () { resolve(); };
+          s.onerror = function () { reject(new Error(url)); };
+          document.head.appendChild(s);
+        });
+      });
+    });
+    return seq;
+  }
+
+  function escuchar() {
+    var base = cloud.fs.collection("establecimientos").doc("maria-elena");
+    COLECCIONES.forEach(function (nombre) {
+      base.collection(nombre).onSnapshot({ includeMetadataChanges: true }, function (snap) {
+        var rows = [];
+        snap.forEach(function (doc) {
+          var data = doc.data() || {};
+          if (!data.id) data.id = doc.id;
+          rows.push(data);
+        });
+        fusionar(nombre, rows);
+        if (snap.metadata.hasPendingWrites) marcarSync("pending");
+        else if (snap.metadata.fromCache || !navigator.onLine) marcarSync("offline");
+        else marcarSync("ok");
+        if (!document.activeElement || document.activeElement.tagName !== "INPUT") pintar();
+      }, function (err) {
+        if (err && err.code === "permission-denied") {
+          S.errorNube = "Tu usuario no está habilitado en la cabaña. Pedile a Tomás que te agregue.";
+          pintar();
+        } else marcarSync("offline");
+      });
+    });
+  }
+
+  function fusionar(nombre, rows) {
+    if (!rows.length) {
+      if (!semilla[nombre] && (S.db[nombre] || []).length) {
+        semilla[nombre] = true;
+        subirColeccion(nombre);
+      }
+      return;
+    }
+    var local = {};
+    (S.db[nombre] || []).forEach(function (r) { local[r.id] = r; });
+    var salida = [];
+    var faltan = [];
+    rows.forEach(function (r) {
+      var loc = local[r.id];
+      if (!loc || String(r.updatedAt || "") >= String(loc.updatedAt || "")) salida.push(r);
+      else salida.push(loc);
+      delete local[r.id];
+    });
+    Object.keys(local).forEach(function (id) {
+      salida.push(local[id]);
+      faltan.push(local[id]);
+    });
+    S.db[nombre] = salida;
+    guardarLocal();
+    if (faltan.length) subirDocs(nombre, faltan);
+  }
+
+  function subirNube() {
+    if (S.modo !== "cloud" || !S.usuario || !cloud.fs) return;
+    marcarSync(navigator.onLine ? "pending" : "offline");
+    var base = cloud.fs.collection("establecimientos").doc("maria-elena");
+    var ops = [{ ref: base, data: {
+      nombre: "Cabaña María Elena",
+      lugar: "Coronel Oviedo",
+      hectareas: 5,
+      raza: "Dorper",
+      updatedAt: new Date().toISOString()
+    } }];
+    COLECCIONES.forEach(function (nombre) {
+      (S.db[nombre] || []).forEach(function (row) {
+        if (!row.id) return;
+        ops.push({ ref: base.collection(nombre).doc(row.id), data: JSON.parse(JSON.stringify(row)) });
+      });
+    });
+    enviarLotes(ops).catch(function (err) {
+      marcarSync("offline");
+      if (err && err.code === "permission-denied") {
+        S.errorNube = "Tu usuario no está habilitado en la cabaña. Pedile a Tomás que te agregue.";
+        pintar();
+      }
+    });
+  }
+
+  function enviarLotes(ops) {
+    var i = 0;
+    function paso() {
+      if (i >= ops.length) return Promise.resolve();
+      var batch = cloud.fs.batch();
+      var fin = Math.min(i + 400, ops.length);
+      for (; i < fin; i++) batch.set(ops[i].ref, ops[i].data, { merge: true });
+      return batch.commit().then(paso);
+    }
+    return paso();
+  }
+
+  function subirColeccion(nombre) {
+    subirDocs(nombre, S.db[nombre] || []);
+  }
+
+  function subirDocs(nombre, rows) {
+    if (!cloud.fs || !rows.length) return;
+    var base = cloud.fs.collection("establecimientos").doc("maria-elena").collection(nombre);
+    var batch = cloud.fs.batch();
+    rows.forEach(function (row) {
+      if (!row.id) return;
+      batch.set(base.doc(row.id), JSON.parse(JSON.stringify(row)), { merge: true });
+    });
+    batch.commit().catch(function () { marcarSync("offline"); });
+  }
+
+  root.MEUI = { boot: boot };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+MEUI.boot();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js", { scope: "/maria-elena/" }).catch(function () {});
+}
+</script>
+</body>
+</html>
