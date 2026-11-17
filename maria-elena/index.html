@@ -104,7 +104,9 @@ h3 { font-size: 20px; margin: 14px 0 8px; }
 .stat.olive { background: var(--green); }
 .stat.ink { background: var(--green-2); }
 .stat.gold { background: var(--gold); color: #241c15; }
+.stat.dark { background: var(--ink); }
 .stat.clay { background: var(--clay); }
+.stat.wide { grid-column: 1 / -1; min-height: 80px; }
 .sec { font-size: 26px; margin: 18px 0 8px; }
 .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .tile {
@@ -2132,7 +2134,8 @@ var FIREBASE_CONFIG = {
     html += '<button type="button" class="stat olive" data-act="ver-grupo" data-val="ovejas"><span>Ovejas</span><b>' + r.ovejas + "</b></button>";
     html += '<button type="button" class="stat ink" data-act="ver-grupo" data-val="borregas"><span>Borregas</span><b>' + r.borregas + "</b></button>";
     html += '<button type="button" class="stat gold" data-act="ver-grupo" data-val="corderos"><span>Corderos</span><b>' + r.corderos + "</b></button>";
-    html += '<button type="button" class="stat clay" data-act="ver-grupo" data-val="prenadas"><span>Preñadas</span><b>' + r.prenadas + "</b></button>";
+    html += '<button type="button" class="stat dark" data-act="ver-grupo" data-val="carneros"><span>Carneros</span><b>' + r.carneros + "</b></button>";
+    html += '<button type="button" class="stat clay wide" data-act="ver-grupo" data-val="prenadas"><span>Preñadas</span><b>' + r.prenadas + "</b></button>";
     html += "</div>";
     html += '<h2 class="sec">Avisos</h2>';
     var avisos = avisosCampo();
@@ -2148,10 +2151,11 @@ var FIREBASE_CONFIG = {
     return html;
   }
   function resumenCampo() {
-    var ovejas = 0, borregas = 0, corderos = 0, prenadas = 0;
+    var ovejas = 0, borregas = 0, corderos = 0, carneros = 0, prenadas = 0;
     L.activos(S.db).forEach(function (a) {
       if (a.categoria === "corderos-pie" || a.categoria === "corderos-destetados") corderos++;
       else if (a.categoria === "borregas-servicio") borregas++;
+      else if (a.categoria === "carneros") carneros++;
       else if (a.sexo === "hembra") ovejas++;
     });
     var ultimo = {};
@@ -2169,7 +2173,7 @@ var FIREBASE_CONFIG = {
       });
       if (!pario) prenadas++;
     });
-    return { ovejas: ovejas, borregas: borregas, corderos: corderos, prenadas: prenadas };
+    return { ovejas: ovejas, borregas: borregas, corderos: corderos, carneros: carneros, prenadas: prenadas };
   }
   function avisosCampo() {
     var hoy = L.hoyISO();
