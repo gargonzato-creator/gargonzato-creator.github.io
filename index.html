@@ -209,6 +209,19 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
 @media (min-width: 900px) {
   .meals { grid-template-columns: repeat(3, 1fr); }
 }
+.sync-pill { margin-left: auto; flex: none; font-size: 12px; font-weight: 650; padding: 5px 10px; border-radius: 999px; background: #e4f3ea; color: #1d6a42; max-width: 46%; text-align: center; line-height: 1.2; }
+.sync-pill.pending { background: #f8efd4; color: #8a5810; }
+.sync-pill.offline { background: #f8e3e0; color: #8e2e2c; }
+.sync-pill.local { background: #e7eef0; color: #33505a; }
+.login-card { max-width: 520px; margin: 18px auto; }
+.login-brand { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.login-brand b { display: block; font-family: Palatino, Georgia, serif; font-size: 21px; }
+.login-brand small { display: block; color: var(--muted); font-size: 13px; }
+.mark-dark { color: var(--green); border-color: var(--brass); }
+.login-uid { font-size: 13px; color: var(--muted); word-break: break-all; }
+.login-sep { text-align: center; color: var(--muted); font-size: 14px; margin: 12px 0 8px; }
+.login-diag { font-size: 11px; color: var(--muted); background: #f4efe6; border-radius: 12px; padding: 10px 12px; margin-top: 14px; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, Menlo, monospace; }
+.btn-google { margin-bottom: 10px; }
 @media print {
   body { background: white; }
   @page { size: A4 portrait; margin: 10mm; }
@@ -218,7 +231,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
   .staff h1 { font-size: 22px; }
   .staff h2 { font-size: 13px; }
   .staff li, .staff .firma, .staff .meta, .staff .est { font-size: 12px; }
-  #app-ui .top, #app-ui .nav, #app-ui .no-print, .toast, .modal, .btn, .btn-ghost, .btn-bad { display: none !important; }
+  #app-ui .top, #app-ui .nav, #app-ui .no-print, .sync-pill, .toast, .modal, .btn, .btn-ghost, .btn-bad { display: none !important; }
   #app-ui, .screen { max-width: none; padding: 0; }
   .sheet { box-shadow: none; border-radius: 0; }
   .sheet tr, .sheet h2 { break-inside: avoid; page-break-inside: avoid; }
@@ -230,6 +243,17 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
 </head>
 <body>
 <div id="app"></div>
+<script>
+/* Firebase, proyecto TG Apps (tg-apps-bbde7). Datos del formulador en formulador/... */
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAOFcpSMEp2hsP9FWcc7f_zhyiH4Sm6G2Y",
+  authDomain: "tg-apps-bbde7.firebaseapp.com",
+  projectId: "tg-apps-bbde7",
+  storageBucket: "tg-apps-bbde7.firebasestorage.app",
+  messagingSenderId: "1058376237664",
+  appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
+};
+</script>
 <script>
 /* Simplex de dos fases, sin dependencias. Minimiza c·x, x >= 0. */
 (function (root) {
@@ -987,7 +1011,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
         notasInternas: "",
         observaciones: "",
         nombrePersonal: "",
-        minutosMezcla: 5,
+        minutosMezcla: 12,
         corrales: [],
         referencia: null,
       },
@@ -1021,13 +1045,50 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
       ],
       ficha: "Ficha de mezcla Rufino 16/11/2026",
       nombrePersonal: "Mezcla adaptación",
-      minutosMezcla: 5,
+      minutosMezcla: 12,
       corrales: [
         { nombre: "Corrales 1 y 2", cabezas: 90 },
         { nombre: "Corral 4", cabezas: 42 },
       ],
       notasInternas:
         "La oferta por cabeza sale de 2.100 kg/día y las 128 cabezas de la planilla (90 + 38). Hoy el corral 4 tiene 42 y el lote suma 132. Los tratos son 600, 600 y 900 kg.",
+      observaciones: "",
+      items: [
+        fila("bagazo", 30.1132, 15, 45),
+        fila("maiz", 34.1676, 15, 50),
+        fila("ddgs", 32.8036, 10, 45),
+        fila("nutrix", 2.9156, 1, 5),
+      ],
+    }),
+    formula({
+      id: "rufino-adap-2026-11-17",
+      clienteId: "rufino",
+      nombre: "Adaptación – ajuste por sobrante 17/11",
+      fecha: "2026-11-17",
+      categoriaId: "bov-adap",
+      pv: 0,
+      gmd: 0,
+      cabezas: 132,
+      imsModo: "kg",
+      imsKg: 7.849545,
+      imsPct: 0,
+      tratos: 3,
+      cargaKg: 500,
+      aguaL: 3.156818,
+      comidas: [
+        { nombre: "Mañana", kg: 500 },
+        { nombre: "Mediodía", kg: 500 },
+        { nombre: "Tardecita", kg: 800 },
+      ],
+      ficha: "Ajuste por sobrante 17/11/2026",
+      nombrePersonal: "Mezcla adaptación",
+      minutosMezcla: 12,
+      corrales: [
+        { nombre: "Corrales 1 y 2", cabezas: 90 },
+        { nombre: "Corral 4", cabezas: 42 },
+      ],
+      notasInternas:
+        "17/11/2026: sobraron 346 kg antes de la carga de la mañana. Se bajan 100 kg por trato (300 kg/día): de 2.100 a 1.800 kg/día tal cual (500 + 500 + 800 kg). Mismas proporciones que la mezcla del 16/11; solo baja el volumen. Consumo por cabeza calculado sobre 132 cabezas (90 + 42).",
       observaciones: "",
       items: [
         fila("bagazo", 30.1132, 15, 45),
@@ -1058,7 +1119,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
       ],
       ficha: "Ficha de mezcla Rufino 16/11/2026",
       nombrePersonal: "Mezcla recría",
-      minutosMezcla: 5,
+      minutosMezcla: 12,
       corrales: [
         { nombre: "Corral A", cabezas: 47 },
         { nombre: "Corral B", cabezas: 59 },
@@ -1352,7 +1413,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
 
   function crearBase() {
     return {
-      version: 6,
+      version: 7,
       settings: { tipoCambio: 6180, lecheria: false, mostrarCostos: false, informeModo: "cliente" },
       ingredientes: ingredientes,
       categorias: categorias,
@@ -1372,7 +1433,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
       ],
       formulas: formulas,
       notas: notas,
-      activeFormulaId: "rufino-ficha-adap",
+      activeFormulaId: "rufino-adap-2026-11-17",
     };
   }
 
@@ -2128,13 +2189,22 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
     } catch (e) {
       S.persistOk = false;
     }
+    Nube.cambio();
   }
   function load() {
     try {
       var raw = localStorage.getItem(KEY);
       if (raw) {
-        var db = JSON.parse(raw);
-        if (db && db.ingredientes && db.formulas && db.version >= 1 && db.version <= 6) {
+        var db = normalizar(JSON.parse(raw));
+        if (db) return db;
+      }
+    } catch (e) {}
+    return root.TGData.crearBase();
+  }
+  function normalizar(db) {
+    try {
+      if (db) {
+        if (db && db.ingredientes && db.formulas && db.version >= 1 && db.version <= 7) {
           if (db.version < 3) {
             for (var bi = 0; bi < db.ingredientes.length; bi++) {
               if (db.ingredientes[bi].id === "bagazo" && Number(db.ingredientes[bi].ms) === 50) {
@@ -2164,7 +2234,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
           });
           if (!db.settings.informeModo) db.settings.informeModo = "cliente";
           db.formulas.forEach(function (fm) {
-            if (fm.minutosMezcla == null) fm.minutosMezcla = 5;
+            if (fm.minutosMezcla == null || (db.version < 7 && Number(fm.minutosMezcla) === 5)) fm.minutosMezcla = 12;
             if (!fm.corrales) {
               if (fm.id === "rufino-ficha-adap") {
                 fm.corrales = [{ nombre: "Corrales 1 y 2", cabezas: 90 }, { nombre: "Corral 4", cabezas: 42 }];
@@ -2175,12 +2245,21 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
               } else fm.corrales = [];
             }
           });
-          db.version = 6;
+          if (db.version < 7 && !db.formulas.some(function (fm) { return fm.id === "rufino-adap-2026-11-17"; })) {
+            var nuevaAdap = root.TGData.crearBase().formulas.filter(function (fm) { return fm.id === "rufino-adap-2026-11-17"; })[0];
+            if (nuevaAdap) {
+              var posAdap = -1;
+              db.formulas.forEach(function (fm, ix) { if (fm.id === "rufino-ficha-adap") posAdap = ix; });
+              db.formulas.splice(posAdap >= 0 ? posAdap + 1 : db.formulas.length, 0, nuevaAdap);
+              db.activeFormulaId = nuevaAdap.id;
+            }
+          }
+          db.version = 7;
           return db;
         }
       }
     } catch (e) {}
-    return root.TGData.crearBase();
+    return null;
   }
   function toast(t) {
     S.toast = t;
@@ -2203,6 +2282,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
   function boot() {
     S.db = load();
     if (!byId(S.db.formulas, S.db.activeFormulaId)) S.db.activeFormulaId = S.db.formulas[0].id;
+    Nube.arrancar();
     document.getElementById("app").addEventListener("click", onClick);
     document.getElementById("app").addEventListener("change", onChange);
     document.getElementById("app").addEventListener("input", onInput);
@@ -2210,6 +2290,11 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
   }
 
   function render() {
+    var gate = Nube.pantalla();
+    if (gate) {
+      document.getElementById("app").innerHTML = '<div id="app-ui">' + header() + '<div class="screen">' + gate + "</div>" + (S.toast ? '<div id="toast" class="toast">' + esc(S.toast) + "</div>" : "") + "</div>";
+      return;
+    }
     var f = activa();
     var res = f ? root.TGRation.analizar(f, S.db) : null;
     var ui = "";
@@ -2235,7 +2320,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
 
   function header() {
     return (
-      '<header class="top"><div class="mark">TG</div><div><strong>Tomás González</strong><span>Médico veterinario · Consultoría ganadera</span></div></header>'
+      '<header class="top"><div class="mark">TG</div><div><strong>Tomás González</strong><span>Médico veterinario · Consultoría ganadera</span></div>' + Nube.pill() + "</header>"
     );
   }
   function nav() {
@@ -2691,6 +2776,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
       html += '<button class="list-btn" type="button" data-act="edit-cli" data-id="' + c.id + '"><b>' + esc(c.nombre) + "</b><small>" + esc(c.establecimiento || "") + "</small></button>";
     });
     html += '<button class="btn-ghost" type="button" data-act="nuevo-cli">Nuevo cliente</button>';
+    html += Nube.tarjeta();
     html += "<h2>Respaldo</h2>";
     html += '<button class="btn" type="button" data-act="exportar">Exportar JSON</button>';
     html += '<label class="btn-ghost" style="display:flex;align-items:center;justify-content:center">Importar JSON<input id="import-file" type="file" accept="application/json,.json" style="display:none"></label>';
@@ -2758,7 +2844,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
     if (!f.corrales) f.corrales = [];
     var html = '<div class="card"><h2>Para la hoja del personal</h2>';
     html += '<label class="f"><span>Nombre de la mezcla</span><input data-bind="nombrePersonal" value="' + esc(f.nombrePersonal || "") + '" placeholder="Mezcla adaptación"></label>';
-    html += numField("minutosMezcla", "Minutos de mezclado", f.minutosMezcla == null ? 5 : f.minutosMezcla);
+    html += numField("minutosMezcla", "Minutos de mezclado", f.minutosMezcla == null ? 12 : f.minutosMezcla);
     html += "<h3>Corrales</h3>";
     f.corrales.forEach(function (c, i) {
       html += '<div class="grid-2">';
@@ -2789,7 +2875,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
     var cli = byId(S.db.clientes, f.clienteId) || { nombre: "", establecimiento: "" };
     var establecimiento = cli.establecimiento || cli.nombre || "";
     var mezcla = (f.nombrePersonal && String(f.nombrePersonal).trim()) || f.nombre;
-    var minutos = f.minutosMezcla == null ? 5 : f.minutosMezcla;
+    var minutos = f.minutosMezcla == null ? 12 : f.minutosMezcla;
     var corrales = f.corrales || [];
     var animales = corrales.reduce(function (s, c) { return s + (Number(c.cabezas) || 0); }, 0);
     if (!animales) animales = Number(f.cabezas) || 0;
@@ -2947,6 +3033,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
       return;
     }
     var act = t.getAttribute("data-act");
+    if (Nube.click(act)) return;
     var f = activa();
     if (act === "step") {
       var it = itemDe(f, t.getAttribute("data-id"));
@@ -3000,7 +3087,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
     } else if (act === "borrar-formula") {
       S.confirm = {
         titulo: "Quitar esta fórmula",
-        texto: "Se borra de este aparato. Si ya exportaste un respaldo, ese archivo queda igual.",
+        texto: Nube.enNube() ? "Se borra en todos los aparatos sincronizados. Si ya exportaste un respaldo, ese archivo queda igual." : "Se borra de este aparato. Si ya exportaste un respaldo, ese archivo queda igual.",
         si: "Quitar",
         run: function () {
           S.db.formulas = S.db.formulas.filter(function (x) { return x.id !== f.id; });
@@ -3073,7 +3160,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
     } else if (act === "exportar") {
       exportar();
     } else if (act === "reset") {
-      S.confirm = { titulo: "Volver a los datos de fábrica", texto: "Se pierden los cambios de este aparato. Si hace falta, exportá antes el JSON.", si: "Restablecer", run: function () {
+      S.confirm = { titulo: "Volver a los datos de fábrica", texto: Nube.enNube() ? "Se reemplazan los datos en todos los aparatos sincronizados. Si hace falta, exportá antes el JSON." : "Se pierden los cambios de este aparato. Si hace falta, exportá antes el JSON.", si: "Restablecer", run: function () {
         S.db = root.TGData.crearBase();
         S.screen = "formular";
         save();
@@ -3438,8 +3525,8 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
       try {
         var db = JSON.parse(reader.result);
         if (!db.ingredientes || !db.formulas) throw new Error("formato");
-        db.version = 6;
-        S.db = db;
+        if (!(db.version >= 1 && db.version <= 7)) db.version = 6;
+        S.db = normalizar(db) || db;
         if (!byId(S.db.formulas, S.db.activeFormulaId) && S.db.formulas[0]) S.db.activeFormulaId = S.db.formulas[0].id;
         save();
         S.screen = "formulas";
@@ -3452,7 +3539,691 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
     reader.readAsText(file);
   }
 
-  root.TGUI = { boot: boot, informeHTML: informeHTML, hojaPersonal: hojaPersonal };
+
+  /* ===== Nube: Firebase (proyecto tg-apps-bbde7). Sincroniza formulador/... entre aparatos y funciona sin señal. ===== */
+  var COLS = [
+    { db: "formulas", col: "formulas" },
+    { db: "ingredientes", col: "insumos" },
+    { db: "categorias", col: "categorias" },
+    { db: "clientes", col: "clientes" },
+    { db: "notas", col: "notas" },
+    { db: "settings", col: "ajustes", single: true }
+  ];
+  var META_KEY = KEY + "-sync";
+  var ANTES_KEY = KEY + "-antes-nube";
+  var NUBE_OK_KEY = KEY + "-nube-ok";
+  var ACCESO_KEY = KEY + "-acceso";
+  var ACTIVA_KEY = KEY + "-activa";
+  var AJUSTES_ID = "general";
+  var N = {
+    modo: "cloud", estado: "iniciando", usuario: null, sinPermiso: false, verificando: false, listo: false,
+    sync: "local", porCol: {}, meta: {}, base: true, unsubs: [], timer: null, repintar: null,
+    error: "", errorCodigo: "", errorDetalle: "", errorOrigen: "", ultimoError: null, version: "",
+    loginMail: false, cloud: {}
+  };
+
+  function hashStr(s) {
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36) + "." + s.length.toString(36);
+  }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function cargarMeta() {
+    try {
+      var m = JSON.parse(lsGet(META_KEY) || "null");
+      N.meta = m && typeof m === "object" ? m : {};
+    } catch (e) { N.meta = {}; }
+  }
+  function guardarMeta() { lsSet(META_KEY, JSON.stringify(N.meta)); }
+
+  function listaLocal(c) {
+    if (c.single) {
+      var st = {};
+      Object.keys(S.db.settings || {}).forEach(function (k) { if (k !== "informeModo") st[k] = S.db.settings[k]; });
+      return [{ id: AJUSTES_ID, settings: st }];
+    }
+    return S.db[c.db] || (S.db[c.db] = []);
+  }
+  function ponerLocal(c, id, item, borrar, orden) {
+    if (c.single) {
+      if (!borrar && item && item.settings) {
+        var modo = S.db.settings && S.db.settings.informeModo;
+        S.db.settings = item.settings;
+        S.db.settings.informeModo = modo || "cliente";
+      }
+      return;
+    }
+    var arr = listaLocal(c);
+    var idx = -1;
+    for (var i = 0; i < arr.length; i++) if (String(arr[i].id) === id) { idx = i; break; }
+    if (borrar) { if (idx >= 0) arr.splice(idx, 1); return; }
+    if (idx >= 0) arr[idx] = item;
+    else {
+      var pos = typeof orden === "number" && orden >= 0 ? Math.min(orden, arr.length) : (c.db === "formulas" ? 0 : arr.length);
+      arr.splice(pos, 0, item);
+    }
+  }
+
+  /* Anota qué cambió en este aparato desde la última vez (se llama en cada save). */
+  function marcarCambios() {
+    if (!S.db) return;
+    var now = Date.now();
+    COLS.forEach(function (c) {
+      var m = N.meta[c.col] || (N.meta[c.col] = {});
+      var vistos = {};
+      listaLocal(c).forEach(function (it) {
+        if (!it || it.id == null) return;
+        var id = String(it.id);
+        vistos[id] = 1;
+        var h = hashStr(JSON.stringify(it));
+        var x = m[id];
+        if (!x) m[id] = { u: N.base ? 0 : now, h: h, s: null };
+        else if (x.d) m[id] = { u: now, h: h, s: x.s };
+        else if (x.h !== h) { x.u = now; x.h = h; }
+      });
+      Object.keys(m).forEach(function (id) {
+        var x = m[id];
+        if (!vistos[id] && !x.d) { x.d = true; x.u = now; x.h = null; }
+      });
+    });
+    guardarMeta();
+  }
+
+  function enNube() { return N.modo === "cloud" && !!N.usuario && !N.sinPermiso && N.listo; }
+
+  function cambio() {
+    marcarCambios();
+    if (N.modo === "cloud" && N.listo) empujarPronto();
+    else if (N.modo === "cloud" && N.usuario) marcarSync("offline");
+  }
+
+  function empujarPronto() {
+    if (N.timer) clearTimeout(N.timer);
+    marcarSync(navigator.onLine === false ? "offline" : "pending");
+    N.timer = setTimeout(function () { N.timer = null; empujar(); }, 700);
+  }
+
+  function colRef(c) { return N.cloud.fsApi.collection(N.cloud.fs, "formulador", "datos", c.col); }
+  function docRef(c, id) { return N.cloud.fsApi.doc(N.cloud.fs, "formulador", "datos", c.col, id); }
+
+  function pendientes() {
+    var ops = [];
+    COLS.forEach(function (c) {
+      var m = N.meta[c.col] || {};
+      var porId = {};
+      listaLocal(c).forEach(function (it, i) { if (it && it.id != null) porId[String(it.id)] = { it: it, i: i }; });
+      Object.keys(m).forEach(function (id) {
+        var x = m[id];
+        if (x.d) { if (x.s !== "†") ops.push({ c: c, id: id, x: x, borrar: true }); }
+        else if (x.s !== x.h && porId[id]) ops.push({ c: c, id: id, x: x, it: porId[id].it, orden: porId[id].i });
+      });
+    });
+    return ops;
+  }
+
+  function empujar() {
+    if (!(N.modo === "cloud" && N.usuario && N.listo && !N.sinPermiso && N.cloud.fs)) return Promise.resolve();
+    var FS = N.cloud.fsApi;
+    var ops = pendientes();
+    if (!ops.length) { marcarSync(navigator.onLine === false ? "offline" : "ok"); return Promise.resolve(); }
+    var por = (N.usuario && N.usuario.email) || "";
+    var now = Date.now();
+    var lotes = [];
+    for (var i = 0; i < ops.length; i += 400) lotes.push(ops.slice(i, i + 400));
+    var promesas = lotes.map(function (lote) {
+      var batch = FS.writeBatch(N.cloud.fs);
+      lote.forEach(function (op) {
+        if (!op.x.u) op.x.u = now;
+        var data;
+        if (op.borrar) {
+          data = { id: op.id, json: "", nombre: "", deleted: true, updatedAt: op.x.u, por: por, servidor: FS.serverTimestamp() };
+          op.x.s = "†";
+        } else {
+          var json = JSON.stringify(op.it);
+          data = {
+            id: op.id, json: json, nombre: String(op.it.nombre || op.it.titulo || ""), orden: op.orden,
+            deleted: false, updatedAt: op.x.u, por: por, servidor: FS.serverTimestamp()
+          };
+          op.x.s = op.x.h;
+        }
+        batch.set(docRef(op.c, op.id), data);
+      });
+      return batch.commit();
+    });
+    guardarMeta();
+    marcarSync(navigator.onLine === false ? "offline" : "pending");
+    return Promise.all(promesas).then(function () {
+      marcarSync("ok");
+    }).catch(function (err) {
+      N.ultimoError = describirError(err);
+      if (err && err.code === "permission-denied") {
+        ops.forEach(function (op) { op.x.s = null; });
+        guardarMeta();
+        N.sinPermiso = true;
+        detenerEscucha();
+        render();
+      } else marcarSync("offline");
+    });
+  }
+
+  /* Trae lo de la nube. Lo más nuevo gana (updatedAt). */
+  function aplicarRemoto(c, snap) {
+    var m = N.meta[c.col] || (N.meta[c.col] = {});
+    var hubo = false;
+    var nuevos = [];
+    snap.forEach(function (d) {
+      var r = d.data() || {};
+      var id = String(r.id != null ? r.id : d.id);
+      var u = Number(r.updatedAt) || 0;
+      var x = m[id];
+      if (x && x.u >= u) {
+        if (r.deleted && x.d) x.s = "†";
+        else if (!r.deleted && !x.d && r.json) {
+          try { if (hashStr(JSON.stringify(JSON.parse(r.json))) === x.h) x.s = x.h; } catch (e) {}
+        }
+        return;
+      }
+      if (r.deleted) {
+        if (!x || !x.d) { ponerLocal(c, id, null, true); hubo = true; }
+        m[id] = { u: u, h: null, s: "†", d: true };
+        return;
+      }
+      var item;
+      try { item = JSON.parse(r.json); } catch (e) { return; }
+      if (!item || typeof item !== "object") return;
+      var h = hashStr(JSON.stringify(item));
+      if (x && !x.d && x.h === h) { x.u = u; x.s = h; return; }
+      nuevos.push({ id: id, item: item, orden: Number(r.orden) });
+      m[id] = { u: u, h: h, s: h };
+    });
+    nuevos.sort(function (a, b) { return (a.orden || 0) - (b.orden || 0); });
+    nuevos.forEach(function (n) { ponerLocal(c, n.id, n.item, false, isFinite(n.orden) ? n.orden : undefined); hubo = true; });
+    return hubo;
+  }
+
+  function trasRemoto() {
+    if (!S.db.formulas.length) {
+      nuevaFormula();
+      marcarCambios();
+      empujarPronto();
+    }
+    if (!byId(S.db.formulas, S.db.activeFormulaId)) S.db.activeFormulaId = S.db.formulas[0].id;
+    guardarLocal();
+    guardarMeta();
+    repintarCuandoPueda();
+  }
+
+  function escribiendo() {
+    var a = document.activeElement;
+    return !!(a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT") && a.closest && a.closest("#app"));
+  }
+  function repintarCuandoPueda() {
+    if (N.repintar) clearTimeout(N.repintar);
+    if (!escribiendo() && !S.confirm) { render(); return; }
+    N.repintar = setTimeout(repintarCuandoPueda, 1500);
+  }
+
+  function escuchar() {
+    if (!N.cloud.fs || N.unsubs.length) return;
+    var FS = N.cloud.fsApi;
+    COLS.forEach(function (c) {
+      var unsub = FS.onSnapshot(colRef(c), { includeMetadataChanges: true }, function (snap) {
+        var hubo = aplicarRemoto(c, snap);
+        N.porCol[c.col] = snap.metadata.hasPendingWrites ? "pending" : (snap.metadata.fromCache || navigator.onLine === false ? "offline" : "ok");
+        if (hubo) trasRemoto(); else guardarMeta();
+        if (pendientes().length) empujarPronto();
+        else marcarSync(estadoGlobal());
+      }, function (err) {
+        N.ultimoError = describirError(err);
+        if (err && err.code === "permission-denied") {
+          N.sinPermiso = true;
+          detenerEscucha();
+          render();
+        } else marcarSync("offline");
+      });
+      N.unsubs.push(unsub);
+    });
+  }
+  function estadoGlobal() {
+    var e = "ok";
+    COLS.forEach(function (c) {
+      var v = N.porCol[c.col];
+      if (v === "offline") e = "offline";
+      else if (v === "pending" && e !== "offline") e = "pending";
+    });
+    if (navigator.onLine === false) e = "offline";
+    return e;
+  }
+  function detenerEscucha() {
+    N.unsubs.forEach(function (u) { try { u(); } catch (e) {} });
+    N.unsubs = [];
+    N.porCol = {};
+  }
+
+  function guardarLocal() {
+    try { localStorage.setItem(KEY, JSON.stringify(S.db)); S.persistOk = true; } catch (e) { S.persistOk = false; }
+    lsSet(ACTIVA_KEY, S.db.activeFormulaId || "");
+  }
+
+  function semillaFaltante() {
+    var base = root.TGData.crearBase();
+    COLS.forEach(function (c) {
+      if (c.single) return;
+      var m = N.meta[c.col] || {};
+      var arr = listaLocal(c);
+      (base[c.db] || []).forEach(function (it, i) {
+        var id = String(it.id);
+        if (m[id] && m[id].d) return;
+        if (arr.some(function (x) { return String(x.id) === id; })) return;
+        arr.splice(Math.min(i, arr.length), 0, it);
+      });
+    });
+  }
+
+  function primeraSync(user) {
+    var FS = N.cloud.fsApi;
+    marcarSync("pending");
+    return Promise.all(COLS.map(function (c) { return FS.getDocsFromServer(colRef(c)); })).then(function (snaps) {
+      if (!N.usuario || N.usuario.uid !== user.uid) return;
+      var vacio = snaps.every(function (s) { return s.empty; });
+      if (!lsGet(ANTES_KEY)) lsSet(ANTES_KEY, JSON.stringify(S.db));
+      var hubo = false;
+      snaps.forEach(function (s, i) { if (aplicarRemoto(COLS[i], s)) hubo = true; });
+      if (vacio) {
+        semillaFaltante();
+        N.base = true;
+        marcarCambios();
+        N.base = false;
+      }
+      N.listo = true;
+      lsSet(NUBE_OK_KEY, user.uid);
+      trasRemoto();
+      var p = empujar();
+      if (vacio) {
+        FS.setDoc(FS.doc(N.cloud.fs, "formulador", "config"), {
+          app: "Formulador de Raciones TG", version: 7, migradoPor: user.email || user.uid,
+          migradoAt: FS.serverTimestamp(), updatedAt: Date.now()
+        }, { merge: true }).catch(function () {});
+      }
+      escuchar();
+      return p;
+    }).catch(function (err) {
+      N.ultimoError = describirError(err);
+      if (err && err.code === "permission-denied") {
+        N.sinPermiso = true;
+        render();
+        return;
+      }
+      marcarSync("offline");
+      setTimeout(function () { if (N.usuario && !N.listo) primeraSync(user); }, 15000);
+    });
+  }
+
+  function verificarAcceso(user) {
+    var FS = N.cloud.fsApi;
+    return FS.getDoc(FS.doc(N.cloud.fs, "accesos", user.uid)).then(function (snap) {
+      if (!snap.exists()) return false;
+      var d = snap.data() || {};
+      var apps = d.apps || [];
+      return d.rol === "admin" || (Object.prototype.toString.call(apps) === "[object Array]" && apps.indexOf("formulador") >= 0);
+    }).catch(function (err) {
+      if (err && err.code === "permission-denied") return false;
+      if (lsGet(ACCESO_KEY) === user.uid) return true;
+      throw err;
+    });
+  }
+
+  function alCambiarUsuario(user) {
+    detenerEscucha();
+    N.listo = false;
+    if (!user || user.isAnonymous) {
+      if (user && user.isAnonymous && N.cloud.signOut) { N.cloud.signOut(); return; }
+      N.usuario = null;
+      N.sinPermiso = false;
+      N.verificando = false;
+      N.estado = "lista";
+      render();
+      return;
+    }
+    N.usuario = { uid: user.uid, email: user.email || "" };
+    N.sinPermiso = false;
+    N.verificando = true;
+    N.estado = "lista";
+    render();
+    verificarAcceso(user).then(function (ok) {
+      N.verificando = false;
+      if (!ok) { N.sinPermiso = true; render(); return; }
+      lsSet(ACCESO_KEY, user.uid);
+      limpiarError();
+      render();
+      if (lsGet(NUBE_OK_KEY) === user.uid) {
+        N.listo = true;
+        escuchar();
+        empujarPronto();
+      } else primeraSync(user);
+    }).catch(function (err) {
+      N.verificando = false;
+      mostrarErrorAuth(err, "accesos");
+      if (lsGet(ACCESO_KEY)) {
+        N.modo = "local-temp";
+        marcarSync("offline");
+        render();
+        esperarSenal();
+      }
+    });
+  }
+
+  function esperarSenal() {
+    window.addEventListener("online", function reintento() {
+      window.removeEventListener("online", reintento);
+      if (N.modo === "local-temp") {
+        N.modo = "cloud";
+        if (N.cloud.auth) alCambiarUsuario(N.cloud.auth.currentUser);
+        else prepararNube();
+      }
+    });
+  }
+
+  function prepararNube() {
+    var cfg = root.FIREBASE_CONFIG || {};
+    var v = "10.14.1";
+    N.version = v;
+    var base = "https://www.gstatic.com/firebasejs/" + v + "/";
+    var vencido = setTimeout(function () {
+      if (N.estado === "iniciando" && lsGet(ACCESO_KEY)) {
+        N.modo = "local-temp";
+        marcarSync("offline");
+        render();
+      }
+    }, 9000);
+    Promise.all([
+      import(base + "firebase-app.js"),
+      import(base + "firebase-auth.js"),
+      import(base + "firebase-firestore.js")
+    ]).then(function (mods) {
+      var appMod = mods[0], authMod = mods[1], fsMod = mods[2];
+      var app = appMod.initializeApp(cfg);
+      var auth;
+      try {
+        auth = authMod.initializeAuth(app, {
+          persistence: [authMod.indexedDBLocalPersistence, authMod.browserLocalPersistence],
+          popupRedirectResolver: authMod.browserPopupRedirectResolver
+        });
+      } catch (e) {
+        auth = authMod.getAuth(app);
+      }
+      var fs;
+      try {
+        fs = fsMod.initializeFirestore(app, {
+          localCache: fsMod.persistentLocalCache({ tabManager: fsMod.persistentMultipleTabManager() })
+        });
+      } catch (e) {
+        fs = fsMod.getFirestore(app);
+      }
+      N.cloud = {
+        app: app, auth: auth, fs: fs, authApi: authMod, fsApi: fsMod,
+        signOut: function () { return authMod.signOut(auth).catch(function () {}); }
+      };
+      return authMod.getRedirectResult(auth).catch(function (err) {
+        if (describirError(err).code !== "auth/no-auth-event") mostrarErrorAuth(err, "redirect-result");
+      }).then(function () {
+        authMod.onAuthStateChanged(auth, function (user) {
+          clearTimeout(vencido);
+          if (N.modo === "local-temp") N.modo = "cloud";
+          try { alCambiarUsuario(user); } catch (err) { mostrarErrorAuth(err, "estado"); }
+        });
+      });
+    }).catch(function (err) {
+      clearTimeout(vencido);
+      N.estado = "falla";
+      mostrarErrorAuth(err, "init");
+      N.error = "No se pudo abrir la nube. Revisá la señal y probá de nuevo.";
+      if (lsGet(ACCESO_KEY)) {
+        N.modo = "local-temp";
+        marcarSync("offline");
+        esperarSenal();
+      }
+      render();
+    });
+  }
+
+  function textoSync() {
+    if (N.modo === "local") return "Solo en este aparato";
+    if (N.sync === "ok") return "Sincronizado";
+    if (N.sync === "pending") return "Guardando…";
+    return "Sin señal, guardado en el aparato";
+  }
+  function marcarSync(estado) {
+    N.sync = estado;
+    var el = document.getElementById("sync-pill");
+    if (el) {
+      el.textContent = textoSync();
+      el.className = "sync-pill " + estado;
+    }
+  }
+  function pillHtml() {
+    if (N.modo === "cloud" && (!N.usuario || N.sinPermiso || N.verificando)) return "";
+    var e = N.modo === "local" ? "local" : N.sync;
+    return '<span id="sync-pill" class="sync-pill ' + e + '">' + esc(textoSync()) + "</span>";
+  }
+
+  function diagnosticoActivo() {
+    try { return /(?:^|[?&])diag=1(?:&|$)/.test(String(location.search || "")); } catch (e) { return false; }
+  }
+  function htmlDiag() {
+    if (!diagnosticoActivo()) return "";
+    var user = N.cloud.auth && N.cloud.auth.currentUser;
+    var cfg = root.FIREBASE_CONFIG || {};
+    var lastTxt = "ninguno";
+    if (N.ultimoError) { try { lastTxt = JSON.stringify(N.ultimoError); } catch (e) { lastTxt = String(N.ultimoError); } }
+    var lineas = [
+      "SDK: " + (N.version || "?"),
+      "authDomain: " + (cfg.authDomain || ""),
+      "resolver: " + (N.cloud.authApi && N.cloud.authApi.browserPopupRedirectResolver ? "sí" : "no"),
+      "usuario: " + (user ? ((user.email || "") + " " + user.uid + (user.isAnonymous ? " (anónimo)" : "")) : "ninguno"),
+      "modo: " + N.modo + " · estado: " + N.estado + " · sync: " + N.sync + " · lista: " + (N.listo ? "sí" : "no"),
+      "pendientes: " + (S.db ? pendientes().length : 0),
+      "último error: " + lastTxt
+    ];
+    return '<pre class="login-diag">' + esc(lineas.join("\n")) + "</pre>";
+  }
+
+  function describirError(err) {
+    var d = { code: "", name: "", message: "", tipo: typeof err };
+    if (err == null) { d.message = "sin objeto de error"; return d; }
+    if (typeof err === "string" || typeof err === "number") { d.message = String(err); return d; }
+    d.name = err.name ? String(err.name) : "";
+    if (err.message) d.message = String(err.message);
+    if (typeof err.code === "string" && err.code) d.code = err.code;
+    else if (err.customData && typeof err.customData.code === "string") d.code = err.customData.code;
+    if (d.message && d.message.length > 240) d.message = d.message.slice(0, 237) + "…";
+    return d;
+  }
+  function mensajeAuth(err) {
+    var c = describirError(err).code;
+    if (c === "auth/invalid-email") return "Ese correo no es válido.";
+    if (c === "auth/user-disabled") return "Esa cuenta está deshabilitada.";
+    if (c === "auth/user-not-found" || c === "auth/wrong-password" || c === "auth/invalid-credential") return "Correo o contraseña incorrectos.";
+    if (c === "auth/too-many-requests") return "Demasiados intentos. Probá en un rato.";
+    if (c === "auth/network-request-failed") return "Sin conexión. Probá cuando haya señal.";
+    if (c === "auth/popup-closed-by-user") return "Cerraste la ventana de Google.";
+    if (c === "auth/cancelled-popup-request") return "Se canceló la ventana de Google.";
+    if (c === "auth/popup-blocked") return "El navegador bloqueó la ventana de Google. Permití ventanas emergentes y probá de nuevo.";
+    if (c === "auth/unauthorized-domain") return "Este dominio no está autorizado en Firebase.";
+    if (c === "auth/operation-not-supported-in-this-environment") return "Este navegador no pudo abrir la ventana de Google.";
+    return "No se pudo entrar. Probá de nuevo.";
+  }
+  function mostrarErrorAuth(err, origen) {
+    var d = describirError(err);
+    N.errorOrigen = origen || "";
+    N.errorCodigo = d.code || "";
+    N.errorDetalle = ((d.name || "") + (d.name && d.message ? ": " : "") + (d.message || "")).trim();
+    N.error = mensajeAuth(err);
+    N.ultimoError = { origen: N.errorOrigen, code: d.code || "sin código", name: d.name, message: d.message, tipo: d.tipo };
+    var btn = document.querySelector('[data-act="login-google"]');
+    if (btn) btn.disabled = false;
+    render();
+  }
+  function limpiarError() { N.error = ""; N.errorCodigo = ""; N.errorDetalle = ""; N.errorOrigen = ""; }
+  function htmlErrorLogin() {
+    if (!N.error && !N.errorCodigo) return "";
+    var html = "";
+    if (N.error) html += '<div class="alert bad">' + esc(N.error) + "</div>";
+    html += '<p class="login-uid">código: ' + esc(N.errorCodigo || "sin código");
+    if (N.errorOrigen) html += " · origen: " + esc(N.errorOrigen);
+    if (N.errorDetalle) html += "<br>" + esc(N.errorDetalle);
+    return html + "</p>";
+  }
+
+  function entrarGoogle() {
+    var A = N.cloud.authApi;
+    if (!N.cloud.auth || !A || !A.signInWithPopup) {
+      mostrarErrorAuth({ name: "Error", message: "La nube no está lista o falta signInWithPopup." }, "init");
+      return;
+    }
+    var provider = new A.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    var resolver = A.browserPopupRedirectResolver;
+    try {
+      A.signInWithPopup(N.cloud.auth, provider, resolver).catch(function (err) {
+        if (describirError(err).code === "auth/popup-blocked") {
+          mostrarErrorAuth(err, "popup");
+          return A.signInWithRedirect(N.cloud.auth, provider, resolver).catch(function (err2) { mostrarErrorAuth(err2 || err, "popup"); });
+        }
+        mostrarErrorAuth(err, "popup");
+      });
+    } catch (err) {
+      mostrarErrorAuth(err, "popup");
+      return;
+    }
+    limpiarError();
+    var btn = document.querySelector('[data-act="login-google"]');
+    if (btn) btn.disabled = true;
+  }
+  function entrarMail() {
+    var A = N.cloud.authApi;
+    if (!N.cloud.auth || !A) { mostrarErrorAuth({ name: "Error", message: "La nube no está lista." }, "init"); return; }
+    var em = document.getElementById("login-email");
+    var cl = document.getElementById("login-clave");
+    var email = String(em ? em.value : "").trim();
+    var clave = cl ? cl.value : "";
+    if (!email || !clave) { limpiarError(); N.error = "Escribí el correo y la contraseña."; render(); return; }
+    limpiarError();
+    A.signInWithEmailAndPassword(N.cloud.auth, email, clave).catch(function (err) { mostrarErrorAuth(err, "correo"); });
+  }
+  function salir() {
+    detenerEscucha();
+    N.listo = false;
+    if (N.cloud.signOut) N.cloud.signOut();
+    N.usuario = null;
+    N.sinPermiso = false;
+    render();
+  }
+
+  function marca() {
+    return '<div class="login-brand"><div class="mark mark-dark">TG</div><div><b>Formulador de Raciones TG</b><small>Tomás González · Médico veterinario</small></div></div>';
+  }
+  function pantallaNube() {
+    if (N.modo !== "cloud") return "";
+    if (N.estado === "iniciando" || N.verificando) {
+      return '<div class="card login-card">' + marca() + '<h2>Abriendo…</h2><p class="sub">Conectando con la nube.</p>' + htmlDiag() + "</div>";
+    }
+    if (!N.usuario) {
+      var html = '<div class="card login-card">' + marca();
+      html += '<h2>Entrar</h2><p class="sub">Con tu cuenta, las fórmulas quedan iguales en todos tus aparatos. Después podés trabajar aunque no haya señal.</p>';
+      html += htmlErrorLogin();
+      if (N.estado === "falla") html += '<button type="button" class="btn" data-act="nube-reintentar">Reintentar</button>';
+      else {
+        html += '<button type="button" class="btn btn-google" data-act="login-google">Entrar con Google</button>';
+        if (!N.loginMail) html += '<button type="button" class="btn-ghost" data-act="login-mail">Entrar con correo y contraseña</button>';
+        else {
+          html += '<p class="login-sep">o con correo</p>';
+          html += '<label class="f"><span>Correo</span><input id="login-email" type="email" autocomplete="username"></label>';
+          html += '<label class="f"><span>Contraseña</span><input id="login-clave" type="password" autocomplete="current-password"></label>';
+          html += '<button type="button" class="btn" data-act="login">Entrar</button>';
+        }
+      }
+      html += htmlDiag();
+      return html + "</div>";
+    }
+    if (N.sinPermiso) {
+      var h2 = '<div class="card login-card">' + marca() + "<h2>Sin permiso</h2>";
+      h2 += '<p class="sub">Tu usuario todavía no tiene permiso para el formulador. Avisale a Tomás.</p>';
+      h2 += '<p class="login-uid">' + (N.usuario.email ? "<b>" + esc(N.usuario.email) + "</b><br>" : "") + "UID: " + esc(N.usuario.uid) + "</p>";
+      h2 += htmlErrorLogin();
+      h2 += '<button type="button" class="btn-ghost" data-act="salir">Usar otra cuenta</button>';
+      h2 += htmlDiag();
+      return h2 + "</div>";
+    }
+    return "";
+  }
+
+  function tarjetaCuenta() {
+    var html = '<div class="card"><h2>Cuenta y sincronización</h2>';
+    if (N.modo === "local") {
+      html += '<p class="sub">Modo de prueba: los datos quedan solo en este aparato.</p>';
+    } else if (N.usuario) {
+      html += '<p class="sub">Entraste como <b>' + esc(N.usuario.email || N.usuario.uid) + "</b>. Estado: " + esc(textoSync()) + ".</p>";
+      html += '<p class="sub">Los cambios se guardan en este aparato y suben solos a la nube cuando hay señal.</p>';
+      html += '<button class="btn-ghost" type="button" data-act="salir">Cerrar sesión</button>';
+    } else {
+      html += '<p class="sub">' + esc(textoSync()) + ".</p>";
+    }
+    if (lsGet(ANTES_KEY)) html += '<button class="btn-ghost" type="button" data-act="bajar-antes-nube">Descargar la copia de antes de la nube</button>';
+    html += htmlDiag();
+    return html + "</div>";
+  }
+
+  function bajarAntesNube() {
+    var raw = lsGet(ANTES_KEY);
+    if (!raw) return;
+    var blob = new Blob([raw], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "tg-formulacion-antes-de-la-nube.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function clickNube(act) {
+    if (act === "login-google") { entrarGoogle(); return true; }
+    if (act === "login-mail") { N.loginMail = true; render(); return true; }
+    if (act === "login") { entrarMail(); return true; }
+    if (act === "salir") { salir(); return true; }
+    if (act === "bajar-antes-nube") { bajarAntesNube(); return true; }
+    if (act === "nube-reintentar") { N.estado = "iniciando"; limpiarError(); render(); prepararNube(); return true; }
+    return false;
+  }
+
+  function arrancarNube() {
+    cargarMeta();
+    var act = lsGet(ACTIVA_KEY);
+    if (act && byId(S.db.formulas, act)) S.db.activeFormulaId = act;
+    N.base = true;
+    marcarCambios();
+    N.base = false;
+    var cfg = root.FIREBASE_CONFIG || {};
+    var local = false;
+    try { local = /(?:^|[?&])local=1(?:&|$)/.test(String(location.search || "")); } catch (e) {}
+    if (local || !cfg.apiKey) {
+      N.modo = "local";
+      N.sync = "local";
+      return;
+    }
+    window.addEventListener("online", function () { if (N.listo) empujarPronto(); else marcarSync(N.sync); });
+    window.addEventListener("offline", function () { marcarSync("offline"); });
+    prepararNube();
+  }
+
+  var Nube = {
+    arrancar: arrancarNube, cambio: cambio, pantalla: pantallaNube, pill: pillHtml, click: clickNube,
+    tarjeta: tarjetaCuenta, enNube: enNube, guardarActiva: function () { lsSet(ACTIVA_KEY, (S.db && S.db.activeFormulaId) || ""); },
+    estado: N
+  };
+
+  root.TGUI = { boot: boot, informeHTML: informeHTML, hojaPersonal: hojaPersonal, nube: N };
   if (typeof document !== "undefined") {
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
     else boot();
@@ -3463,7 +4234,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
 
 <script>
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch(function () {});
+  navigator.serviceWorker.register("./sw.js", { scope: "/" }).catch(function () {});
 }
 </script>
 </body>
