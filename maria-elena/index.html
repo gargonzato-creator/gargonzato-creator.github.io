@@ -4029,7 +4029,7 @@ var FIREBASE_CONFIG = {
     if (c === "auth/network-request-failed") return "Sin conexión. Probá cuando haya señal.";
     if (c === "auth/popup-closed-by-user") return "Cerraste la ventana de Google.";
     if (c === "auth/cancelled-popup-request") return "Se canceló la ventana de Google.";
-    if (c === "auth/popup-blocked") return "El navegador bloqueó la ventana de Google. Permití ventanas emergentes y probá de nuevo.";
+    if (c === "auth/popup-blocked") return "El iPhone bloqueó la ventana de Google. Tocá de nuevo «Entrar con Google».";
     if (c === "auth/unauthorized-domain") return "Este dominio no está autorizado en Firebase.";
     if (c === "auth/operation-not-supported-in-this-environment") return "Este navegador no pudo abrir la ventana de Google.";
     return "No se pudo entrar. Probá de nuevo.";
@@ -4090,13 +4090,8 @@ var FIREBASE_CONFIG = {
       var provider = new cloud.authApi.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
       var resolver = cloud.authApi.browserPopupRedirectResolver;
+      // Solo ventana emergente: en iPhone el redirect entre github.io y firebaseapp.com pierde la sesión.
       cloud.authApi.signInWithPopup(cloud.auth, provider, resolver).catch(function (err) {
-        if (debeUsarRedirect(err)) {
-          mostrarErrorAuth(err, "popup");
-          return cloud.authApi.signInWithRedirect(cloud.auth, provider, resolver).catch(function (err2) {
-            mostrarErrorAuth(err2 || err, "popup");
-          });
-        }
         mostrarErrorAuth(err, "popup");
       });
     } catch (err) {
@@ -4294,12 +4289,30 @@ var FIREBASE_CONFIG = {
     S.usuario = { uid: user.uid, email: user.email || "" };
     S.sinPermiso = false;
     S.errorCarga = "";
-    S.accesoEstado = "verificando";
     cloud.subido = {};
     cloud.metaOk = false;
+    var uidActual = user.uid;
+    if (leerAccesoGuardado(user.uid) === "1") {
+      // Permiso ya confirmado antes en este aparato: entra directo (con o sin señal) y se revisa en segundo plano.
+      S.accesoEstado = "ok";
+      if (vigia) { clearTimeout(vigia); vigia = null; }
+      limpiarError();
+      escuchar();
+      pintar();
+      paso("pantalla de inicio (permiso guardado)");
+      migrarLocalANube().catch(function (err) { paso("migración: " + describirError(err).message); });
+      verificarAcceso(user).then(function (ok) {
+        if (ok || !S.usuario || S.usuario.uid !== uidActual) return;
+        detenerEscucha();
+        S.accesoEstado = "no";
+        S.sinPermiso = true;
+        pintar();
+      }).catch(function () {});
+      return;
+    }
+    S.accesoEstado = "verificando";
     pintar();
     armarVigia("permiso");
-    var uidActual = user.uid;
     verificarAcceso(user).then(function (ok) {
       if (!S.usuario || S.usuario.uid !== uidActual) return;
       if (!ok) {
