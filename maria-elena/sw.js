@@ -1,7 +1,7 @@
 /* Registros María Elena. Solo atiende /maria-elena/ y los módulos del SDK de Firebase (para abrir sin señal).
    Nunca toca firebaseapp.com, googleapis.com, apis.google.com ni accounts.google.com (login y datos van directo a la red). */
 const PREFIJO = "me-registros-";
-const CACHE = PREFIJO + "v12";
+const CACHE = PREFIJO + "v13";
 const ASSETS = ["./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png", "./logo-header.png"];
 const SDK = "https://www.gstatic.com/firebasejs/10.14.1/";
 const SDK_FILES = ["firebase-app.js", "firebase-auth.js", "firebase-firestore.js"].map(function (f) { return SDK + f; });

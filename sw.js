@@ -1,6 +1,6 @@
 /* Formulador TG (raíz). Solo atiende la raíz (/, /index.html y sus íconos); las otras apps
    (/maria-elena/, /rancho-rufino/, /finanzas/, /inventario/) quedan afuera y sus cachés no se tocan. */
-const CACHE = "formulador-tg-v11";
+const CACHE = "formulador-tg-v12";
 const ASSETS = ["./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 const SDK = "https://www.gstatic.com/firebasejs/10.14.1/";
 const SDK_FILES = ["firebase-app.js", "firebase-auth.js", "firebase-firestore.js"];
@@ -104,6 +104,8 @@ self.addEventListener("fetch", function (event) {
   }
 
   if (url.origin !== self.location.origin) return;
+  // Ayudantes de Firebase Auth / Hosting (/__/auth/*, /__/firebase/*): siempre directo a la red.
+  if (url.pathname.indexOf("/__/") === 0) return;
 
   if (url.pathname === "/" || url.pathname === "/index.html") {
     event.respondWith(atenderIndex(event));

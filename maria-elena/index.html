@@ -274,6 +274,122 @@ input:focus, select:focus, textarea:focus { outline: 3px solid var(--gold); bord
 <body>
 <div id="app"></div>
 <script>
+/* TG Auth Guard (compartido Formulador / María Elena).
+   - Origen canónico de Firebase Hosting: tg-apps-bbde7.firebaseapp.com (mismo origen que authDomain, sin storage de terceros).
+   - Detecta navegadores internos de apps (WebView) y fallas de la ventana de Google, y muestra «Abrí esta app en Safari». */
+(function (w) {
+  "use strict";
+  var HOST_AUTH = "tg-apps-bbde7.firebaseapp.com";
+  try {
+    if (location.hostname === "tg-apps-bbde7.web.app") {
+      location.replace("https://" + HOST_AUTH + location.pathname + location.search + location.hash);
+    }
+  } catch (e) {}
+  var KEY = "tg-auth-intento";
+  var ua = String((w.navigator && navigator.userAgent) || "");
+  function esIOS() {
+    return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+  function standalone() {
+    try { if (navigator.standalone === true) return true; } catch (e) {}
+    try { return !!(w.matchMedia && w.matchMedia("(display-mode: standalone)").matches); } catch (e) { return false; }
+  }
+  function enAppInterna() {
+    if (/[?&]safari=1(?:&|$)/.test(String(location.search || ""))) return true; // prueba
+    if (/FBAN|FBAV|FB_IAB|FBIOS|Instagram|Line\/|MicroMessenger|WhatsApp|Twitter|Snapchat|LinkedInApp|GSA\/|Telegram|Grok|xAI|Cursor|; wv\)|WebView/i.test(ua)) return true;
+    // WKWebView de iOS: no trae "Safari/" (salvo el ícono de inicio, que se excluye).
+    if (esIOS() && !standalone() && !/Safari\//.test(ua)) return true;
+    return false;
+  }
+  function mismoOrigen(cfg) {
+    try { return !!cfg && location.hostname === String(cfg.authDomain || ""); } catch (e) { return false; }
+  }
+  function lsGet(k) { try { return w.localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { w.localStorage.setItem(k, v); } catch (e) {} }
+  function lsDel(k) { try { w.localStorage.removeItem(k); } catch (e) {} }
+  var intentoEstaPagina = false;
+  function marcarIntento(tipo) { intentoEstaPagina = true; lsSet(KEY, JSON.stringify({ t: Date.now(), tipo: tipo || "popup" })); }
+  function limpiarIntento() { lsDel(KEY); }
+  function intentoReciente() {
+    // Solo cuenta un intento de una carga anterior (volvió a la app sin sesión); el de esta pantalla se informa por su error.
+    if (intentoEstaPagina) return null;
+    var raw = lsGet(KEY);
+    if (!raw) return null;
+    try {
+      var d = JSON.parse(raw);
+      if (d && Date.now() - d.t < 15 * 60 * 1000) return d;
+    } catch (e) {}
+    lsDel(KEY);
+    return null;
+  }
+  function esFallaDeVentana(code) {
+    return code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment" ||
+      code === "auth/web-storage-unsupported" || code === "auth/popup-closed-by-user" ||
+      code === "auth/cancelled-popup-request" || code === "auth/internal-error" || code === "auth/missing-initial-state";
+  }
+  function enlace() {
+    try { return location.origin + location.pathname; } catch (e) { return String(location.href || ""); }
+  }
+  function enlaceSafari() {
+    var u = enlace();
+    return esIOS() && /^https:\/\//.test(u) ? "x-safari-" + u : "";
+  }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function htmlAviso(motivo) {
+    var u = enlace();
+    var h = '<div class="tg-safari" role="alert">';
+    h += "<b>Abrí esta app en Safari</b>";
+    h += "<p>" + esc(motivo || "Este navegador interno no deja terminar el ingreso con Google.") + "</p>";
+    h += "<ol><li>Tocá «Copiar enlace».</li><li>Abrí Safari, pegalo en la barra y entrá con Google.</li><li>En Safari: Compartir → «Agregar a inicio», y abrí siempre desde ese ícono.</li></ol>";
+    h += '<div class="tg-safari-url">' + esc(u) + "</div>";
+    h += '<button type="button" class="tg-safari-btn" data-tgauth="copiar">Copiar enlace</button>';
+    var s = enlaceSafari();
+    if (s) h += '<a class="tg-safari-btn tg-safari-sec" href="' + esc(s) + '">Abrir en Safari</a>';
+    return h + "</div>";
+  }
+  function htmlPista() {
+    if (!esIOS() || standalone()) return "";
+    return '<p class="tg-safari-pista">¿Google no responde? <button type="button" data-tgauth="copiar">Copiar enlace</button> y abrilo en Safari.</p>';
+  }
+  function copiar(btn) {
+    var u = enlace();
+    function ok() { if (btn) { btn.textContent = "Enlace copiado ✓"; setTimeout(function () { btn.textContent = "Copiar enlace"; }, 2500); } }
+    function viejo() {
+      try {
+        var t = document.createElement("textarea");
+        t.value = u; t.setAttribute("readonly", ""); t.style.position = "fixed"; t.style.opacity = "0";
+        document.body.appendChild(t); t.select(); t.setSelectionRange(0, u.length);
+        var r = document.execCommand("copy"); t.remove();
+        if (r) ok(); else w.prompt("Copiá este enlace:", u);
+      } catch (e) { w.prompt("Copiá este enlace:", u); }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(ok, viejo);
+    else viejo();
+  }
+  document.addEventListener("click", function (ev) {
+    var b = ev.target && ev.target.closest ? ev.target.closest('[data-tgauth="copiar"]') : null;
+    if (!b) return;
+    ev.preventDefault(); ev.stopPropagation();
+    copiar(b);
+  }, true);
+  try {
+    var st = document.createElement("style");
+    st.textContent = ".tg-safari{background:#fff6e0;border:1px solid #e6c36a;border-radius:14px;padding:14px 16px;margin:12px 0;color:#3b2f12;text-align:left;font-size:15px;line-height:1.4}" +
+      ".tg-safari b{display:block;font-size:17px;margin-bottom:4px}.tg-safari p{margin:4px 0 6px}.tg-safari ol{margin:6px 0 8px 18px;padding:0}" +
+      ".tg-safari-url{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#fff;border-radius:8px;padding:6px 8px;word-break:break-all;margin-bottom:8px}" +
+      ".tg-safari-btn{display:block;width:100%;box-sizing:border-box;text-align:center;padding:12px;border-radius:12px;border:0;background:#2f6b3a;color:#fff;font-size:16px;font-weight:600;margin-top:6px;text-decoration:none;cursor:pointer}" +
+      ".tg-safari-sec{background:#fff;color:#2f6b3a;border:1px solid #2f6b3a}" +
+      ".tg-safari-pista{font-size:13px;color:#776b55;text-align:center;margin:10px 0 0}.tg-safari-pista button{background:none;border:0;color:#2f6b3a;text-decoration:underline;font-size:13px;padding:0;cursor:pointer}";
+    (document.head || document.documentElement).appendChild(st);
+  } catch (e) {}
+  w.TGAuth = {
+    HOST_AUTH: HOST_AUTH, esIOS: esIOS, standalone: standalone, enAppInterna: enAppInterna, mismoOrigen: mismoOrigen,
+    marcarIntento: marcarIntento, limpiarIntento: limpiarIntento, intentoReciente: intentoReciente,
+    esFallaDeVentana: esFallaDeVentana, htmlAviso: htmlAviso, htmlPista: htmlPista, copiar: copiar, enlace: enlace
+  };
+})(window);
+</script>
+<script>
 /* ========== FIREBASE — pegá acá la configuración del proyecto ==========
    Firebase console → Configuración del proyecto → Tus apps → SDK de la app.
    Si apiKey queda vacío, la app funciona solo en este aparato.
@@ -2279,8 +2395,19 @@ var FIREBASE_CONFIG = {
   function pantallaLogin() {
     var html = '<div class="login-card"><div class="brand"><img class="brand-logo" src="logo-header.png" width="46" height="46" alt=""><div><h1>Cabaña María Elena</h1><p>Coronel Oviedo · Dorper</p></div></div>';
     html += '<h2>Entrar</h2><p class="sub">Con tu cuenta queda una copia en la nube. Después podés cargar datos aunque no haya señal.</p>';
+    var G = root.TGAuth;
+    var cfgL = root.FIREBASE_CONFIG || {};
+    var interna = !!(G && G.enAppInterna() && !G.mismoOrigen(cfgL));
+    var previo = !!(G && G.intentoReciente());
+    if (G && (S.avisoSafari || (interna && !S.probarIgual))) {
+      html += G.htmlAviso(interna ? "Abriste el enlace dentro de otra app (por ejemplo, desde un chat). Ahí el ingreso con Google no termina." : "El ingreso con Google no terminó en este navegador.");
+    } else if (G && previo) {
+      html += G.htmlAviso("El último intento de entrar con Google no terminó. Si te volvió a pasar, abrí la app en Safari.");
+    }
     html += htmlErrorLogin();
-    html += '<button type="button" class="btn-google" data-act="login-google">Entrar con Google</button>';
+    if (interna && !S.probarIgual) html += '<button type="button" class="btn-mail-sec" data-act="login-google-igual">Probar igual con Google aquí</button>';
+    else html += '<button type="button" class="btn-google" data-act="login-google">Entrar con Google</button>';
+    if (G && !S.avisoSafari && !interna && !previo) html += G.htmlPista();
     if (!S.b.loginMail) {
       html += '<button type="button" class="btn-mail-sec" data-act="login-mail">Entrar con correo y contraseña</button>';
     } else {
@@ -3497,6 +3624,7 @@ var FIREBASE_CONFIG = {
       return pintar();
     }
     if (act === "login-google") return entrarGoogle();
+    if (act === "login-google-igual") { S.probarIgual = true; return entrarGoogle(); }
     if (act === "login-mail") { S.b.loginMail = true; limpiarError(); return pintar(); }
     if (act === "login") return entrar();
     if (act === "empezar-caravanas") {
@@ -4083,18 +4211,37 @@ var FIREBASE_CONFIG = {
       S.error = "La nube no está lista.";
       return pintar();
     }
+    var A = cloud.authApi;
+    var G = root.TGAuth;
+    var mismo = !!(G && G.mismoOrigen(root.FIREBASE_CONFIG || {}));
     limpiarError();
+    var provider = new A.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    var resolver = A.browserPopupRedirectResolver;
+    function porRedirect() {
+      if (G) G.marcarIntento("redirect");
+      A.signInWithRedirect(cloud.auth, provider, resolver).catch(function (err) { S.avisoSafari = true; mostrarErrorAuth(err, "redirect"); });
+    }
+    // Navegador interno de otra app (WebView): la ventana de Google no funciona.
+    if (G && G.enAppInterna() && !S.probarIgual) {
+      if (mismo && A.signInWithRedirect) return porRedirect();
+      S.avisoSafari = true;
+      return pintar();
+    }
     var btn = document.querySelector('[data-act="login-google"]');
     if (btn) btn.disabled = true;
+    if (G) G.marcarIntento("popup");
     try {
-      var provider = new cloud.authApi.GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "select_account" });
-      var resolver = cloud.authApi.browserPopupRedirectResolver;
-      // Solo ventana emergente: en iPhone el redirect entre github.io y firebaseapp.com pierde la sesión.
-      cloud.authApi.signInWithPopup(cloud.auth, provider, resolver).catch(function (err) {
+      // Ventana emergente. En github.io nunca se cae a redirect (el iPhone pierde el estado entre github.io y firebaseapp.com).
+      A.signInWithPopup(cloud.auth, provider, resolver).catch(function (err) {
+        var c = describirError(err).code;
+        var ventanaRota = c === "auth/popup-blocked" || c === "auth/operation-not-supported-in-this-environment" || c === "auth/web-storage-unsupported";
+        if (mismo && ventanaRota && A.signInWithRedirect) return porRedirect();
+        if (G && G.esFallaDeVentana(c)) S.avisoSafari = true;
         mostrarErrorAuth(err, "popup");
       });
     } catch (err) {
+      S.avisoSafari = true;
       mostrarErrorAuth(err, "popup");
     }
   }
@@ -4244,6 +4391,7 @@ var FIREBASE_CONFIG = {
       cloud.fsApi = fsMod;
       cloud.signOut = function () { return authMod.signOut(auth).catch(function () {}); };
       authMod.onAuthStateChanged(auth, function (user) {
+        if (user && root.TGAuth) { root.TGAuth.limpiarIntento(); S.avisoSafari = false; }
         paso("estado de sesión: " + (user ? (user.isAnonymous ? "anónimo" : (user.email || user.uid)) : "sin sesión"));
         if (S.nubeEstado === "cargando") S.nubeEstado = "lista";
         try {
@@ -4259,7 +4407,7 @@ var FIREBASE_CONFIG = {
         paso("redirect revisado");
       }).catch(function (err) {
         var c = describirError(err).code;
-        if (c !== "auth/no-auth-event") mostrarErrorAuth(err, "redirect-result");
+        if (c !== "auth/no-auth-event") { S.avisoSafari = true; mostrarErrorAuth(err, "redirect-result"); }
       });
       armarVigia("sesión");
     }).catch(function (err) {
