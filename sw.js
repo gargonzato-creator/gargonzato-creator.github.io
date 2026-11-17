@@ -1,16 +1,20 @@
 /* Formulador TG (raíz). Solo atiende la raíz; las otras apps (/maria-elena/, /rancho-rufino/, /finanzas/, /inventario/) quedan afuera. */
-const CACHE = "formulador-tg-v8";
+const CACHE = "formulador-tg-v9";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 const SDK = "https://www.gstatic.com/firebasejs/10.14.1/";
 const SDK_FILES = ["firebase-app.js", "firebase-auth.js", "firebase-firestore.js"];
+const LIBS = [
+  "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
+  "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"
+];
 const PROPIAS = ["/", "/index.html", "/manifest.webmanifest", "/icon-180.png", "/icon-512.png"];
 
 self.addEventListener("install", function (event) {
   event.waitUntil(
     caches.open(CACHE).then(function (cache) {
       return cache.addAll(ASSETS).then(function () {
-        return Promise.all(SDK_FILES.map(function (f) {
-          return fetch(SDK + f, { mode: "cors" }).then(function (r) { if (r && r.ok) return cache.put(SDK + f, r); }).catch(function () {});
+        return Promise.all(SDK_FILES.map(function (f) { return SDK + f; }).concat(LIBS).map(function (u) {
+          return fetch(u, { mode: "cors" }).then(function (r) { if (r && r.ok) return cache.put(u, r); }).catch(function () {});
         }));
       });
     })
@@ -32,7 +36,7 @@ self.addEventListener("fetch", function (event) {
   var url;
   try { url = new URL(req.url); } catch (e) { return; }
 
-  if (url.href.indexOf(SDK) === 0) {
+  if (url.href.indexOf(SDK) === 0 || LIBS.indexOf(url.href) >= 0) {
     event.respondWith(
       caches.match(req.url).then(function (cached) {
         var red = fetch(req).then(function (resp) {

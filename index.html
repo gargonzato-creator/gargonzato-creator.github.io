@@ -223,6 +223,17 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
 .login-sep { text-align: center; color: var(--muted); font-size: 14px; margin: 12px 0 8px; }
 .login-diag { font-size: 11px; color: var(--muted); background: #f4efe6; border-radius: 12px; padding: 10px 12px; margin-top: 14px; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, Menlo, monospace; }
 .btn-google { margin-bottom: 10px; }
+.pdf-panel .alert { margin: 10px 0; }
+.pdf-link { display: flex; align-items: center; justify-content: center; text-decoration: none; box-sizing: border-box; }
+#pdf-stage { position: fixed; left: -10000px; top: 0; width: 718px; background: #fff; }
+.pdf-render .sheet { padding: 0; border-radius: 0; box-shadow: none; background: #fff; }
+.pdf-render .meals { grid-template-columns: repeat(3, 1fr); }
+.pdf-render .staff th, .pdf-render .staff td { font-size: 12px; padding: 3px 4px; }
+.pdf-render .staff h1 { font-size: 22px; }
+.pdf-render .staff h2 { font-size: 13px; }
+.pdf-render .staff li, .pdf-render .staff .firma, .pdf-render .staff .meta, .pdf-render .staff .est { font-size: 12px; }
+.pdf-render .sheet table { width: 100%; }
+.pdf-render .btn, .pdf-render .btn-ghost, .pdf-render .no-print { display: none !important; }
 @media print {
   body { background: white; }
   @page { size: A4 portrait; margin: 10mm; }
@@ -2190,6 +2201,7 @@ var FIREBASE_CONFIG = {
     } catch (e) {
       S.persistOk = false;
     }
+    if (S.pdf || S.pdfEstado) { limpiarPdf(); S.pdfEstado = ""; }
     Nube.cambio();
   }
   function load() {
@@ -2831,8 +2843,7 @@ var FIREBASE_CONFIG = {
     html += "</div>";
     if (modo !== "personal") html += '<label class="check"><input type="checkbox" data-bind="mostrarCostos"' + (costosOn ? " checked" : "") + "><span>Mostrar costos en el informe</span></label>";
     if (modo !== "cliente") html += editorPersonal(f);
-    html += '<button class="btn" type="button" data-act="imprimir">Imprimir o guardar PDF</button>';
-    html += '<p class="sub">En el iPad: compartir, Imprimir, y después PDF.</p></div>';
+    html += panelPdf() + "</div>";
     if (modo !== "personal") html += informeHTML(f, res);
     if (modo !== "cliente") {
       var hoja = hojaPersonal(f, res);
@@ -3025,6 +3036,15 @@ var FIREBASE_CONFIG = {
   function onClick(e) {
     var t = e.target.closest("[data-go],[data-act]");
     if (!t) return;
+    var act0 = t.getAttribute("data-act");
+    if (act0 === "imprimir") {
+      /* iOS exige print() en el mismo toque, antes de cualquier otra cosa. */
+      window.print();
+      return;
+    }
+    if (act0 === "pdf-compartir") { compartirPdf(); return; }
+    if (act0 === "pdf-generar") { generarPdf(activa()); return; }
+    if (t.getAttribute("data-go") || act0 === "informe-modo" || act0 === "hoja-personal") limpiarPdf(), S.pdfEstado = "";
     if (t.getAttribute("data-go")) {
       S.screen = t.getAttribute("data-go");
       S.lpMsg = "";
@@ -3205,8 +3225,6 @@ var FIREBASE_CONFIG = {
       if (f.corrales) f.corrales.splice(qi, 1);
       save();
       render();
-    } else if (act === "imprimir") {
-      window.print();
     }
   }
 
@@ -4315,6 +4333,167 @@ var FIREBASE_CONFIG = {
     tarjeta: tarjetaCuenta, enNube: enNube, guardarActiva: function () { lsSet(ACTIVA_KEY, (S.db && S.db.activeFormulaId) || ""); },
     estado: N
   };
+
+
+  /* ===== PDF dentro de la página (anda en iPhone/iPad aunque Imprimir no abra) ===== */
+  var PDF_LIBS = [
+    "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
+    "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"
+  ];
+  var pdfLibsPromesa = null;
+  function cargarScript(src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = src;
+      s.crossOrigin = "anonymous";
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error("No se pudo cargar " + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  function cargarLibsPdf() {
+    if (root.html2canvas && root.jspdf && root.jspdf.jsPDF) return Promise.resolve();
+    if (!pdfLibsPromesa) {
+      pdfLibsPromesa = cargarScript(PDF_LIBS[0]).then(function () { return cargarScript(PDF_LIBS[1]); });
+      pdfLibsPromesa.catch(function () { pdfLibsPromesa = null; });
+    }
+    return pdfLibsPromesa;
+  }
+  function nombrePdf(f) {
+    var modo = (S.db.settings && S.db.settings.informeModo) || "cliente";
+    var cli = byId(S.db.clientes, f.clienteId) || {};
+    var est = cli.establecimiento || cli.nombre || "";
+    var pre = modo === "personal" ? "Hoja_personal" : modo === "ambos" ? "Informe_y_hoja_personal" : "Informe_racion";
+    var partes = [pre, est, f.fecha || hoy()].filter(Boolean).join("_");
+    var limpio = partes.normalize ? partes.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : partes;
+    return limpio.replace(/[^A-Za-z0-9_\-]+/g, "_").replace(/_+/g, "_") + ".pdf";
+  }
+  function limpiarPdf() {
+    if (S.pdf && S.pdf.url) { try { URL.revokeObjectURL(S.pdf.url); } catch (e) {} }
+    S.pdf = null;
+  }
+  function puntosDeCorte(sheet) {
+    var top = sheet.getBoundingClientRect().top;
+    var ys = [];
+    sheet.querySelectorAll("tr, h2, li, p, header, table, .firma, .meals").forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      ys.push(r.bottom - top);
+      ys.push(r.top - top);
+    });
+    return ys.sort(function (a, b) { return a - b; });
+  }
+  /* Arma el PDF con lo mismo que se imprime (las hojas .sheet del informe), en A4. */
+  function armarPdf(f) {
+    var fuentes = Array.prototype.slice.call(document.querySelectorAll("#app .sheet"));
+    if (!fuentes.length) return Promise.reject(new Error("No hay hoja para pasar a PDF."));
+    return cargarLibsPdf().then(function () {
+      var stage = document.createElement("div");
+      stage.id = "pdf-stage";
+      stage.className = "pdf-render";
+      document.body.appendChild(stage);
+      var jsPDF = root.jspdf.jsPDF;
+      var doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
+      var anchoMm = 190, margen = 10, altoMm = 277;
+      var primera = true;
+      var cadena = Promise.resolve();
+      fuentes.forEach(function (src) {
+        cadena = cadena.then(function () {
+          stage.innerHTML = "";
+          var copia = src.cloneNode(true);
+          copia.classList.remove("con-corte");
+          stage.appendChild(copia);
+          var cortes = puntosDeCorte(copia);
+          var anchoPx = copia.offsetWidth;
+          return root.html2canvas(copia, { scale: 2, backgroundColor: "#ffffff", logging: false, useCORS: true }).then(function (canvas) {
+            var escala = canvas.width / anchoPx;
+            var pagPx = (altoMm / anchoMm) * anchoPx;
+            var totalPx = canvas.height / escala;
+            var y = 0;
+            while (y < totalPx - 1) {
+              var fin = Math.min(totalPx, y + pagPx);
+              if (fin < totalPx) {
+                var mejor = 0;
+                cortes.forEach(function (c) { if (c > y + 80 && c <= fin) mejor = Math.max(mejor, c); });
+                if (mejor) fin = mejor;
+              }
+              var alto = fin - y;
+              var trozo = document.createElement("canvas");
+              trozo.width = canvas.width;
+              trozo.height = Math.max(1, Math.round(alto * escala));
+              var ctx = trozo.getContext("2d");
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, trozo.width, trozo.height);
+              ctx.drawImage(canvas, 0, Math.round(y * escala), canvas.width, trozo.height, 0, 0, canvas.width, trozo.height);
+              if (!primera) doc.addPage();
+              primera = false;
+              doc.addImage(trozo.toDataURL("image/png"), "PNG", margen, margen, anchoMm, (alto / anchoPx) * anchoMm);
+              y = fin;
+            }
+          });
+        });
+      });
+      return cadena.then(function () {
+        stage.remove();
+        var blob = doc.output("blob");
+        var nombre = nombrePdf(f);
+        var file = null;
+        try { file = new File([blob], nombre, { type: "application/pdf" }); } catch (e) {}
+        return { blob: blob, file: file, nombre: nombre, url: URL.createObjectURL(blob) };
+      }, function (err) { stage.remove(); throw err; });
+    });
+  }
+  function generarPdf(f) {
+    limpiarPdf();
+    S.pdfEstado = "armando";
+    render();
+    armarPdf(f).then(function (r) {
+      S.pdf = r;
+      S.pdfEstado = "listo";
+      render();
+    }).catch(function (err) {
+      S.pdfEstado = "error";
+      S.pdfError = navigator.onLine === false && !root.jspdf
+        ? "Para el primer PDF hace falta señal (se baja el generador una sola vez)."
+        : "No se pudo armar el PDF. Probá de nuevo.";
+      render();
+    });
+  }
+  function puedeCompartir() {
+    try { return !!(S.pdf && S.pdf.file && navigator.canShare && navigator.canShare({ files: [S.pdf.file] })); } catch (e) { return false; }
+  }
+  function compartirPdf() {
+    if (!S.pdf) return;
+    if (puedeCompartir()) {
+      navigator.share({ files: [S.pdf.file], title: S.pdf.nombre }).catch(function () {});
+      return;
+    }
+    abrirPdf();
+  }
+  function abrirPdf() {
+    if (!S.pdf) return;
+    var a = document.createElement("a");
+    a.href = S.pdf.url;
+    a.download = S.pdf.nombre;
+    a.target = "_blank";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+  function panelPdf() {
+    var html = '<div class="pdf-panel">';
+    html += '<button class="btn" type="button" data-act="pdf-generar">Descargar PDF</button>';
+    if (S.pdfEstado === "armando") html += '<p class="sub">Armando el PDF…</p>';
+    else if (S.pdfEstado === "error") html += '<div class="alert bad">' + esc(S.pdfError || "No se pudo armar el PDF.") + "</div>";
+    else if (S.pdfEstado === "listo" && S.pdf) {
+      html += '<div class="alert ok"><b>PDF listo:</b> ' + esc(S.pdf.nombre) + "</div>";
+      html += '<button class="btn" type="button" data-act="pdf-compartir">Compartir PDF (WhatsApp, Archivos, imprimir)</button>';
+      html += '<a class="btn-ghost pdf-link" href="' + S.pdf.url + '" download="' + esc(S.pdf.nombre) + '" target="_blank" rel="noopener">Abrir PDF</a>';
+    }
+    html += '<button class="btn-ghost" type="button" data-act="imprimir">Imprimir</button>';
+    html += '<p class="sub">En el iPhone o iPad, si Imprimir no abre nada, tocá «Descargar PDF» y después «Compartir PDF».</p>';
+    return html + "</div>";
+  }
 
   root.TGUI = { boot: boot, informeHTML: informeHTML, hojaPersonal: hojaPersonal, nube: N };
   if (typeof document !== "undefined") {
