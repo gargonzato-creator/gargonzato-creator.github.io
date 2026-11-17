@@ -8,144 +8,242 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="María Elena">
 <meta name="format-detection" content="telephone=no">
-<meta name="theme-color" content="#0e4d2e">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,640&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e4d2e'/%3E%3C/svg%3E">
 <title>Cabaña María Elena · Registros</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>
 :root {
-  --bg: #f3efe4;
-  --ink: #16130f;
+  --bg: #fbf7f0;
   --paper: #fffdf8;
-  --line: #241e16;
-  --green: #0e4d2e;
-  --green-2: #14663c;
-  --cream: #fffdf8;
-  --muted: #3d372f;
-  --bad: #8c1c16;
+  --ink: #241c15;
+  --muted: #5c5146;
+  --line: #e4d6c4;
+  --green: #1e4634;
+  --green-2: #16382a;
+  --gold: #e6b55a;
+  --gold-soft: #f6edd8;
+  --clay: #c4622d;
+  --black: #000;
+  --bad: #8d1d18;
   --warn: #7a3e00;
-  --chip: #efe4cf;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
+  --nav: 74px;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: Outfit, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--ink);
-  font-size: 20px;
-  line-height: 1.35;
+  font-size: 17px;
+  line-height: 1.4;
 }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 #app { min-height: 100dvh; }
 .top {
-  position: sticky; top: 0; z-index: 4;
-  background: var(--green); color: #f6fff8;
+  position: sticky; top: 0; z-index: 6;
+  background: var(--black); color: #f8f1e4;
   padding: calc(10px + var(--safe-t)) 14px 12px;
 }
-.top h1 { margin: 0; font-size: 26px; line-height: 1.15; font-weight: 750; }
-.top p { margin: 2px 0 0; font-size: 16px; }
-.top-row { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.top-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-logo {
+  width: 46px; height: 46px; flex: none;
+  border-radius: 12px; object-fit: cover; background: #000;
+  border: 1px solid #3a3a3a;
+}
+.brand h1 {
+  margin: 0; font-family: Fraunces, Palatino, Georgia, serif;
+  font-size: 20px; font-weight: 560; letter-spacing: -0.02em; line-height: 1.05;
+  white-space: nowrap;
+}
+.brand p { margin: 2px 0 0; font-size: 13px; color: #d9c7a4; }
 .sync {
-  display: inline-block; margin-top: 8px;
-  background: #f6fff8; color: var(--green);
-  border-radius: 999px; padding: 4px 10px; font-size: 15px; font-weight: 750;
+  flex: none;
+  background: var(--gold-soft); color: var(--green);
+  border-radius: 999px; padding: 6px 10px; font-size: 13px; font-weight: 700;
 }
 .sync.pending, .sync.offline { background: #ffe8c2; color: var(--warn); }
-.linkish {
-  background: transparent; color: #f6fff8; border: 0;
-  min-height: 44px; font-weight: 750; padding: 0;
+.screen {
+  padding: 16px 14px calc(var(--nav) + var(--safe-b) + 18px);
+  max-width: 880px; margin: 0 auto;
 }
-.screen { padding: 14px 14px calc(20px + var(--safe-b)); max-width: 860px; margin: 0 auto; }
-h2 { font-size: 28px; line-height: 1.15; margin: 0 0 12px; }
-.sub { color: var(--muted); margin: 0 0 12px; font-size: 18px; }
+h2, h3 { font-family: Fraunces, Palatino, Georgia, serif; font-weight: 560; letter-spacing: -0.02em; }
+h2 { font-size: 32px; line-height: 1.1; margin: 0 0 12px; }
+h3 { font-size: 20px; margin: 14px 0 8px; }
+.sub { color: var(--muted); margin: 0 0 12px; font-size: 17px; }
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.page-head h2 { margin: 0; }
+.back svg { width: 22px; height: 22px; }
+.back {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: transparent; border: 0; color: var(--green);
+  font-weight: 700; min-height: 48px; padding: 0 0 4px; font-size: 17px;
+}
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.stat {
+  border: 0; border-radius: 18px; padding: 12px 10px 10px; text-align: left;
+  min-height: 92px; color: #f8f1e4; box-shadow: 0 8px 18px rgba(36, 28, 21, 0.08);
+}
+.stat span { display: block; font-size: 15px; font-weight: 650; opacity: 0.92; }
+.stat b {
+  display: block; margin-top: 4px;
+  font-family: Fraunces, Palatino, Georgia, serif;
+  font-size: 36px; font-weight: 560; line-height: 1;
+}
+.stat.olive { background: var(--green); }
+.stat.gold { background: var(--gold); color: #241c15; }
+.stat.clay { background: var(--clay); }
+.sec { font-size: 26px; margin: 18px 0 8px; }
 .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .tile {
-  min-height: 104px; border-radius: 18px; border: 2px solid var(--line);
-  background: var(--paper); font-weight: 800; font-size: 22px; line-height: 1.15;
+  min-height: 96px; border-radius: 18px; border: 1px solid var(--line);
+  background: var(--paper); color: var(--ink);
   padding: 12px; text-align: left;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
+  box-shadow: 0 8px 20px rgba(36, 28, 21, 0.05);
+  transition: transform .12s ease;
 }
-.tile.wide { grid-column: 1 / -1; }
+.tile:active { transform: scale(0.98); }
+.tile-name { font-weight: 700; font-size: 18px; line-height: 1.15; }
+.bubble {
+  width: 36px; height: 36px; border-radius: 12px;
+  display: grid; place-items: center; color: #241c15;
+}
+.bubble svg { width: 20px; height: 20px; }
+.b-gold { background: var(--gold); }
+.b-olive { background: #d7ebe0; color: var(--green); }
+.b-clay { background: #f6d7c6; color: var(--clay); }
+.b-ink { background: #241c15; color: var(--gold); }
+.b-rose { background: #f8d4cf; color: var(--bad); }
+.aviso-card {
+  width: 100%; text-align: left; border: 0; border-radius: 16px;
+  background: var(--paper); padding: 14px 14px 14px 16px; margin-top: 8px;
+  box-shadow: 0 6px 16px rgba(36, 28, 21, 0.05);
+  border-left: 5px solid var(--gold); min-height: 64px;
+}
+.aviso-card b { display: block; font-size: 17px; }
+.aviso-card span { display: block; color: var(--muted); font-size: 16px; margin-top: 2px; }
+.aviso-card.warn { border-left-color: var(--clay); background: #fff6ec; }
+.aviso-card.bad { border-left-color: var(--bad); background: #fdecea; }
+.aviso-card.gold { border-left-color: var(--gold); background: var(--gold-soft); }
 .btn, .btn-ghost, .btn-bad {
-  display: block; width: 100%; min-height: 64px; border-radius: 16px;
-  font-weight: 800; font-size: 22px; margin-top: 10px; padding: 12px 14px;
+  display: block; width: 100%; min-height: 56px; border-radius: 16px;
+  font-weight: 700; font-size: 18px; margin-top: 10px; padding: 12px 14px;
+  transition: transform .12s ease;
 }
+.btn:active, .btn-ghost:active { transform: scale(0.99); }
 .btn { background: var(--green); color: #f6fff8; border: 0; }
-.btn-ghost { background: var(--paper); color: var(--ink); border: 2px solid var(--line); }
-.btn-bad { background: #fde8e4; color: var(--bad); border: 2px solid var(--bad); }
-.card {
-  background: var(--paper); border: 2px solid var(--line); border-radius: 18px;
+.btn-ghost { background: var(--paper); color: var(--ink); border: 1px solid var(--line); }
+.btn-bad { background: #fde8e4; color: var(--bad); border: 1px solid #e7b2ac; }
+.btn.slim { width: auto; min-height: 48px; margin: 0; padding: 8px 14px; }
+.card, .panel {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 20px;
   padding: 14px; margin: 0 0 12px;
+  box-shadow: 0 8px 20px rgba(36, 28, 21, 0.04);
 }
 .card h3 { margin: 0 0 6px; font-size: 22px; }
 .card p { margin: 0; }
-label.f { display: block; margin: 0 0 12px; font-weight: 750; }
-input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="number"], select, textarea {
-  width: 100%; min-height: 64px; border-radius: 14px; border: 2px solid var(--line);
-  background: white; padding: 10px 12px; font-size: 24px; margin-top: 6px;
+.kicker { color: var(--muted); font-size: 15px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.caravana-grande {
+  font-family: Fraunces, Palatino, Georgia, serif;
+  font-size: 48px; margin: 4px 0 0; line-height: 1;
 }
-textarea { min-height: 96px; font-size: 20px; }
-input:focus, select:focus, textarea:focus { outline: 4px solid #e2b15a; }
-.chips { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+label.f { display: flex; flex-direction: column; align-items: stretch; margin: 0 0 12px; font-weight: 650; font-size: 17px; color: var(--muted); }
+input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="number"], input[type="search"], select, textarea {
+  width: 100%; min-height: 56px; border-radius: 14px; border: 1px solid #d9cbb8;
+  background: #fff; padding: 10px 12px; font-size: 20px; margin-top: 6px; color: var(--ink);
+}
+textarea { min-height: 96px; font-size: 18px; }
+input:focus, select:focus, textarea:focus { outline: 3px solid var(--gold); border-color: var(--green); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .chip {
-  min-height: 60px; border-radius: 14px; border: 2px solid var(--line);
-  background: var(--chip); text-align: left; padding: 10px 12px; font-weight: 750;
+  min-height: 48px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--paper); text-align: left; padding: 10px 14px; font-weight: 700; font-size: 17px;
 }
-.chip.on { background: var(--green); color: #f6fff8; }
+.chip.on { background: var(--green); color: #f6fff8; border-color: var(--green); }
+.chip-prod {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  width: 100%; border-radius: 16px; text-align: left;
+}
+.chip-prod small { display: block; font-weight: 600; font-size: 15px; opacity: 0.85; }
+.grupo-prod { margin: 16px 0 8px; font-size: 20px; }
 .rowbtn {
-  width: 100%; text-align: left; min-height: 64px; border-radius: 14px;
-  border: 2px solid var(--line); background: white; margin-top: 8px; padding: 10px 12px;
-  font-weight: 750;
+  width: 100%; text-align: left; min-height: 64px; border-radius: 16px;
+  border: 1px solid var(--line); background: var(--paper); margin-top: 8px; padding: 12px 14px;
+  font-weight: 700; box-shadow: 0 4px 12px rgba(36, 28, 21, 0.04);
 }
-.rowbtn small { display: block; font-weight: 650; color: var(--muted); font-size: 16px; }
-.rowbtn.on { background: var(--green); color: #f6fff8; }
+.rowbtn b { font-family: Fraunces, Georgia, serif; font-size: 26px; font-weight: 560; }
+.rowbtn small { display: block; font-weight: 600; color: var(--muted); font-size: 15px; }
+.rowbtn.on { background: var(--green); color: #f6fff8; border-color: var(--green); }
 .rowbtn.on small { color: #e7f6ec; }
-.error {
-  background: #fde8e4; color: var(--bad); border: 2px solid var(--bad);
-  border-radius: 14px; padding: 12px; font-weight: 750; margin-bottom: 10px;
-}
-.ok {
-  background: #e5f6ea; border: 2px solid var(--green); border-radius: 14px;
-  padding: 12px; font-weight: 750; margin-bottom: 10px;
-}
-.aviso {
-  background: #fff3d6; border: 2px solid var(--warn); color: var(--warn);
-  border-radius: 14px; padding: 12px; font-weight: 750; margin-bottom: 10px;
-}
+.error, .ok, .aviso { border-radius: 16px; padding: 12px 14px; font-weight: 700; margin-bottom: 10px; }
+.error { background: #fde8e4; color: var(--bad); }
+.ok { background: #e7f5ec; color: var(--green); display: flex; align-items: center; gap: 8px; }
+.aviso { background: var(--gold-soft); color: var(--warn); }
 .sheet { background: white; }
 .sheet h2 { font-size: 26px; }
 .sheet table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; }
-.sheet th, .sheet td { border-bottom: 1px solid #ccc; text-align: left; padding: 6px 4px; font-size: 18px; }
+.sheet th, .sheet td { border-bottom: 1px solid var(--line); text-align: left; padding: 8px 4px; font-size: 17px; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 .foto { max-width: 100%; border-radius: 12px; margin-top: 8px; }
+.check-pop {
+  width: 88px; height: 88px; border-radius: 50%; margin: 6px auto 12px;
+  background: var(--green); color: white; display: grid; place-items: center;
+  animation: pop .45s cubic-bezier(.2, .9, .3, 1.2);
+  box-shadow: 0 10px 24px rgba(30, 70, 52, 0.25);
+}
+.check-pop svg { width: 46px; height: 46px; }
+@keyframes pop { from { transform: scale(.55); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  background: #fffdf8; border-top: 1px solid var(--line);
+  padding: 6px 6px calc(6px + var(--safe-b));
+}
+.tabs button {
+  border: 0; background: transparent; color: var(--muted);
+  min-height: 52px; font-size: 12px; font-weight: 700;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+}
+.tabs button svg { width: 22px; height: 22px; }
+.tabs button.on { color: var(--green); }
+.tabs .plus {
+  width: 58px; height: 58px; border-radius: 50%; margin: -26px auto 0;
+  background: var(--clay); color: white; border: 4px solid var(--bg);
+  min-height: 58px; box-shadow: 0 8px 16px rgba(196, 98, 45, 0.35);
+}
+.tabs .plus.on { background: var(--green); }
+.menu-back { position: fixed; inset: 0; z-index: 12; }
+.menu-dim { position: absolute; inset: 0; border: 0; background: rgba(20, 14, 8, 0.45); }
+.menu-card {
+  position: absolute; left: 12px; right: 12px; bottom: calc(var(--nav) + var(--safe-b) + 8px);
+  background: var(--paper); border-radius: 22px; padding: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18); max-height: 70dvh; overflow: auto;
+}
+.menu-card h2 { font-size: 26px; margin-bottom: 8px; }
+.login-wrap { min-height: 100dvh; background: var(--black); padding: calc(28px + var(--safe-t)) 16px 24px; }
+.login-card { background: var(--bg); border-radius: 24px; padding: 18px; max-width: 520px; margin: 0 auto; }
 @media (min-width: 800px) {
-  .tiles { grid-template-columns: 1fr 1fr 1fr; }
-  .tile { min-height: 120px; font-size: 24px; }
+  .tiles { grid-template-columns: repeat(3, 1fr); }
+  .tile { min-height: 112px; }
+  .stats { max-width: 640px; }
 }
 @media print {
-  .no-print { display: none !important; }
+  .no-print, .tabs, .menu-back { display: none !important; }
   body { background: white; }
   .screen { max-width: none; padding: 0; }
-  .sheet { border: 0; }
+  .sheet { border: 0; box-shadow: none; }
   @page { size: A4 portrait; margin: 12mm; }
 }
-
-
-.brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-.brand-logo {
-  width: 52px; height: 52px; flex: none;
-  border-radius: 10px;
-  object-fit: cover;
-  background: #000;
-}
-
-.grupo-prod { margin: 12px 0 4px; font-size: 18px; }
-.chip-prod { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; }
-.chip-prod small { display: block; font-weight: 650; font-size: 15px; opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -1803,6 +1901,7 @@ var FIREBASE_CONFIG = {
     S.pila.push({ screen: S.screen, b: S.b });
     S.screen = screen;
     S.b = b || {};
+    S.menu = false;
     S.error = "";
     if (!S.conservarBanner) S.banner = "";
     S.conservarBanner = false;
@@ -1814,6 +1913,7 @@ var FIREBASE_CONFIG = {
     var prev = S.pila.pop();
     S.screen = prev ? prev.screen : "home";
     S.b = prev ? prev.b : {};
+    S.menu = false;
     S.error = "";
     pintar();
     window.scrollTo(0, 0);
@@ -1823,6 +1923,7 @@ var FIREBASE_CONFIG = {
     S.pila = [];
     S.screen = "home";
     S.b = {};
+    S.menu = false;
     S.error = "";
     if (!S.conservarBanner) S.banner = "";
     S.conservarBanner = false;
@@ -1874,7 +1975,8 @@ var FIREBASE_CONFIG = {
     var cuerpo;
     if (S.modo === "cloud" && !S.usuario) cuerpo = S.nubeEstado === "cargando" ? "<h2>Abriendo…</h2>" : pantallaLogin();
     else cuerpo = pantalla();
-    app.innerHTML = barra() + '<main class="screen">' + cuerpo + "</main>";
+    var login = S.modo === "cloud" && !S.usuario;
+    app.innerHTML = (login ? "" : barra()) + '<main class="' + (login ? "login-wrap" : "screen") + '">' + (login ? "" : volverHtml()) + cuerpo + "</main>" + (login ? "" : tabBar()) + (S.menu && !login ? menuHtml() : "");
     var foco = document.querySelector("[data-focus]");
     if (foco) foco.focus();
   }
@@ -1895,16 +1997,70 @@ var FIREBASE_CONFIG = {
     }
   }
 
+  function ico(paths) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + "</svg>";
+  }
+  var ICONOS = {
+    home: ico('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/>'),
+    animales: ico('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a3 3 0 0 1 0 5.74"/>'),
+    plus: ico('<path d="M12 5v14"/><path d="M5 12h14"/>'),
+    reportes: ico('<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/>'),
+    mas: ico('<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>'),
+    parto: ico('<circle cx="8" cy="8" r="3"/><circle cx="16" cy="9" r="2.2"/><path d="M3 19c.6-2.6 2.6-4 5-4s4.4 1.4 5 4"/><path d="M14 15.2c1 .2 2 .7 2.7 1.6.8 1 1.2 2.3 1.3 3.2"/>'),
+    servicio: ico('<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>'),
+    destete: ico('<path d="M4 19h16"/><path d="M6 19V9l6-4 6 4v10"/><path d="M10 19v-5h4v5"/>'),
+    pesaje: ico('<path d="M12 3v3"/><path d="M6 8h12l-1.2 11H7.2z"/><path d="M9 13h6"/>'),
+    sanidad: ico('<path d="M18 3 21 6"/><path d="m14 7 4-4 3 3-4 4"/><path d="M8 13 3 18a2.5 2.5 0 0 0 3.5 3.5L12 16"/><path d="m9 12 3 3"/>'),
+    muerte: ico('<circle cx="12" cy="12" r="8"/><path d="M8 15c1.2-1 2.5-1.5 4-1.5S14.8 14 16 15"/><path d="M9 10h.01"/><path d="M15 10h.01"/>'),
+    potreros: ico('<path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/><path d="M8 3v18"/>'),
+    animalesTile: ico('<circle cx="12" cy="8" r="3"/><path d="M5 19c1-3 3.2-4.5 7-4.5S18 16 19 19"/>'),
+    chevron: ico('<path d="M15 18 9 12l6-6"/>')
+  };
   function barra() {
     var syncCls = S.sync === "ok" || S.sync === "local" ? "sync" : "sync " + S.sync;
-    if (S.screen === "home" || (S.modo === "cloud" && !S.usuario)) {
-      return '<header class="top no-print"><div class="top-row"><div class="brand"><img class="brand-logo" src="logo-header.png" width="52" height="52" alt=""><h1>Cabaña María Elena</h1></div>' +
-        (S.usuario ? '<button type="button" class="linkish" data-act="ir" data-screen="ajustes">Ajustes</button>' : "") +
-        "</div><p>Coronel Oviedo · Dorper</p><span id=\"sync\" class=\"" + syncCls + "\">" + esc(textoSync()) + "</span></header>";
-    }
-    return '<header class="top no-print"><div class="top-row"><button type="button" class="linkish" data-act="volver">Volver</button>' +
-      '<button type="button" class="linkish" data-act="inicio">Inicio</button></div>' +
-      '<span id="sync" class="' + syncCls + '">' + esc(textoSync()) + "</span></header>";
+    return '<header class="top no-print"><div class="top-row"><div class="brand"><img class="brand-logo" src="logo-header.png" width="46" height="46" alt=""><div><h1>María Elena</h1><p>Cabaña · Coronel Oviedo</p></div></div>' +
+      '<span id="sync" class="' + syncCls + '">' + esc(textoSync()) + "</span></div></header>";
+  }
+  function volverHtml() {
+    if (S.screen === "home" || S.screen === "animales" || S.screen === "reportes" || S.screen === "mas") return "";
+    return '<button type="button" class="back no-print" data-act="volver">' + ICONOS.chevron + " Volver</button>";
+  }
+  function tabOn(nombre) {
+    if (nombre === "home" && S.screen === "home") return " on";
+    if (nombre === "animales" && (S.screen === "animales" || S.screen === "animal" || S.screen === "animal-edit" || S.screen === "alta" || S.screen === "caravanas")) return " on";
+    if (nombre === "reportes" && (S.screen === "reportes" || S.screen === "reporte")) return " on";
+    if (nombre === "mas" && (S.screen === "mas" || S.screen === "ajustes" || S.screen === "productos" || S.screen === "producto-edit" || S.screen === "recordatorios" || S.screen === "recordatorio-edit" || S.screen === "potreros")) return " on";
+    return "";
+  }
+  function tabBar() {
+    return '<nav class="tabs no-print">' +
+      '<button type="button" data-act="tab" data-tab="home" class="' + tabOn("home") + '">' + ICONOS.home + "Inicio</button>" +
+      '<button type="button" data-act="tab" data-tab="animales" class="' + tabOn("animales") + '">' + ICONOS.animales + "Animales</button>" +
+      '<button type="button" class="plus' + (S.menu ? " on" : "") + '" data-act="tab" data-tab="nuevo" aria-label="Nueva carga">' + ICONOS.plus + "</button>" +
+      '<button type="button" data-act="tab" data-tab="reportes" class="' + tabOn("reportes") + '">' + ICONOS.reportes + "Reportes</button>" +
+      '<button type="button" data-act="tab" data-tab="mas" class="' + tabOn("mas") + '">' + ICONOS.mas + "Más</button>" +
+      "</nav>";
+  }
+  function acciones() {
+    return [
+      ["parto", "Parto", "b-gold", ICONOS.parto],
+      ["servicio", "Servicio", "b-olive", ICONOS.servicio],
+      ["destete", "Destete", "b-clay", ICONOS.destete],
+      ["pesaje", "Pesaje", "b-olive", ICONOS.pesaje],
+      ["sanidad", "Sanidad", "b-ink", ICONOS.sanidad],
+      ["muerte", "Mortandad", "b-rose", ICONOS.muerte],
+      ["potreros", "Potreros", "b-gold", ICONOS.potreros],
+      ["animales", "Animales", "b-olive", ICONOS.animalesTile],
+      ["reportes", "Reportes", "b-clay", ICONOS.reportes]
+    ];
+  }
+  function menuHtml() {
+    var html = '<div class="menu-back no-print"><button type="button" class="menu-dim" data-act="cerrar-menu" aria-label="Cerrar"></button><div class="menu-card"><h2>¿Qué vas a anotar?</h2><div class="tiles">';
+    acciones().forEach(function (t) {
+      html += '<button type="button" class="tile" data-act="ir" data-screen="' + t[0] + '" data-fresh="1"><span class="bubble ' + t[2] + '">' + t[3] + '</span><span class="tile-name">' + esc(t[1]) + "</span></button>";
+    });
+    html += "</div></div></div>";
+    return html;
   }
 
   function pantalla() {
@@ -1938,6 +2094,7 @@ var FIREBASE_CONFIG = {
     if (S.screen === "lote") return pantallaLote();
     if (S.screen === "lote-nuevo") return pantallaLoteNuevo();
     if (S.screen === "suplemento") return pantallaSuplemento();
+    if (S.screen === "mas") return pantallaMas();
     if (S.screen === "reportes") return pantallaReportes();
     if (S.screen === "reporte") return pantallaReporte();
     if (S.screen === "ajustes") return pantallaAjustes();
@@ -1964,32 +2121,95 @@ var FIREBASE_CONFIG = {
   }
 
   function pantallaHome() {
-    var n = L.activos(S.db).length;
-    var tiles = [
-      ["parto", "Parto / Nacimiento"],
-      ["servicio", "Servicio"],
-      ["destete", "Destete"],
-      ["pesaje", "Pesaje"],
-      ["sanidad", "Sanidad"],
-      ["muerte", "Mortandad"],
-      ["potreros", "Potreros"],
-      ["animales", "Animales"],
-      ["reportes", "Reportes"]
-    ];
+    var r = resumenCampo();
     var html = avisoHtml();
-    html += "<h2>" + (n ? n + (n === 1 ? " animal" : " animales") : "Sin animales todavía") + "</h2>";
-    var rec = recordatoriosCercanos();
-    if (rec.length) {
-      html += '<div class="aviso">';
-      rec.forEach(function (r) { html += "<div>" + esc(L.fmtFecha(r.fecha)) + " · " + esc(r.texto) + "</div>"; });
-      html += '<button type="button" class="btn" data-act="ir" data-screen="recordatorios" data-fresh="1">Ver recordatorios</button></div>';
-    }
+    html += '<div class="stats">';
+    html += '<button type="button" class="stat olive" data-act="ver-grupo" data-val="ovejas"><span>Ovejas</span><b>' + r.ovejas + "</b></button>";
+    html += '<button type="button" class="stat gold" data-act="ver-grupo" data-val="corderos"><span>Corderos</span><b>' + r.corderos + "</b></button>";
+    html += '<button type="button" class="stat clay" data-act="ver-grupo" data-val="prenadas"><span>Preñadas</span><b>' + r.prenadas + "</b></button>";
+    html += "</div>";
+    html += '<h2 class="sec">Avisos</h2>';
+    var avisos = avisosCampo();
+    if (!avisos.length) html += '<div class="card"><p>No hay avisos. Cuando haya un retiro, una parición o un pesaje atrasado, aparece acá.</p></div>';
+    avisos.forEach(function (a) {
+      html += '<button type="button" class="aviso-card ' + esc(a.tono) + '" data-act="ir" data-screen="' + a.screen + '" data-fresh="1"><b>' + esc(a.titulo) + "</b><span>" + esc(a.texto) + "</span></button>";
+    });
     html += '<div class="tiles">';
-    tiles.forEach(function (t) {
-      html += '<button type="button" class="tile" data-act="ir" data-screen="' + t[0] + '" data-fresh="1">' + esc(t[1]) + "</button>";
+    acciones().forEach(function (t) {
+      html += '<button type="button" class="tile" data-act="ir" data-screen="' + t[0] + '" data-fresh="1"><span class="bubble ' + t[2] + '">' + t[3] + '</span><span class="tile-name">' + esc(t[1]) + "</span></button>";
     });
     html += "</div>";
-    html += '<button type="button" class="btn-ghost" data-act="ir" data-screen="ajustes" data-fresh="1">Ajustes y copia</button>';
+    return html;
+  }
+  function resumenCampo() {
+    var ovejas = 0, corderos = 0, prenadas = 0;
+    L.activos(S.db).forEach(function (a) {
+      if (a.categoria === "corderos-pie" || a.categoria === "corderos-destetados") corderos++;
+      else if (a.sexo === "hembra") ovejas++;
+    });
+    var ultimo = {};
+    S.db.eventos.forEach(function (e) {
+      if (e.deleted || e.tipo !== "diagnostico") return;
+      if (!ultimo[e.animalId] || e.fecha >= ultimo[e.animalId].fecha) ultimo[e.animalId] = e;
+    });
+    Object.keys(ultimo).forEach(function (id) {
+      var e = ultimo[id];
+      var a = L.porId(S.db.animales, id);
+      if (!a || a.deleted || a.estado !== "activo") return;
+      if (e.datos.resultado !== "prenada" && e.datos.resultado !== "mellizos") return;
+      var pario = S.db.eventos.some(function (p) {
+        return !p.deleted && p.tipo === "parto" && p.animalId === id && p.fecha >= e.fecha;
+      });
+      if (!pario) prenadas++;
+    });
+    return { ovejas: ovejas, corderos: corderos, prenadas: prenadas };
+  }
+  function avisosCampo() {
+    var hoy = L.hoyISO();
+    var items = [];
+    S.db.eventos.forEach(function (e) {
+      if (e.deleted || e.tipo !== "sanidad" || !e.datos || !e.datos.retiroHasta || e.datos.retiroHasta < hoy) return;
+      items.push({ tono: "warn", titulo: "No faenar ni vender", texto: (e.datos.productoNombre || "Tratamiento") + " hasta el " + L.fmtFecha(e.datos.retiroHasta), screen: "sanidad" });
+    });
+    (S.db.recordatorios || []).forEach(function (r) {
+      if (r.deleted || r.hecho || r.fecha > L.sumarDias(hoy, 21)) return;
+      items.push({ tono: r.fecha < hoy ? "bad" : "gold", titulo: r.fecha < hoy ? "Aviso vencido" : "Próximo", texto: L.fmtFecha(r.fecha) + " · " + r.texto, screen: "recordatorios" });
+    });
+    S.db.eventos.forEach(function (e) {
+      if (e.deleted || e.tipo !== "servicio") return;
+      var pari = L.paricionEsperada(e.datos.entrada || e.fecha, e.datos.salida || "");
+      if (!pari.desde || pari.desde > L.sumarDias(hoy, 21)) return;
+      if ((pari.hasta || pari.desde) < L.sumarDias(hoy, -14)) return;
+      var pendientes = 0;
+      (e.datos.ovejaIds || []).forEach(function (id) {
+        var a = L.porId(S.db.animales, id);
+        if (!a || a.deleted || a.estado !== "activo") return;
+        var pario = S.db.eventos.some(function (p) {
+          return !p.deleted && p.tipo === "parto" && p.animalId === id && p.fecha >= (e.datos.entrada || e.fecha);
+        });
+        if (!pario) pendientes++;
+      });
+      if (pendientes) items.push({ tono: "gold", titulo: "Parición esperada", texto: pendientes + (pendientes === 1 ? " oveja alrededor del " : " ovejas alrededor del ") + L.fmtFecha(pari.desde), screen: "servicio" });
+    });
+    var sin = [];
+    L.activos(S.db).forEach(function (a) {
+      if (a.categoria === "corderos-pie") return;
+      var ult = L.ultimoPesaje(S.db, a.id, null);
+      var fecha = ult ? ult.fecha : (a.nacimiento || "");
+      if (!fecha || (L.diasEntre(fecha, hoy) || 0) > 45) sin.push(a);
+    });
+    if (sin.length) {
+      var nombres = sin.slice(0, 3).map(function (a) { return L.etiquetaAnimal(a); }).join(", ");
+      items.push({ tono: "", titulo: sin.length + (sin.length === 1 ? " animal sin pesaje reciente" : " animales sin pesaje reciente"), texto: nombres, screen: "pesaje" });
+    }
+    return items.slice(0, 8);
+  }
+  function pantallaMas() {
+    var html = "<h2>Más</h2>";
+    html += '<button type="button" class="rowbtn" data-act="ir" data-screen="potreros" data-fresh="1"><b>Potreros</b><small>Dónde está cada lote</small></button>';
+    html += '<button type="button" class="rowbtn" data-act="ir" data-screen="recordatorios" data-fresh="1"><b>Recordatorios</b><small>Lo que no hay que olvidar</small></button>';
+    html += '<button type="button" class="rowbtn" data-act="ir" data-screen="productos" data-fresh="1"><b>Productos</b><small>El botiquín y los días de retiro</small></button>';
+    html += '<button type="button" class="rowbtn" data-act="ir" data-screen="ajustes" data-fresh="1"><b>Ajustes y copia</b><small>Guardar o traer los datos</small></button>';
     return html;
   }
 
@@ -2002,21 +2222,47 @@ var FIREBASE_CONFIG = {
   }
 
   function pantallaLogin() {
-    return '<h2>Entrar</h2><p class="sub">La misma cuenta en el teléfono y en el iPad.</p>' +
+    return '<div class="login-card"><div class="brand" style="margin-bottom:14px"><img class="brand-logo" src="logo-header.png" width="46" height="46" alt=""><div><h1>Cabaña María Elena</h1><p style="color:#5c5146">Coronel Oviedo · Dorper</p></div></div><h2>Entrar</h2><p class="sub">Después de la primera vez podés cargar datos sin señal.</p>' +
       (S.error ? '<div class="error">' + esc(S.error) + "</div>" : "") +
       '<label class="f">Correo<input type="email" autocomplete="username" data-bind="email" value="' + esc(S.b.email || "") + '" data-focus="1"></label>' +
       '<label class="f">Contraseña<input type="password" autocomplete="current-password" data-bind="clave" value="' + esc(S.b.clave || "") + '"></label>' +
-      '<button type="button" class="btn" data-act="login">Entrar</button>';
+      '<button type="button" class="btn" data-act="login">Entrar</button></div>';
   }
 
+  function estaPrenada(a) {
+    if (!a || a.estado !== "activo") return false;
+    var ultimo = null;
+    S.db.eventos.forEach(function (e) {
+      if (e.deleted || e.tipo !== "diagnostico" || e.animalId !== a.id) return;
+      if (!ultimo || e.fecha >= ultimo.fecha) ultimo = e;
+    });
+    if (!ultimo || (ultimo.datos.resultado !== "prenada" && ultimo.datos.resultado !== "mellizos")) return false;
+    return !S.db.eventos.some(function (p) {
+      return !p.deleted && p.tipo === "parto" && p.animalId === a.id && p.fecha >= ultimo.fecha;
+    });
+  }
+  function pasaFiltro(a, filtro) {
+    var f = filtro || "campo";
+    if (f === "todos") return true;
+    if (f === "ovejas") return a.estado === "activo" && a.sexo === "hembra" && a.categoria !== "corderos-pie" && a.categoria !== "corderos-destetados";
+    if (f === "corderos") return a.estado === "activo" && (a.categoria === "corderos-pie" || a.categoria === "corderos-destetados");
+    if (f === "carneros") return a.estado === "activo" && a.categoria === "carneros";
+    if (f === "prenadas") return estaPrenada(a);
+    return a.estado === "activo";
+  }
   function pantallaAnimales() {
     var q = S.b.q || "";
-    var lista = S.db.animales.filter(function (a) { return !a.deleted; });
+    var filtro = S.b.filtro || "campo";
+    var lista = S.db.animales.filter(function (a) { return !a.deleted && pasaFiltro(a, filtro); });
     if (q) lista = lista.filter(function (a) { return String(a.caravana || "").indexOf(q) >= 0; });
     lista.sort(ordenarCaravana);
-    var html = "<h2>Animales</h2>";
+    var html = '<div class="page-head"><h2>Animales</h2><button type="button" class="btn slim" data-act="ir" data-screen="alta" data-fresh="1">Cargar</button></div>';
     html += '<label class="f">Buscar caravana<input inputmode="numeric" data-bind="q" data-live="1" value="' + esc(q) + '" placeholder="Número"></label>';
-    html += '<button type="button" class="btn" data-act="ir" data-screen="alta" data-fresh="1">Cargar varios</button>';
+    html += '<div class="chips">';
+    [["campo", "En el campo"], ["ovejas", "Ovejas"], ["corderos", "Corderos"], ["carneros", "Carneros"], ["todos", "Todos"]].forEach(function (f) {
+      html += '<button type="button" class="chip' + (filtro === f[0] ? " on" : "") + '" data-act="filtro" data-val="' + f[0] + '">' + f[1] + "</button>";
+    });
+    html += "</div>";
     if (!S.db.animales.some(function (a) { return !a.deleted; })) {
       html += '<div class="card"><p>Todavía no hay animales. Cargá el plantel con los números de caravana.</p></div>';
       return html;
@@ -2251,20 +2497,19 @@ var FIREBASE_CONFIG = {
 
   function pantallaPesaje() {
     var html = "<h2>Pesaje</h2>" + errBox();
+    html += '<p class="sub">Tocá la caravana y escribí el peso. El teclado es de números.</p>';
     html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
-    html += "<h3>A quién</h3>";
+    html += buscador();
+    var lista = filtrar(function (a) { return a.estado === "activo"; });
+    if (!lista.length) html += '<div class="card"><p>No hay animales con ese número.</p></div>';
+    lista.forEach(function (a) {
+      html += '<button type="button" class="rowbtn" data-act="pesar-id" data-id="' + esc(a.id) + '"><b>' + esc(L.etiquetaAnimal(a)) + "</b><small>" + esc(L.nombreDe(L.CATEGORIAS, a.categoria)) + "</small></button>";
+    });
+    html += "<h3>O un grupo entero</h3>";
     html += chips(L.CATEGORIAS.map(function (c) { return [c.id, c.nombre]; }), "categoria");
     html += '<button type="button" class="btn" data-act="pesaje-categoria">Pesar esta categoría</button>';
-    var lotes = S.db.lotes.filter(function (l) { return !l.deleted; });
-    if (lotes.length) {
-      html += "<h3>O un lote</h3>";
-      lotes.forEach(function (l) {
-        html += '<button type="button" class="rowbtn" data-act="pesaje-lote" data-id="' + esc(l.id) + '">' + esc(l.nombre) + "</button>";
-      });
-    }
-    html += "<h3>O uno por uno</h3>" + buscador();
-    filtrar(function (a) { return a.estado === "activo"; }).forEach(function (a) {
-      html += '<button type="button" class="rowbtn" data-act="pesar-id" data-id="' + esc(a.id) + '">' + esc(L.etiquetaAnimal(a)) + "</button>";
+    S.db.lotes.filter(function (l) { return !l.deleted; }).forEach(function (l) {
+      html += '<button type="button" class="rowbtn" data-act="pesaje-lote" data-id="' + esc(l.id) + '">Lote ' + esc(l.nombre) + "</button>";
     });
     return html;
   }
@@ -2296,7 +2541,7 @@ var FIREBASE_CONFIG = {
     if (i >= lista.length) return resumenPesos(destete);
     var a = L.porId(S.db.animales, lista[i]);
     var html = "<h2>" + esc(titulo) + "</h2>";
-    html += '<div class="card"><h3>' + esc(a ? L.etiquetaAnimal(a) : "") + "</h3><p>" + (i + 1) + " de " + lista.length + "</p>";
+    html += '<div class="card peso-card"><p class="kicker">' + (i + 1) + " de " + lista.length + '</p><h3 class="caravana-grande">' + esc(a ? L.etiquetaAnimal(a) : "") + "</h3>";
     if (destete && a && a.nacimiento) {
       var edad = L.diasEntre(a.nacimiento, S.b.fecha);
       html += "<p>Edad: " + (edad == null ? "sin fecha de nacimiento" : edad + " días") + "</p>";
@@ -2304,7 +2549,7 @@ var FIREBASE_CONFIG = {
     }
     html += "</div>";
     if (S.error) html += '<div class="error">' + esc(S.error) + "</div>";
-    html += '<label class="f">Peso, kg<input inputmode="decimal" data-bind="peso" data-focus="1" value="' + esc(S.b.peso || "") + '"></label>';
+    html += '<label class="f">Peso, kg<input inputmode="decimal" data-bind="peso" data-focus="1" value="' + esc(S.b.peso || "") + '" placeholder="0,0"></label>';
     if (!destete) {
       html += '<button type="button" class="btn-ghost" data-act="mas">' + (S.b.mas ? "Ocultar más datos" : "FAMACHA, condición, HPG") + "</button>";
       if (S.b.mas) {
@@ -2376,7 +2621,7 @@ var FIREBASE_CONFIG = {
   }
 
   function pantallaSanidad() {
-    var html = "<h2>Sanidad</h2>";
+    var html = "<h2>Sanidad</h2>" + '<p class="sub">Primero el motivo y el producto. Después, a quién.</p>';
     html += '<label class="f">Fecha<input type="date" data-bind="fecha" value="' + esc(S.b.fecha || L.hoyISO()) + '"></label>';
     html += "<h3>Motivo</h3>" + chips(L.MOTIVOS.map(function (m) { return [m.id, m.nombre]; }), "motivo");
     html += "<h3>Producto</h3>";
@@ -2658,7 +2903,8 @@ var FIREBASE_CONFIG = {
   }
 
   function pantallaHecho() {
-    var html = '<h2>Quedó guardado</h2><div class="ok">' + esc(S.b.texto || "Listo.") + "</div>";
+    var html = '<div class="check-pop" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>';
+    html += '<h2 style="text-align:center">Quedó guardado</h2><div class="ok">' + esc(S.b.texto || "Listo.") + "</div>";
     (S.b.filas || []).forEach(function (it) {
       html += '<div class="card"><p>' + esc(it.caravana || "Sin caravana") + " · " + esc(L.fmtNum(it.peso, 1)) + " kg" + (it.gdp != null ? " · " + it.gdp + " g/día" : "") + (it.edad != null ? " · " + it.edad + " días" : "") + "</p></div>";
     });
@@ -3028,6 +3274,29 @@ var FIREBASE_CONFIG = {
     var act = t.getAttribute("data-act");
     if (act !== "chip" && act !== "toggle" && act !== "diag" && act !== "mas") leerForm();
     if (act === "volver") return volver();
+    if (act === "cerrar-menu") { S.menu = false; return pintar(); }
+    if (act === "tab") {
+      var tab = t.getAttribute("data-tab");
+      if (tab === "nuevo") { S.menu = !S.menu; return pintar(); }
+      S.menu = false;
+      S.pila = [];
+      S.error = "";
+      if (tab === "home") { S.screen = "home"; S.b = {}; return pintar(); }
+      if (tab === "animales") { S.screen = "animales"; S.b = { q: "", filtro: "campo" }; return pintar(); }
+      if (tab === "reportes") { S.screen = "reportes"; S.b = {}; return pintar(); }
+      if (tab === "mas") { S.screen = "mas"; S.b = {}; return pintar(); }
+    }
+    if (act === "ver-grupo") {
+      S.menu = false;
+      S.pila = [];
+      S.screen = "animales";
+      S.b = { q: "", filtro: t.getAttribute("data-val") || "campo" };
+      return pintar();
+    }
+    if (act === "filtro") {
+      S.b.filtro = t.getAttribute("data-val");
+      return pintar();
+    }
     if (act === "inicio") return inicio();
     if (act === "ir") {
       var screen = t.getAttribute("data-screen");
