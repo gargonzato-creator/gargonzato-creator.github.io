@@ -1,4 +1,4 @@
-const CACHE = "me-registros-v10";
+const CACHE = "me-registros-v11";
 const ASSETS = ["./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png", "./logo-header.png"];
 
 self.addEventListener("install", function (event) {
@@ -31,6 +31,11 @@ function isHtmlNavigation(request) {
 
 self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
+  try {
+    if (new URL(event.request.url).origin !== self.location.origin) return;
+  } catch (e) {
+    return;
+  }
 
   if (isHtmlNavigation(event.request)) {
     event.respondWith(

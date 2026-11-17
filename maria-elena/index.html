@@ -1889,9 +1889,17 @@ var FIREBASE_CONFIG = {
     nubeEstado: "",
     errorNube: "",
     sinPermiso: false,
-    importPendiente: null
+    importPendiente: null,
+    accesoEstado: "",
+    errorCarga: "",
+    pasos: [],
+    cacheTipo: ""
   };
-  var cloud = { fs: null, auth: null, unsubs: [] };
+  var cloud = { fs: null, auth: null, unsubs: [], subido: {}, metaOk: false };
+  var T0 = Date.now();
+  var VIGIA_MS = 10000;
+  var vigia = null;
+  var ACCESO_KEY = "tg-maria-elena-acceso-";
   var MIGRA_KEY = "tg-maria-elena-migrado-v1";
   var semilla = {};
 
@@ -1913,7 +1921,9 @@ var FIREBASE_CONFIG = {
       S.modo = "cloud";
       S.nubeEstado = "cargando";
       S.sync = "pending";
+      paso("inicio");
       pintar();
+      armarVigia("inicio");
       prepararNube(cfg);
     } else {
       S.modo = "local";
@@ -2010,13 +2020,13 @@ var FIREBASE_CONFIG = {
     var app = document.getElementById("app");
     if (!app) return;
     var cuerpo;
-    if (S.modo === "cloud" && !S.usuario) {
-      cuerpo = S.nubeEstado === "cargando"
-        ? '<div class="login-card"><h2>Abriendo…</h2><p class="sub">Conectando con la cabaña.</p>' + htmlDiag() + "</div>"
-        : pantallaLogin();
-    } else if (S.modo === "cloud" && S.sinPermiso) cuerpo = pantallaSinPermiso();
+    if (S.modo === "cloud" && S.errorCarga) cuerpo = pantallaErrorCarga();
+    else if (S.modo === "cloud" && estaCargando()) {
+      cuerpo = '<div class="login-card"><h2>Abriendo…</h2><p class="sub">Conectando con la cabaña.</p>' + htmlDiag() + "</div>";
+    } else if (S.modo === "cloud" && !S.usuario) cuerpo = pantallaLogin();
+    else if (S.modo === "cloud" && S.sinPermiso) cuerpo = pantallaSinPermiso();
     else cuerpo = pantalla();
-    var login = S.modo === "cloud" && (!S.usuario || S.sinPermiso);
+    var login = S.modo === "cloud" && (!S.usuario || S.sinPermiso || !!S.errorCarga || estaCargando());
     app.innerHTML = (login ? "" : barra()) + '<main class="' + (login ? "login-wrap" : "screen") + '">' + (login ? "" : volverHtml()) + cuerpo + "</main>" + (login ? "" : tabBar()) + (S.menu && !login ? menuHtml() : "");
     var foco = document.querySelector("[data-focus]");
     if (foco) foco.focus();
@@ -2282,6 +2292,80 @@ var FIREBASE_CONFIG = {
     html += htmlDiag();
     html += "</div>";
     return html;
+  }
+
+  function estaCargando() {
+    if (S.modo !== "cloud") return false;
+    if (S.nubeEstado === "cargando") return true;
+    return !!(S.usuario && S.accesoEstado === "verificando");
+  }
+
+  function pantallaErrorCarga() {
+    var html = '<div class="login-card"><div class="brand"><img class="brand-logo" src="logo-header.png" width="46" height="46" alt=""><div><h1>Cabaña María Elena</h1><p>Coronel Oviedo · Dorper</p></div></div>';
+    html += "<h2>No se pudo abrir</h2>";
+    html += '<p class="sub">' + esc(S.errorCarga) + "</p>";
+    html += '<button type="button" class="btn" data-act="reintentar">Reintentar</button>';
+    if (S.usuario) html += '<button type="button" class="btn-mail-sec" data-act="salir">Usar otra cuenta</button>';
+    html += htmlDiag(true);
+    html += "</div>";
+    return html;
+  }
+
+  function paso(txt) {
+    var seg = ((Date.now() - T0) / 1000).toFixed(1);
+    S.pasos.push(seg + " s · " + txt);
+    if (S.pasos.length > 24) S.pasos.shift();
+    if (S.modo === "cloud" && (estaCargando() || S.errorCarga || !S.usuario) && diagnosticoActivo()) {
+      var a = document.activeElement;
+      if (!a || (a.tagName !== "INPUT" && a.tagName !== "TEXTAREA")) pintar();
+    }
+  }
+
+  function armarVigia(motivo) {
+    if (vigia) clearTimeout(vigia);
+    vigia = setTimeout(function () {
+      vigia = null;
+      if (!estaCargando()) return;
+      paso("vigía: más de " + (VIGIA_MS / 1000) + " s esperando (" + motivo + ")");
+      S.errorCarga = navigator.onLine
+        ? "La nube tarda demasiado en responder. Revisá la señal y tocá Reintentar."
+        : "Este aparato no tiene señal y todavía no hay permiso guardado. Conectate y tocá Reintentar.";
+      pintar();
+    }, VIGIA_MS);
+  }
+
+  function conTiempo(promesa, ms, etiqueta) {
+    return new Promise(function (resolve, reject) {
+      var t = setTimeout(function () {
+        var e = new Error(etiqueta + ": sin respuesta en " + Math.round(ms / 1000) + " s");
+        e.code = "timeout";
+        reject(e);
+      }, ms);
+      promesa.then(function (v) { clearTimeout(t); resolve(v); }, function (e) { clearTimeout(t); reject(e); });
+    });
+  }
+
+  function estable(v) {
+    if (v === null || typeof v !== "object") return JSON.stringify(v);
+    if (Object.prototype.toString.call(v) === "[object Array]") return "[" + v.map(estable).join(",") + "]";
+    return "{" + Object.keys(v).sort().filter(function (k) { return v[k] !== undefined; }).map(function (k) { return JSON.stringify(k) + ":" + estable(v[k]); }).join(",") + "}";
+  }
+
+  function probarIndexedDB(ms) {
+    return new Promise(function (resolve) {
+      var listo = false;
+      function fin(ok, por) { if (listo) return; listo = true; resolve({ ok: ok, por: por }); }
+      setTimeout(function () { fin(false, "IndexedDB no responde"); }, ms);
+      try {
+        if (!root.indexedDB) return fin(false, "sin IndexedDB");
+        var req = root.indexedDB.open("tg-me-prueba", 1);
+        req.onsuccess = function () { try { req.result.close(); } catch (e) {} fin(true, ""); };
+        req.onerror = function () { fin(false, "IndexedDB con error"); };
+        req.onblocked = function () { fin(false, "IndexedDB bloqueado"); };
+      } catch (e) {
+        fin(false, "IndexedDB: " + (e && e.message ? e.message : e));
+      }
+    });
   }
 
   function pantallaSinPermiso() {
@@ -3542,10 +3626,16 @@ var FIREBASE_CONFIG = {
       S.conservarBanner = true;
       return inicio();
     }
+    if (act === "reintentar") {
+      try { location.reload(); } catch (e) {}
+      return;
+    }
     if (act === "salir") {
       detenerEscucha();
       S.sinPermiso = false;
       S.usuario = null;
+      S.accesoEstado = "";
+      S.errorCarga = "";
       S.error = "";
       if (cloud.signOut) cloud.signOut();
       return pintar();
@@ -3866,8 +3956,8 @@ var FIREBASE_CONFIG = {
     }
   }
 
-  function htmlDiag() {
-    if (!diagnosticoActivo()) return "";
+  function htmlDiag(siempre) {
+    if (!siempre && !diagnosticoActivo()) return "";
     var user = cloud.auth && cloud.auth.currentUser;
     var cfg = root.FIREBASE_CONFIG || {};
     var last = S.ultimoError;
@@ -3880,8 +3970,10 @@ var FIREBASE_CONFIG = {
       "authDomain: " + (cfg.authDomain || ""),
       "resolver: " + (cloud.authApi && cloud.authApi.browserPopupRedirectResolver ? "sí" : "no"),
       "usuario: " + (user ? ((user.email || "") + " " + user.uid + (user.isAnonymous ? " (anónimo)" : "")) : "ninguno"),
-      "último error: " + lastTxt
-    ];
+      "último error: " + lastTxt,
+      "caché: " + (S.cacheTipo || "?") + " · acceso: " + (S.accesoEstado || "-") + " · señal: " + (navigator.onLine ? "sí" : "no"),
+      "pasos:"
+    ].concat(S.pasos.map(function (x) { return "  " + x; }));
     return '<pre class="login-diag">' + esc(lineas.join("\n")) + "</pre>";
   }
 
@@ -4100,52 +4192,83 @@ var FIREBASE_CONFIG = {
     var v = "10.14.1";
     S.firebaseVersion = v;
     var base = "https://www.gstatic.com/firebasejs/" + v + "/";
-    Promise.all([
+    paso("cargando SDK " + v);
+    var sdk = conTiempo(Promise.all([
       import(base + "firebase-app.js"),
       import(base + "firebase-auth.js"),
       import(base + "firebase-firestore.js")
-    ]).then(function (mods) {
+    ]), 15000, "SDK");
+    Promise.all([sdk, probarIndexedDB(2500)]).then(function (res) {
+      var mods = res[0], idb = res[1];
+      paso("SDK cargado");
       var appMod = mods[0], authMod = mods[1], fsMod = mods[2];
       var app = appMod.initializeApp(cfg);
       var auth;
       try {
         auth = authMod.initializeAuth(app, {
-          persistence: [authMod.indexedDBLocalPersistence, authMod.browserLocalPersistence],
+          persistence: idb.ok
+            ? [authMod.indexedDBLocalPersistence, authMod.browserLocalPersistence]
+            : [authMod.browserLocalPersistence, authMod.inMemoryPersistence],
           popupRedirectResolver: authMod.browserPopupRedirectResolver
         });
       } catch (e) {
+        paso("initializeAuth falló: " + describirError(e).message);
         auth = authMod.getAuth(app);
       }
-      var fs;
-      try {
-        fs = fsMod.initializeFirestore(app, {
-          localCache: fsMod.persistentLocalCache({
-            tabManager: fsMod.persistentMultipleTabManager()
-          })
-        });
-      } catch (e) {
-        fs = fsMod.getFirestore(app);
+      paso("auth lista");
+      var fs = null;
+      if (idb.ok) {
+        try {
+          fs = fsMod.initializeFirestore(app, {
+            localCache: fsMod.persistentLocalCache({
+              tabManager: fsMod.persistentMultipleTabManager()
+            })
+          });
+          S.cacheTipo = "persistente";
+        } catch (e) {
+          paso("caché persistente falló: " + describirError(e).message);
+          fs = null;
+        }
+      } else {
+        paso("sin caché persistente: " + idb.por);
       }
+      if (!fs) {
+        try {
+          fs = fsMod.initializeFirestore(app, { localCache: fsMod.memoryLocalCache() });
+          S.cacheTipo = "memoria";
+        } catch (e) {
+          fs = fsMod.getFirestore(app);
+          S.cacheTipo = "memoria (por defecto)";
+        }
+      }
+      paso("firestore lista (" + S.cacheTipo + ")");
       cloud.app = app;
       cloud.auth = auth;
       cloud.fs = fs;
       cloud.authApi = authMod;
       cloud.fsApi = fsMod;
       cloud.signOut = function () { return authMod.signOut(auth).catch(function () {}); };
-      S.nubeEstado = "lista";
-      return authMod.getRedirectResult(auth).catch(function (err) {
+      authMod.onAuthStateChanged(auth, function (user) {
+        paso("estado de sesión: " + (user ? (user.isAnonymous ? "anónimo" : (user.email || user.uid)) : "sin sesión"));
+        if (S.nubeEstado === "cargando") S.nubeEstado = "lista";
+        try {
+          alCambiarUsuario(user);
+        } catch (err) {
+          mostrarErrorAuth(err, "estado");
+        }
+      }, function (err) {
+        S.nubeEstado = "lista";
+        mostrarErrorAuth(err, "estado");
+      });
+      authMod.getRedirectResult(auth).then(function () {
+        paso("redirect revisado");
+      }).catch(function (err) {
         var c = describirError(err).code;
         if (c !== "auth/no-auth-event") mostrarErrorAuth(err, "redirect-result");
-      }).then(function () {
-        authMod.onAuthStateChanged(auth, function (user) {
-          try {
-            alCambiarUsuario(user);
-          } catch (err) {
-            mostrarErrorAuth(err, "estado");
-          }
-        });
       });
+      armarVigia("sesión");
     }).catch(function (err) {
+      paso("falló la nube: " + describirError(err).message);
       S.modo = "local";
       S.sync = "local";
       S.nubeEstado = "falla";
@@ -4163,39 +4286,84 @@ var FIREBASE_CONFIG = {
       }
       S.usuario = null;
       S.sinPermiso = false;
+      S.accesoEstado = "";
+      S.errorCarga = "";
       pintar();
       return;
     }
     S.usuario = { uid: user.uid, email: user.email || "" };
     S.sinPermiso = false;
+    S.errorCarga = "";
+    S.accesoEstado = "verificando";
+    cloud.subido = {};
+    cloud.metaOk = false;
+    pintar();
+    armarVigia("permiso");
+    var uidActual = user.uid;
     verificarAcceso(user).then(function (ok) {
+      if (!S.usuario || S.usuario.uid !== uidActual) return;
       if (!ok) {
+        S.accesoEstado = "no";
         S.sinPermiso = true;
+        S.errorCarga = "";
         pintar();
         return;
       }
+      S.accesoEstado = "ok";
       S.sinPermiso = false;
+      S.errorCarga = "";
       limpiarError();
-      return migrarLocalANube().then(function () {
-        escuchar();
-        pintar();
+      escuchar();
+      pintar();
+      paso("pantalla de inicio");
+      migrarLocalANube().catch(function (err) {
+        paso("migración: " + describirError(err).message);
       });
     }).catch(function (err) {
-      S.sinPermiso = true;
-      mostrarErrorAuth(err, "accesos");
+      if (!S.usuario || S.usuario.uid !== uidActual) return;
+      var d = describirError(err);
+      paso("permiso falló: " + (d.code || "") + " " + d.message);
+      S.accesoEstado = "error";
+      S.errorCarga = d.code === "timeout" || d.code === "unavailable"
+        ? "No se pudo confirmar tu permiso con la nube. Revisá la señal y tocá Reintentar."
+        : "No se pudo confirmar tu permiso (" + (d.code || "error") + "). Tocá Reintentar.";
+      S.ultimoError = { origen: "accesos", code: d.code || "sin código", name: d.name || "", message: d.message || "", tipo: d.tipo };
+      pintar();
     });
+  }
+
+  function leerAccesoGuardado(uidX) {
+    try { return localStorage.getItem(ACCESO_KEY + uidX); } catch (e) { return null; }
+  }
+
+  function guardarAcceso(uidX, ok) {
+    try { localStorage.setItem(ACCESO_KEY + uidX, ok ? "1" : "0"); } catch (e) {}
   }
 
   function verificarAcceso(user) {
     var FS = cloud.fsApi;
     var ref = FS.doc(cloud.fs, "accesos", user.uid);
-    return FS.getDoc(ref).then(function (snap) {
-      if (!snap.exists()) return false;
-      var d = snap.data() || {};
-      var apps = d.apps || [];
-      return d.rol === "admin" || (Object.prototype.toString.call(apps) === "[object Array]" && apps.indexOf("maria-elena") >= 0);
+    paso("leyendo permiso");
+    return conTiempo(FS.getDoc(ref), 8000, "permiso").then(function (snap) {
+      var ok = false;
+      if (snap.exists()) {
+        var d = snap.data() || {};
+        var apps = d.apps || [];
+        ok = d.rol === "admin" || (Object.prototype.toString.call(apps) === "[object Array]" && apps.indexOf("maria-elena") >= 0);
+      }
+      paso("permiso: " + (ok ? "sí" : "no") + (snap.metadata && snap.metadata.fromCache ? " (caché)" : ""));
+      guardarAcceso(user.uid, ok);
+      return ok;
     }).catch(function (err) {
-      if (err && err.code === "permission-denied") return false;
+      if (err && err.code === "permission-denied") {
+        guardarAcceso(user.uid, false);
+        paso("permiso: denegado por reglas");
+        return false;
+      }
+      if (leerAccesoGuardado(user.uid) === "1") {
+        paso("permiso guardado en el aparato (" + (err && err.code ? err.code : "sin respuesta") + ")");
+        return true;
+      }
       throw err;
     });
   }
@@ -4234,7 +4402,10 @@ var FIREBASE_CONFIG = {
       raza: "Dorper",
       updatedAt: new Date().toISOString()
     };
-    var cadena = FS.setDoc(refEst(), meta, { merge: true });
+    paso("migración en segundo plano");
+    cloud.metaOk = true;
+    var pendientes = [FS.setDoc(refEst(), meta, { merge: true })];
+    var cadena = Promise.resolve();
     COLECCIONES.forEach(function (nombre) {
       cadena = cadena.then(function () {
         return FS.getDocs(colEst(nombre)).then(function (snap) {
@@ -4246,15 +4417,20 @@ var FIREBASE_CONFIG = {
             var rem = remoto[row.id];
             if (!rem || String(row.updatedAt || "") >= String(rem.updatedAt || "")) ops.push(row);
           });
-          return enviarDocs(nombre, ops);
+          pendientes.push(enviarDocs(nombre, ops));
         });
       });
     });
     return cadena.then(function () {
+      return Promise.all(pendientes);
+    }).then(function () {
       try { localStorage.setItem(MIGRA_KEY, "1"); } catch (e) {}
+      paso("migración confirmada");
     }).catch(function (err) {
+      paso("migración pendiente: " + describirError(err).message);
       if (err && err.code === "permission-denied") {
         S.sinPermiso = true;
+        pintar();
       }
     });
   }
@@ -4299,7 +4475,9 @@ var FIREBASE_CONFIG = {
     (S.db[nombre] || []).forEach(function (r) { local[r.id] = r; });
     var salida = [];
     var faltan = [];
+    var sub = cloud.subido[nombre] || (cloud.subido[nombre] = {});
     rows.forEach(function (r) {
+      sub[r.id] = estable(datoLimpio(r));
       var loc = local[r.id];
       if (!loc || String(r.updatedAt || "") >= String(loc.updatedAt || "")) salida.push(r);
       else salida.push(loc);
@@ -4316,20 +4494,30 @@ var FIREBASE_CONFIG = {
 
   function subirNube() {
     if (S.modo !== "cloud" || !S.usuario || !cloud.fs || S.sinPermiso) return;
-    marcarSync(navigator.onLine ? "pending" : "offline");
-    var ops = [{ ref: refEst(), data: {
-      nombre: "Cabaña María Elena",
-      lugar: "Coronel Oviedo",
-      hectareas: 5,
-      raza: "Dorper",
-      updatedAt: new Date().toISOString()
-    } }];
+    var ops = [];
+    if (!cloud.metaOk) {
+      cloud.metaOk = true;
+      ops.push({ ref: refEst(), data: {
+        nombre: "Cabaña María Elena",
+        lugar: "Coronel Oviedo",
+        hectareas: 5,
+        raza: "Dorper",
+        updatedAt: new Date().toISOString()
+      } });
+    }
     COLECCIONES.forEach(function (nombre) {
+      var sub = cloud.subido[nombre] || (cloud.subido[nombre] = {});
       (S.db[nombre] || []).forEach(function (row) {
         if (!row.id) return;
-        ops.push({ ref: docEst(nombre, row.id), data: datoLimpio(row) });
+        var data = datoLimpio(row);
+        var firma = estable(data);
+        if (sub[row.id] === firma) return;
+        sub[row.id] = firma;
+        ops.push({ ref: docEst(nombre, row.id), data: data });
       });
     });
+    if (!ops.length) return;
+    marcarSync(navigator.onLine ? "pending" : "offline");
     enviarLotes(ops).catch(function (err) {
       marcarSync("offline");
       if (err && err.code === "permission-denied") {
@@ -4341,21 +4529,38 @@ var FIREBASE_CONFIG = {
 
   function enviarLotes(ops) {
     var FS = cloud.fsApi;
-    var i = 0;
-    function paso() {
-      if (i >= ops.length) return Promise.resolve();
+    var promesas = [];
+    for (var i = 0; i < ops.length; i += 400) {
       var batch = FS.writeBatch(cloud.fs);
-      var fin = Math.min(i + 400, ops.length);
-      for (; i < fin; i++) batch.set(ops[i].ref, ops[i].data, { merge: true });
-      return batch.commit().then(paso);
+      var parte = ops.slice(i, i + 400);
+      parte.forEach(function (op) { batch.set(op.ref, op.data, { merge: true }); });
+      promesas.push(confirmarLote(batch.commit(), parte.length));
     }
-    return paso();
+    return Promise.all(promesas);
+  }
+
+  function confirmarLote(promesa, n) {
+    var aviso = setTimeout(function () { paso("escritura sin confirmar a los 20 s (" + n + " docs; sin señal o cuota)"); }, 20000);
+    return promesa.then(function () {
+      clearTimeout(aviso);
+    }, function (e) {
+      clearTimeout(aviso);
+      paso("escritura rechazada: " + (describirError(e).code || describirError(e).message));
+      throw e;
+    });
   }
 
   function enviarDocs(nombre, rows) {
     if (!rows || !rows.length) return Promise.resolve();
-    var ops = rows.filter(function (row) { return row && row.id; }).map(function (row) {
-      return { ref: docEst(nombre, row.id), data: datoLimpio(row) };
+    var sub = cloud.subido[nombre] || (cloud.subido[nombre] = {});
+    var ops = [];
+    rows.forEach(function (row) {
+      if (!row || !row.id) return;
+      var data = datoLimpio(row);
+      var firma = estable(data);
+      if (sub[row.id] === firma) return;
+      sub[row.id] = firma;
+      ops.push({ ref: docEst(nombre, row.id), data: data });
     });
     return enviarLotes(ops);
   }
