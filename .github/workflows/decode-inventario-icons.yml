@@ -1,0 +1,40 @@
+name: Decode Inventario icons
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "inventario/*.b64"
+      - ".github/workflows/decode-inventario-icons.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Decode icons and commit
+        run: |
+          python3 - <<'PY'
+          import base64, pathlib
+          root = pathlib.Path("inventario")
+          for src in sorted(root.glob("*.png.b64")):
+              dest = root / src.name[:-4]
+              dest.write_bytes(base64.b64decode(src.read_text().strip()))
+              print("wrote", dest, dest.stat().st_size)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase --quiet || true
+          git add inventario/*.png
+          if git diff --cached --quiet; then
+            echo "Icons already committed"
+          else
+            git commit -m "Agrega los PNG decodificados de Inventario"
+            git push
+          fi
