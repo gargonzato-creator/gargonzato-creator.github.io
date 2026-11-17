@@ -254,7 +254,53 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div id="app"><div class="card login-card" id="tg-arranque" style="margin:24px auto;max-width:420px;padding:20px;text-align:center;font-family:-apple-system,system-ui,sans-serif">
+<h2 style="margin:0 0 8px">Formulador de Raciones TG</h2><p class="sub">Abriendo…</p></div></div>
+<script>
+/* Guardia de arranque: si algo falla o tarda, muestra el motivo y botones para recargar o reparar.
+   Solo toca el service worker de la raíz y las cachés formulador-tg-*; nunca las de las otras apps. */
+(function () {
+  var w = window;
+  w.__tgErrores = [];
+  function guardar(m) { try { w.__tgErrores.push(String(m).slice(0, 300)); } catch (e) {} }
+  w.addEventListener("error", function (e) { guardar((e && e.message) || "error"); });
+  w.addEventListener("unhandledrejection", function (e) { var r = e && e.reason; guardar("promesa: " + ((r && (r.message || r.code)) || r)); });
+  function esRaiz(reg) { try { return new URL(reg.scope).pathname === "/"; } catch (e) { return false; } }
+  w.__tgReparar = function () {
+    var tareas = [];
+    try {
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+        tareas.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+          return Promise.all(regs.filter(esRaiz).map(function (r) { return r.unregister(); }));
+        }).catch(function () {}));
+      }
+      if (w.caches && caches.keys) {
+        tareas.push(caches.keys().then(function (ks) {
+          return Promise.all(ks.filter(function (k) { return k.indexOf("formulador-tg-") === 0; }).map(function (k) { return caches.delete(k); }));
+        }).catch(function () {}));
+      }
+    } catch (e) {}
+    var listo = false;
+    function ir() { if (listo) return; listo = true; location.replace(location.pathname + "?v=" + Date.now()); }
+    Promise.all(tareas).then(ir, ir);
+    setTimeout(ir, 3000);
+  };
+  if (/(?:^|[?&])reparar=1(?:&|$)/.test(location.search || "")) { w.__tgReparar(); return; }
+  w.__tgFalla = function (motivo) {
+    var app = document.getElementById("app");
+    if (!app) return;
+    var det = (w.__tgErrores || []).slice(-3).join(" · ");
+    app.innerHTML = '<div class="card login-card" style="margin:24px auto;max-width:420px;padding:20px;text-align:center;font-family:-apple-system,system-ui,sans-serif">' +
+      '<h2 style="margin:0 0 8px">No terminó de abrir</h2><p class="sub">' + motivo + '</p>' +
+      '<button type="button" class="btn" style="display:block;width:100%;margin:10px 0;padding:12px" onclick="location.reload()">Reintentar</button>' +
+      '<button type="button" class="btn-ghost" style="display:block;width:100%;margin:6px 0;padding:12px" onclick="window.__tgReparar()">Reparar y volver a abrir</button>' +
+      '<p class="sub" style="font-size:12px;opacity:.7;word-break:break-word">' + (det ? det.replace(/[<>&]/g, "") : "sin errores registrados") + "</p></div>";
+  };
+  setTimeout(function () {
+    if (!w.__tgListo) w.__tgFalla("La app tardó demasiado en arrancar. Tocá «Reintentar»; si sigue igual, «Reparar y volver a abrir». Tus fórmulas no se borran.");
+  }, 12000);
+})();
+</script>
 <script>
 /* Firebase, proyecto TG Apps (tg-apps-bbde7). Datos del formulador en formulador/... */
 var FIREBASE_CONFIG = {
@@ -2294,15 +2340,43 @@ var FIREBASE_CONFIG = {
 
   function boot() {
     S.db = load();
-    if (!byId(S.db.formulas, S.db.activeFormulaId)) S.db.activeFormulaId = S.db.formulas[0].id;
-    Nube.arrancar();
+    if (!S.db.formulas || !S.db.formulas.length) {
+      var baseF = root.TGData.crearBase();
+      S.db.formulas = (baseF && baseF.formulas) || [];
+    }
+    if (!byId(S.db.formulas, S.db.activeFormulaId)) S.db.activeFormulaId = S.db.formulas[0] ? S.db.formulas[0].id : "";
+    try { Nube.arrancar(); } catch (e) { try { console.error("arranque nube", e); } catch (e2) {} }
     document.getElementById("app").addEventListener("click", onClick);
     document.getElementById("app").addEventListener("change", onChange);
     document.getElementById("app").addEventListener("input", onInput);
     render();
   }
 
+  var renderFallas = 0;
   function render() {
+    try {
+      renderSeguro();
+      root.__tgListo = true;
+      renderFallas = 0;
+    } catch (err) {
+      try { console.error("render", err); } catch (e) {}
+      renderFallas++;
+      if (renderFallas === 1 && S.screen !== "formular") {
+        S.screen = "formular";
+        S.confirm = null;
+        render();
+        return;
+      }
+      root.__tgListo = true;
+      var msg = (err && err.message) ? String(err.message) : String(err);
+      document.getElementById("app").innerHTML = '<div class="screen"><div class="card login-card"><h2>Algo falló al mostrar esta pantalla</h2>' +
+        '<p class="sub">Tus fórmulas siguen guardadas. Tocá «Reintentar»; si vuelve a pasar, «Reparar y volver a abrir».</p>' +
+        '<button type="button" class="btn" onclick="location.reload()">Reintentar</button>' +
+        '<button type="button" class="btn-ghost" onclick="window.__tgReparar && window.__tgReparar()">Reparar y volver a abrir</button>' +
+        '<p class="login-uid">' + esc(msg.slice(0, 200)) + "</p></div></div>";
+    }
+  }
+  function renderSeguro() {
     var gate = Nube.pantalla();
     if (gate) {
       document.getElementById("app").innerHTML = '<div id="app-ui">' + header() + '<div class="screen">' + gate + "</div>" + (S.toast ? '<div id="toast" class="toast">' + esc(S.toast) + "</div>" : "") + "</div>";
@@ -4080,14 +4154,11 @@ var FIREBASE_CONFIG = {
         app: app, auth: auth, fs: fs, authApi: authMod, fsApi: fsMod,
         signOut: function () { return authMod.signOut(auth).catch(function () {}); }
       };
-      return authMod.getRedirectResult(auth).catch(function (err) {
-        if (describirError(err).code !== "auth/no-auth-event") mostrarErrorAuth(err, "redirect-result");
-      }).then(function () {
-        authMod.onAuthStateChanged(auth, function (user) {
-          clearTimeout(vencido);
-          if (N.modo === "local-temp") N.modo = "cloud";
-          try { alCambiarUsuario(user); } catch (err) { mostrarErrorAuth(err, "estado"); }
-        });
+      // Solo ventana emergente: no se espera getRedirectResult (en Safari puede quedar colgado y no dejar abrir).
+      authMod.onAuthStateChanged(auth, function (user) {
+        clearTimeout(vencido);
+        if (N.modo === "local-temp") N.modo = "cloud";
+        try { alCambiarUsuario(user); } catch (err) { mostrarErrorAuth(err, "estado"); }
       });
     }).catch(function (err) {
       if (vigia) { clearTimeout(vigia); vigia = null; }
@@ -4522,8 +4593,10 @@ var FIREBASE_CONFIG = {
 </script>
 
 <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js", { scope: "/" }).catch(function () {});
+if ("serviceWorker" in navigator && !/(?:^|[?&])reparar=1(?:&|$)/.test(location.search || "")) {
+  navigator.serviceWorker.register("./sw.js", { scope: "/", updateViaCache: "none" }).then(function (reg) {
+    try { reg.update(); } catch (e) {}
+  }).catch(function () {});
 }
 </script>
 </body>
