@@ -21,6 +21,17 @@
 </header>
 
 <main>
+  <!-- Paso 0: clave del equipo (una sola vez por celular) -->
+  <section id="vClave" class="view hidden">
+    <h1>Clave del equipo</h1>
+    <p class="muted">Escribí la clave que te pasó Tomás. Se pide una sola vez en este celular.</p>
+    <form id="formClave" class="stack" autocomplete="off">
+      <input id="claveEquipo" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Clave" style="font-size:1.4rem;padding:.8rem;border-radius:10px;border:1px solid #bbb">
+      <button class="btn big primary" id="btnClave" type="submit">Entrar</button>
+      <p id="claveMsg" class="muted"></p>
+    </form>
+  </section>
+
   <!-- Paso 1: nombre -->
   <section id="vNombre" class="view hidden">
     <h1>¿Quién sos?</h1>

@@ -1,6 +1,6 @@
 // Inventario TG — conteos a ciegas y usos internos. No escribe en Bims.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   collection, doc, setDoc, updateDoc, addDoc, onSnapshot, query, where, orderBy, limit,
@@ -16,7 +16,9 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v4 (17/11)";
+export const APP_VERSION = "v5 (17/11)";
+// Cuenta compartida del personal (solo puede usar Inventario). La clave del equipo se escribe una vez por celular.
+const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const USUARIOS = ["Felix", "Tatiana", "Elías", "Junior"];
 const DEPOSITOS = [
   { id: "agro", nombre: "Almacén agropecuario", centro: "Almacén Agropecuario" },
@@ -58,7 +60,7 @@ const dep = () => DEPOSITOS.find((d) => d.id === st.deposito);
 
 // ---------- Firebase ----------
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
 const db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
 window.__inv = { app, db, auth, st };
 
@@ -70,24 +72,39 @@ function rastrear(p) {
 function pintarSync() {
   const el = $("#sync");
   if (!navigator.onLine) { el.className = "sync off"; el.textContent = "Sin conexión, se guarda y sube después"; return; }
-  if (!st.uid) { el.className = "sync off"; el.textContent = "Conectando…"; return; }
+  if (!st.uid) { el.className = "sync off"; el.textContent = authListo ? "Falta la clave del equipo" : "Conectando…"; return; }
   if (st.pendientes > 0) { el.className = "sync pend"; el.textContent = `Subiendo ${st.pendientes}…`; return; }
   el.className = "sync ok"; el.textContent = "Sincronizado";
 }
 addEventListener("online", pintarSync);
 addEventListener("offline", pintarSync);
 
+let authListo = false;
 onAuthStateChanged(auth, (u) => {
+  // Las sesiones anónimas viejas ya no tienen permiso: se cierran y se pide la clave del equipo.
+  if (u && u.isAnonymous) { signOut(auth).catch(() => {}); return; }
+  authListo = true;
   st.uid = u ? u.uid : null; pintarSync();
-  if (u) router();
+  router();
 });
-signInAnonymously(auth).catch((e) => {
-  console.warn("auth", e.code);
-  if (!auth.currentUser) {
-    $("#sync").className = "sync off";
-    $("#sync").textContent = navigator.onLine ? "Error al conectar" : "Sin conexión: la primera vez necesitás señal";
-  }
-});
+async function entrarConClave(ev) {
+  ev && ev.preventDefault();
+  const inp = $("#claveEquipo"), msg = $("#claveMsg"), btn = $("#btnClave");
+  const clave = String(inp.value || "").trim();
+  if (!clave) { msg.textContent = "Escribí la clave del equipo."; return; }
+  if (!navigator.onLine) { msg.textContent = "Necesitás señal para entrar la primera vez."; return; }
+  btn.disabled = true; msg.textContent = "Entrando…";
+  try {
+    await signInWithEmailAndPassword(auth, CUENTA_PERSONAL, clave);
+    inp.value = ""; msg.textContent = "";
+  } catch (e) {
+    console.warn("auth", e.code);
+    msg.textContent = e.code === "auth/too-many-requests" ? "Demasiados intentos. Esperá unos minutos."
+      : e.code === "auth/network-request-failed" ? "Sin conexión. Probá de nuevo con señal."
+      : "Clave incorrecta. Pedísela a Tomás.";
+  } finally { btn.disabled = false; }
+}
+$("#formClave").addEventListener("submit", entrarConClave);
 
 // ---------- Catálogo ----------
 async function cargarCatalogo() {
@@ -226,6 +243,8 @@ $("#btnScanCerrar").onclick = () => cerrarScanner();
 function mostrar(id) { $$(".view").forEach((v) => v.classList.toggle("hidden", v.id !== id)); }
 function router() {
   $$(".nomUsuario").forEach((e) => (e.textContent = st.usuario || ""));
+  if (!authListo) return;
+  if (!st.uid) { salirDeposito(); depActivo = null; return mostrar("vClave"); }
   if (!st.usuario) return mostrar("vNombre");
   if (!dep()) return mostrar("vDeposito");
   $("#nomDeposito").textContent = dep().nombre;
