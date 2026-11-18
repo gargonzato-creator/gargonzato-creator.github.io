@@ -334,7 +334,7 @@ input:focus, select:focus, textarea:focus { outline: 3px solid var(--gold); bord
     var u = enlace();
     return esIOS() && /^https:\/\//.test(u) ? "x-safari-" + u : "";
   }
-  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;" }[c]; }); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&"+"amp;", "<": "&"+"lt;", ">": "&"+"gt;", '"': "&"+"quot;", "'": "&#39;" }[c]; }); }
   function htmlAviso(motivo) {
     var u = enlace();
     var h = '<div class="tg-safari" role="alert">';
@@ -2056,7 +2056,7 @@ var FIREBASE_CONFIG = {
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;" }[c];
+      return { "&": "&"+"amp;", "<": "&"+"lt;", ">": "&"+"gt;", '"': "&"+"quot;", "'": "&#39;" }[c];
     });
   }
 
