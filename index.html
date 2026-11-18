@@ -362,7 +362,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
     var u = enlace();
     return esIOS() && /^https:\/\//.test(u) ? "x-safari-" + u : "";
   }
-  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': """, "'": "&#39;" }[c]; }); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&"+"amp;", "<": "&"+"lt;", ">": "&"+"gt;", '"': "&"+"quot;", "'": "&#39;" }[c]; }); }
   function htmlAviso(motivo) {
     var u = enlace();
     var h = '<div class="tg-safari" role="alert">';
@@ -2326,10 +2326,10 @@ var FIREBASE_CONFIG = {
 
   function esc(s) {
     return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, """);
+      .replace(/&/g, "&"+"amp;")
+      .replace(/</g, "&"+"lt;")
+      .replace(/>/g, "&"+"gt;")
+      .replace(/"/g, "&"+"quot;");
   }
   function fmt(n, d) {
     if (n == null || !isFinite(Number(n))) return "—";
