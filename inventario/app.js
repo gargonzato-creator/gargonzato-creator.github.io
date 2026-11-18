@@ -31,7 +31,7 @@ const UNIDAD_CORTA = { Unidades: "unid.", Kilogramos: "kg", Litros: "L", Gramos:
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;" }[c]));
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const norm = (s) => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 const fmt = (n) => (Math.round(Number(n) * 1000) / 1000).toLocaleString("es-PY", { maximumFractionDigits: 3 });
 const parseCant = (s) => { const t = String(s ?? "").trim().replace(/\s/g, "").replace(",", "."); if (!/^\d*\.?\d+$|^\d+\.$/.test(t)) return NaN; return Number(t); };
