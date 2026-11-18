@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
-  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache,
   collection, doc, setDoc, updateDoc, addDoc, onSnapshot, query, where, orderBy, limit,
   serverTimestamp, increment
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
@@ -16,7 +16,7 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v5 (17/11)";
+export const APP_VERSION = "v6 (18/11)";
 // Cuenta compartida del personal (solo puede usar Inventario). La clave del equipo se escribe una vez por celular.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const USUARIOS = ["Felix", "Tatiana", "Elías", "Junior"];
@@ -31,7 +31,7 @@ const UNIDAD_CORTA = { Unidades: "unid.", Kilogramos: "kg", Litros: "L", Gramos:
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;" }[c]));
 const norm = (s) => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 const fmt = (n) => (Math.round(Number(n) * 1000) / 1000).toLocaleString("es-PY", { maximumFractionDigits: 3 });
 const parseCant = (s) => { const t = String(s ?? "").trim().replace(/\s/g, "").replace(",", "."); if (!/^\d*\.?\d+$|^\d+\.$/.test(t)) return NaN; return Number(t); };
@@ -59,9 +59,15 @@ const st = {
 const dep = () => DEPOSITOS.find((d) => d.id === st.deposito);
 
 // ---------- Firebase ----------
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig, "inventario");
 const auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
-const db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+let db;
+try {
+  db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+} catch (e) {
+  try { db = initializeFirestore(app, { localCache: memoryLocalCache() }); }
+  catch { db = getFirestore(app); }
+}
 window.__inv = { app, db, auth, st };
 
 function rastrear(p) {
