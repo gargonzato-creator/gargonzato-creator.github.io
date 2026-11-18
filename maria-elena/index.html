@@ -334,7 +334,7 @@ input:focus, select:focus, textarea:focus { outline: 3px solid var(--gold); bord
     var u = enlace();
     return esIOS() && /^https:\/\//.test(u) ? "x-safari-" + u : "";
   }
-  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;" }[c]; }); }
   function htmlAviso(motivo) {
     var u = enlace();
     var h = '<div class="tg-safari" role="alert">';
@@ -2056,7 +2056,7 @@ var FIREBASE_CONFIG = {
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      return { "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;" }[c];
     });
   }
 
@@ -4344,7 +4344,8 @@ var FIREBASE_CONFIG = {
       var mods = res[0], idb = res[1];
       paso("SDK cargado");
       var appMod = mods[0], authMod = mods[1], fsMod = mods[2];
-      var app = appMod.initializeApp(cfg);
+      // Nombre propio: en el mismo origen, [DEFAULT] comparte el IndexedDB de Firestore y en Safari las otras pestañas se cuelgan.
+      var app = appMod.initializeApp(cfg, "maria-elena");
       var auth;
       try {
         auth = authMod.initializeAuth(app, {
