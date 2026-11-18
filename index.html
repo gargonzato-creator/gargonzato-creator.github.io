@@ -362,7 +362,7 @@ hr.soft { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
     var u = enlace();
     return esIOS() && /^https:\/\//.test(u) ? "x-safari-" + u : "";
   }
-  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&"+"amp;", "<": "&"+"lt;", ">": "&"+"gt;", '"': "&"+"quot;", "'": "&#39;" }[c]; }); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&"+"amp;", "<": "&"+"lt;", ">": "&"+"gt;", '"': "&"+"quot;", "'": "&"+"#39;" }[c]; }); }
   function htmlAviso(motivo) {
     var u = enlace();
     var h = '<div class="tg-safari" role="alert">';
@@ -2295,6 +2295,100 @@ var FIREBASE_CONFIG = {
     mayor.pct = Math.round((mayor.pct + drift) * 10) / 10;
   }
 
+  function cargaFijaDelTrato(formula, comida, idx) {
+    var lista = formula && formula.cargaFija;
+    if (!lista || !lista.length) return null;
+    var nombre = String((comida && comida.nombre) || "").trim().toLowerCase();
+    var hit = null;
+    var i;
+    for (i = 0; i < lista.length; i++) {
+      var t = String(lista[i].trato || lista[i].nombre || "").trim().toLowerCase();
+      if (t && t === nombre) { hit = lista[i]; break; }
+    }
+    if (!hit && idx >= 0 && lista[idx]) hit = lista[idx];
+    if (!hit || !hit.items) return null;
+    return hit;
+  }
+
+  function kgFijo(items, id, nombre) {
+    if (!items || typeof items !== "object") return null;
+    function num(v) {
+      if (v == null || v === "") return null;
+      var n = Number(v);
+      return isFinite(n) ? n : null;
+    }
+    if (id && Object.prototype.hasOwnProperty.call(items, id)) return num(items[id]);
+    var aliases = [];
+    if (nombre) aliases.push(nombre, String(nombre).toLowerCase());
+    var map = {
+      bagazo: ["bagazo de caña", "bagazo de cana", "bagazo"],
+      maiz: ["maíz molido", "maiz molido", "maíz", "maiz"],
+      ddgs: ["burlanda (ddgs)", "burlanda", "ddgs"],
+      nutrix: ["núcleo", "nucleo", "nutrix"],
+      agua: ["agua"]
+    };
+    if (id && map[id]) aliases = aliases.concat(map[id]);
+    var keys = Object.keys(items);
+    var a, k;
+    for (a = 0; a < aliases.length; a++) {
+      var alias = String(aliases[a]).trim().toLowerCase();
+      for (k = 0; k < keys.length; k++) {
+        if (String(keys[k]).trim().toLowerCase() === alias) return num(items[keys[k]]);
+      }
+    }
+    return null;
+  }
+
+  function filasCargaFija(fija, orden, cortos) {
+    var items = fija && fija.items;
+    if (!items) return [];
+    var filas = [];
+    (orden || []).forEach(function (r) {
+      var kg = kgFijo(items, r.id, r.nombre);
+      if (kg == null) return;
+      filas.push({
+        id: r.id,
+        nombre: (cortos && cortos[r.id]) || r.nombre,
+        kg: kg,
+        esAgua: r.id === "agua"
+      });
+    });
+    Object.keys(items).forEach(function (key) {
+      var ya = filas.some(function (f) {
+        return f.id === key || String(f.nombre).toLowerCase() === String(key).toLowerCase();
+      });
+      if (ya) return;
+      var kg = kgFijo(items, key, key);
+      if (kg == null) return;
+      var id = key;
+      filas.push({
+        id: id,
+        nombre: (cortos && cortos[id]) || key,
+        kg: kg,
+        esAgua: String(id).toLowerCase() === "agua"
+      });
+    });
+    return filas;
+  }
+
+  function kgRepartoFijo(formula, corral, idxCorral, idxTrato) {
+    var lista = formula && formula.repartoCorrales;
+    if (!lista || !lista.length) return null;
+    var nombre = String((corral && (corral.nombre || corral.corral)) || "").trim().toLowerCase();
+    var hit = null;
+    var i;
+    for (i = 0; i < lista.length; i++) {
+      var n = String(lista[i].corral || lista[i].nombre || "").trim().toLowerCase();
+      if (n && n === nombre) { hit = lista[i]; break; }
+    }
+    if (!hit && lista[idxCorral]) hit = lista[idxCorral];
+    if (!hit || !hit.kgPorTrato || !hit.kgPorTrato.length) return null;
+    var kg = hit.kgPorTrato[idxTrato];
+    if (kg == null || kg === "") return null;
+    var nkg = Number(kg);
+    return isFinite(nkg) ? nkg : null;
+  }
+
   root.TGRation = {
     emDe: emDe,
     precioKg: precioKg,
@@ -2312,6 +2406,10 @@ var FIREBASE_CONFIG = {
     redondearKgPersonal: redondearKgPersonal,
     cargaParaPersonal: cargaParaPersonal,
     repartirCorrales: repartirCorrales,
+    cargaFijaDelTrato: cargaFijaDelTrato,
+    kgFijo: kgFijo,
+    filasCargaFija: filasCargaFija,
+    kgRepartoFijo: kgRepartoFijo,
     ordenPersonal: ordenPersonal,
     byId: byId,
   };
@@ -3088,12 +3186,18 @@ var FIREBASE_CONFIG = {
     html += "<h1>" + esc(mezcla) + "</h1>";
     html += "<p class=\"meta\">" + esc(f.fecha) + " · " + fmt(animales, 0) + " animales</p></header>";
     html += '<div class="meals">';
-    comidasDe(f, res).forEach(function (comida) {
-      var cortos = { bagazo: "Bagazo", maiz: "Maíz molido", ddgs: "Burlanda", nutrix: "Núcleo", agua: "Agua", soja: "Harina de soja", afrecho: "Afrecho", "silo-maiz": "Silo de maíz", calcareo: "Calcáreo", "vilomix-bov": "Núcleo Vilomix", ovinofos: "Ovinofós", ovinomix: "Ovinomix" };
-      var crudas = orden.map(function (r) {
-        return { id: r.id, nombre: cortos[r.id] || r.nombre, kg: base > 0 ? (r.kgCarga * comida.kg) / base : 0, esAgua: r.id === "agua" };
-      });
-      var filas = root.TGRation.cargaParaPersonal(crudas, comida.kg);
+    var cortos = { bagazo: "Bagazo", maiz: "Maíz molido", ddgs: "Burlanda", nutrix: "Núcleo", agua: "Agua", soja: "Harina de soja", afrecho: "Afrecho", "silo-maiz": "Silo de maíz", calcareo: "Calcáreo", "vilomix-bov": "Núcleo Vilomix", ovinofos: "Ovinofós", ovinomix: "Ovinomix" };
+    comidasDe(f, res).forEach(function (comida, idxComida) {
+      var fija = root.TGRation.cargaFijaDelTrato(f, comida, idxComida);
+      var filas;
+      if (fija) {
+        filas = root.TGRation.filasCargaFija(fija, orden, cortos);
+      } else {
+        var crudas = orden.map(function (r) {
+          return { id: r.id, nombre: cortos[r.id] || r.nombre, kg: base > 0 ? (r.kgCarga * comida.kg) / base : 0, esAgua: r.id === "agua" };
+        });
+        filas = root.TGRation.cargaParaPersonal(crudas, comida.kg);
+      }
       var total = filas.reduce(function (s, r) { return s + r.kg; }, 0);
       html += '<section class="meal"><h2>' + esc(comida.nombre) + " · " + fmt(comida.kg, 0) + " kg</h2>";
       html += '<table><thead><tr><th></th><th>Orden de carga</th><th class="num">Cargar</th></tr></thead><tbody>';
@@ -3113,9 +3217,14 @@ var FIREBASE_CONFIG = {
       html += "</tr></thead><tbody>";
       corrales.forEach(function (corral, idx) {
         html += "<tr><td>" + esc(corral.nombre) + "</td><td class=\"num\">" + fmt(corral.cabezas, 0) + "</td>";
-        comidas.forEach(function (comida) {
-          var partes = root.TGRation.repartirCorrales(comida.kg, corrales);
-          var kg = partes[idx] ? partes[idx].kg : 0;
+        comidas.forEach(function (comida, tIdx) {
+          var kgFijo = root.TGRation.kgRepartoFijo(f, corral, idx, tIdx);
+          var kg;
+          if (kgFijo != null) kg = kgFijo;
+          else {
+            var partes = root.TGRation.repartirCorrales(comida.kg, corrales);
+            kg = partes[idx] ? partes[idx].kg : 0;
+          }
           html += '<td class="num"><b>' + fmt(kg, kg % 1 ? 1 : 0) + " kg</b></td>";
         });
         html += "</tr>";
@@ -3134,7 +3243,7 @@ var FIREBASE_CONFIG = {
     html += "<li>A la mañana, antes del primer trato, mirá el comedero y marcá las sobras.</li>";
     html += "<li>Si falta un insumo, avisá. No cambies la mezcla sin autorización.</li>";
     html += "</ul>";
-    html += '<p class="firma">Responsable ________________________________ &nbsp;&nbsp; Firma ________________________________</p>';
+    html += '<p class="firma">Responsable ________________________________ ' + "&"+"nbsp;" + "&"+"nbsp;" + ' Firma ________________________________</p>';
     html += "</article>";
     return html;
   }
@@ -3852,7 +3961,13 @@ var FIREBASE_CONFIG = {
     var idx = -1;
     for (var i = 0; i < arr.length; i++) if (String(arr[i].id) === id) { idx = i; break; }
     if (borrar) { if (idx >= 0) arr.splice(idx, 1); return; }
-    if (idx >= 0) arr[idx] = item;
+    if (idx >= 0) {
+      if (c.db === "formulas" && arr[idx] && item) {
+        if (arr[idx].cargaFija && !item.cargaFija) item.cargaFija = arr[idx].cargaFija;
+        if (arr[idx].repartoCorrales && !item.repartoCorrales) item.repartoCorrales = arr[idx].repartoCorrales;
+      }
+      arr[idx] = item;
+    }
     else {
       var pos = typeof orden === "number" && orden >= 0 ? Math.min(orden, arr.length) : (c.db === "formulas" ? 0 : arr.length);
       arr.splice(pos, 0, item);
@@ -3988,6 +4103,19 @@ var FIREBASE_CONFIG = {
         if (r.deleted && x.d) x.s = "†";
         else if (!r.deleted && !x.d && r.json) {
           try { if (hashStr(JSON.stringify(JSON.parse(r.json))) === x.h) x.s = x.h; } catch (e) {}
+          try {
+            var remoto = JSON.parse(r.json);
+            var locales = listaLocal(c);
+            var loc = null;
+            var li;
+            for (li = 0; li < locales.length; li++) if (String(locales[li].id) === id) { loc = locales[li]; break; }
+            if (loc && remoto) {
+              var mezclo = false;
+              if (remoto.cargaFija && !loc.cargaFija) { loc.cargaFija = remoto.cargaFija; mezclo = true; }
+              if (remoto.repartoCorrales && !loc.repartoCorrales) { loc.repartoCorrales = remoto.repartoCorrales; mezclo = true; }
+              if (mezclo) { x.h = hashStr(JSON.stringify(loc)); x.s = null; hubo = true; }
+            }
+          } catch (e2) {}
         }
         return;
       }
