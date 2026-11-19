@@ -2,8 +2,8 @@
   "name": "Cabaña María Elena",
   "short_name": "María Elena",
   "display": "standalone",
-  "start_url": "/maria-elena/",
-  "scope": "/maria-elena/",
+  "start_url": "https://tg-apps-bbde7.firebaseapp.com/maria-elena/",
+  "scope": "https://tg-apps-bbde7.firebaseapp.com/",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
@@ -18,5 +18,6 @@
       "type": "image/png",
       "purpose": "any"
     }
-  ]
+  ],
+  "id": "/maria-elena/"
 }

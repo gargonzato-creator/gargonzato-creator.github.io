@@ -2,8 +2,8 @@
   "name": "Formulador TG",
   "short_name": "Formulador TG",
   "display": "standalone",
-  "start_url": ".",
-  "scope": ".",
+  "start_url": "https://tg-apps-bbde7.firebaseapp.com/",
+  "scope": "https://tg-apps-bbde7.firebaseapp.com/",
   "background_color": "#1b3c31",
   "theme_color": "#1b3c31",
   "icons": [
@@ -18,5 +18,6 @@
       "type": "image/png",
       "purpose": "any"
     }
-  ]
+  ],
+  "id": "/"
 }

@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="es-PY">
-<head>
+<head><script>/*tg-canon v1*/(function(){try{var h=location.hostname;if(h!=="gargonzato-creator.github.io"&&h!=="tg-apps-bbde7.web.app")return;var dest="https://tg-apps-bbde7.firebaseapp.com"+location.pathname+location.search+location.hash;var sa=false;try{sa=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches}catch(e){}
+function aviso(){var d=document.createElement("div");d.setAttribute("style","position:fixed;inset:0;z-index:2147483600;background:#fffdf8;color:#222;font:17px/1.45 -apple-system,system-ui,sans-serif;padding:28px 22px;overflow:auto");d.innerHTML='<h2 style="margin:0 0 10px">Este ícono es viejo</h2><p>La app se mudó a una dirección nueva, donde la sesión queda guardada.</p><ol style="padding-left:20px"><li>Borrá este ícono de la pantalla de inicio.</li><li>Abrí Safari y entrá a:<br><b style="word-break:break-all">'+dest.replace(/[<>"&]/g,"")+'</b></li><li>Compartir → «Agregar a inicio».</li></ol><a href="'+dest.replace(/"/g,"")+'" style="display:block;text-align:center;background:#1e4634;color:#fff;padding:14px;border-radius:12px;text-decoration:none;font-weight:600;margin-top:12px">Abrir la dirección nueva</a><button type="button" style="display:block;width:100%;margin-top:10px;padding:12px;border-radius:12px;border:0;background:none;color:#555;text-decoration:underline;font-size:15px">Seguir usando este ícono por ahora</button>';d.querySelector("button").onclick=function(){d.remove()};(document.body||document.documentElement).appendChild(d)}
+function ir(){if(sa){if(document.body)aviso();else document.addEventListener("DOMContentLoaded",aviso);return}location.replace(dest)}
+if(navigator.onLine===false)return;
+/* Si quedaron datos sin subir en esta dirección vieja, primero deja que la app los suba (no redirige esta vez). */
+if(!window.indexedDB||!indexedDB.databases){ir();return}
+var listo=false,fin=function(p){if(listo)return;listo=true;if(!p)ir()};setTimeout(function(){fin(false)},1500);
+indexedDB.databases().then(function(l){var fs=(l||[]).filter(function(x){return x&&x.name&&x.name.indexOf("firestore/")===0}),n=fs.length,pend=false;if(!n)return fin(false);
+fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var db=r.result;try{if(db.objectStoreNames.contains("mutations")){var c=db.transaction("mutations","readonly").objectStore("mutations").count();c.onsuccess=function(){if(c.result>0)pend=true;db.close();if(--n===0)fin(pend)};c.onerror=function(){db.close();if(--n===0)fin(pend)};return}}catch(e){}db.close();if(--n===0)fin(pend)};r.onerror=function(){if(--n===0)fin(pend)}})}).catch(function(){fin(false)})}catch(e){}})();</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -4223,6 +4231,8 @@ var FIREBASE_CONFIG = {
       A.signInWithRedirect(cloud.auth, provider, resolver).catch(function (err) { S.avisoSafari = true; mostrarErrorAuth(err, "redirect"); });
     }
     // Navegador interno de otra app (WebView): la ventana de Google no funciona.
+    // tg-standalone-redirect: en el ícono de inicio (iPhone/iPad) el ingreso se hace en la misma ventana, así la sesión queda guardada en el ícono.
+    if (mismo && G && G.esIOS() && G.standalone() && A.signInWithRedirect) return porRedirect();
     if (G && G.enAppInterna() && !S.probarIgual) {
       if (mismo && A.signInWithRedirect) return porRedirect();
       S.avisoSafari = true;
@@ -4747,5 +4757,6 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js", { scope: "/maria-elena/" }).catch(function () {});
 }
 </script>
+<script src="/tg-acceso.js" data-app="maria-elena" data-fbapp="maria-elena" defer></script>
 </body>
 </html>

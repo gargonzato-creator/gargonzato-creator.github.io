@@ -1,4 +1,4 @@
-const CACHE = "rufino-shell-v9";
+const CACHE = "rufino-shell-v10";
 const BASE = new URL(self.registration.scope).pathname;
 
 function url(path) {
