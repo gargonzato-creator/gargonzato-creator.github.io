@@ -1,0 +1,56 @@
+name: Decode TG parche
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".publish/tg-parche.tar.gz.b64"
+      - ".github/workflows/decode-tg-parche.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply payload
+        run: |
+          python3 - <<'PY'
+          import base64, io, pathlib, tarfile
+          pub = pathlib.Path(".publish")
+          payload = pub / "tg-parche.tar.gz.b64"
+          if not payload.exists():
+              raise SystemExit("no payload")
+          raw = base64.b64decode(payload.read_text().strip())
+          with tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz") as tf:
+              for m in tf.getmembers():
+                  n = pathlib.Path(m.name)
+                  if n.is_absolute() or ".." in n.parts or n.parts[0] == ".github" or not (m.isfile() or m.isdir()):
+                      raise SystemExit("blocked " + m.name)
+              tf.extractall(".", filter="data")
+              print("extracted", len(tf.getmembers()))
+          borrar = pub / "tg-parche-borrar.txt"
+          if borrar.exists():
+              for line in borrar.read_text().splitlines():
+                  p = pathlib.Path(line.strip())
+                  if line.strip() and not p.is_absolute() and ".." not in p.parts and p.parts[0] != ".github" and p.exists():
+                      p.unlink()
+                      print("deleted", p)
+          for f in pub.glob("tg-parche*"):
+              f.unlink()
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+          else
+            git commit -m "TG apps: dirección única firebaseapp.com, ingreso en el ícono de inicio por redirect, aviso de WhatsApp y pedidos de acceso"
+            git pull --rebase --quiet || git pull --rebase
+            git push
+          fi
