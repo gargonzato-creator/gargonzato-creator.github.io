@@ -19,7 +19,7 @@ const firebaseConfig = {
 export const APP_VERSION = "v6 (18/11)";
 // Cuenta compartida del personal (solo puede usar Inventario). La clave del equipo se escribe una vez por celular.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
-const USUARIOS = ["Felix", "Tatiana", "Elías", "Junior"];
+const USUARIOS = ["Tomás", "Felix", "Tatiana", "Elías", "Junior"];
 const DEPOSITOS = [
   { id: "agro", nombre: "Almacén agropecuario", centro: "Almacén Agropecuario" },
   { id: "carnes", nombre: "Almacén De Carnes Itacurubi", centro: "Almacén de Carnes" },
