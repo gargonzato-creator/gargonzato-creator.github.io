@@ -1,5 +1,5 @@
 // Service worker: red primero para la app y el catálogo; caché solo como respaldo sin señal.
-const VERSION = "inv-tg-v10";
+const VERSION = "inv-tg-v11";
 const LOCAL = ["./", "index.html", "app.js", "styles.css", "catalogo.json", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 const CDN = [
   "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js",
