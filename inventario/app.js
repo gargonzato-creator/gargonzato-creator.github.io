@@ -16,7 +16,7 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v14 (25/11)";
+export const APP_VERSION = "v15 (25/11)";
 // Cuenta compartida del personal (solo puede usar Inventario). La clave del equipo se escribe una vez por celular.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const USUARIOS = ["Tomás", "Felix", "Tatiana", "Elías", "Junior", "Belén"];
@@ -103,7 +103,9 @@ function reenviarCola() {
   const c = leerCola(); const rutas = Object.keys(c); if (!rutas.length) return;
   reenviando = true;
   Promise.allSettled(rutas.map((r) => { const { d, m } = c[r];
-    return rastrear(setDoc(doc(db, r), { ...hidratar(d), reenviadoLocal: Date.now() }, { merge: true }).then(() => deCola(r, m), (e) => { descartarSiRechazo(e, r, m); throw e; }));
+    const datos = { ...hidratar(d), reenviadoLocal: Date.now() };
+    if (r.includes("/usos_internos/")) delete datos.estado; // v15: el reenvío nunca toca el estado de un uso interno
+    return rastrear(setDoc(doc(db, r), datos, { merge: true }).then(() => deCola(r, m), (e) => { descartarSiRechazo(e, r, m); throw e; }));
   })).finally(() => { reenviando = false; });
 }
 addEventListener("online", reenviarCola);
@@ -495,24 +497,43 @@ $("#formUso").onsubmit = (e) => {
   let concepto = $("#usoConcepto").value;
   if (concepto === "Otro") { const o = $("#usoConceptoOtro").value.trim(); concepto = o ? "Otro: " + o : "Otro"; }
   const ahora = Date.now();
-  rastrear(addDoc(colUsos(), {
+  // v15: id propio (no addDoc) para que el respaldo local reenvíe al MISMO doc.
+  // El respaldo NO lleva "estado": si el doc ya existe (p. ej. marcado "cargado" en Bims) nunca se vuelve a "pendiente".
+  const ref = doc(colUsos());
+  const datos = {
     productoId: usoProd.id ?? null, codigo: usoProd.c || "", producto: usoProd.p, unidad: usoProd.u, sinFicha: !!usoProd.sinFicha,
     cantidad: n, motivo, centroCosto: $("#usoCentro").value, concepto, fecha: $("#usoFecha").value,
-    deposito: st.deposito, depositoNombre: dep().nombre, usuario: st.usuario, estado: "pendiente",
-    creado: serverTimestamp(), creadoLocal: ahora, app: "inventario-tg",
-  })).catch(() => {});
+    deposito: st.deposito, depositoNombre: dep().nombre, usuario: st.usuario,
+    creado: ST_MARK, creadoLocal: ahora, app: "inventario-tg", appVersion: APP_VERSION,
+  };
+  escribir(ref.path, { ...hidratar(datos), estado: ESTADO_USO.pendiente }, datos).catch(() => {});
   toast("Uso interno guardado"); resetUso(); buscadores.uso.limpiar();
 };
+// Estados de usos_internos: "pendiente" (lo crea la app) y "cargado" (lo marca el encargado cuando ya está en Bims,
+// con bims_ref, cargado_por y cargado_at opcionales). Sin estado = pendiente. La app nunca escribe "cargado" ni pisa estado.
+const ESTADO_USO = { pendiente: "pendiente", cargado: "cargado" };
+const usoCargado = (u) => u.estado === ESTADO_USO.cargado;
+const fechaCarga = (t) => { if (!t) return ""; const d = typeof t.toDate === "function" ? t.toDate() : new Date(t); return isNaN(d) ? String(t) : fechaHora(d.getTime()); };
+function tarjetaUso(d) {
+  const u = d.data(), carg = usoCargado(u);
+  const estado = carg
+    ? `<span class="tag ok">Cargado en Bims${u.bims_ref ? " " + esc(u.bims_ref) : ""}</span>${u.cargado_por || u.cargado_at ? ` <span class="muted">${esc(u.cargado_por || "")}${u.cargado_por && u.cargado_at ? " · " : ""}${esc(fechaCarga(u.cargado_at))}</span>` : ""}`
+    : "<i>pendiente de cargar en Bims</i>";
+  return `
+      <div class="card item${carg ? " cargado" : ""}"><div><div><b>${esc(u.producto)}</b>${u.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}${d.metadata.hasPendingWrites ? '<span class="tag pend">sin subir</span>' : ""}</div>
+      <div class="muted small">${u.productoId ? "Ficha " + esc(u.productoId) + " · " : ""}${esc(u.fecha)} · ${esc(u.usuario)} · ${esc(u.centroCosto)} · ${esc(u.concepto)}</div>
+      <div class="small">${esc(u.motivo)} · ${estado}</div></div>
+      <div class="q">${fmt(u.cantidad)} <span class="small">${esc(UNIDAD_CORTA[u.unidad] || u.unidad)}</span></div></div>`;
+}
 function escucharUsos() {
   const q = query(colUsos(), orderBy("creadoLocal", "desc"), limit(40));
   st.unsub.usos = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
     const cont = $("#usosLista");
     if (snap.empty) { cont.innerHTML = '<p class="muted">Todavía no hay usos internos en este depósito.</p>'; return; }
-    cont.innerHTML = snap.docs.map((d) => { const u = d.data(); return `
-      <div class="card item"><div><div><b>${esc(u.producto)}</b>${u.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}${d.metadata.hasPendingWrites ? '<span class="tag pend">sin subir</span>' : ""}</div>
-      <div class="muted small">${u.productoId ? "Ficha " + esc(u.productoId) + " · " : ""}${esc(u.fecha)} · ${esc(u.usuario)} · ${esc(u.centroCosto)} · ${esc(u.concepto)}</div>
-      <div class="small">${esc(u.motivo)} · <i>${esc(u.estado)}</i></div></div>
-      <div class="q">${fmt(u.cantidad)} <span class="small">${esc(UNIDAD_CORTA[u.unidad] || u.unidad)}</span></div></div>`; }).join("");
+    const pend = snap.docs.filter((d) => !usoCargado(d.data())), carg = snap.docs.filter((d) => usoCargado(d.data()));
+    cont.innerHTML = `<h3>Pendientes de cargar en Bims <span class="pill">${pend.length}</span></h3>`
+      + (pend.length ? pend.map(tarjetaUso).join("") : '<p class="muted">No hay usos internos pendientes.</p>')
+      + (carg.length ? `<h3>Ya cargados en Bims <span class="pill">${carg.length}</span></h3>` + carg.map(tarjetaUso).join("") : "");
   }, (e) => { console.error(e); $("#usosLista").innerHTML = '<p class="muted">No se pudo leer: ' + esc(e.code) + "</p>"; });
 }
 
