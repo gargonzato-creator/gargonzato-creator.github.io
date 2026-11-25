@@ -16,7 +16,7 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v11 (25/11)";
+export const APP_VERSION = "v14 (25/11)";
 // Cuenta compartida del personal (solo puede usar Inventario). La clave del equipo se escribe una vez por celular.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const USUARIOS = ["Tomás", "Felix", "Tatiana", "Elías", "Junior", "Belén"];
@@ -50,6 +50,7 @@ const st = {
   usuario: localStorage.getItem("inv_usuario") || null,
   deposito: localStorage.getItem("inv_deposito") || null,
   conteoId: null,
+  conteoOk: false,     // el conteo activo está abierto, es de hoy y es de este usuario
   catalogo: [],
   items: new Map(),     // items del conteo activo
   uid: null,
@@ -75,11 +76,43 @@ function rastrear(p) {
   return p.catch((e) => { console.error(e); toast("No se pudo guardar: " + (e.code || e.message)); throw e; })
     .finally(() => { st.pendientes--; pintarSync(); });
 }
+// ---------- Cola local de respaldo (v14) ----------
+// Además de la cola de Firestore, cada escritura queda en localStorage hasta que el servidor la confirma.
+// Si la app se cierra sin señal (o el caché de Firestore no es persistente), al volver se reenvía a la MISMA ruta.
+const COLA_KEY = "inv_cola_v1";
+const ST_MARK = "__serverTimestamp__";
+const leerCola = () => { try { return JSON.parse(localStorage.getItem(COLA_KEY) || "{}"); } catch { return {}; } };
+const grabarCola = (c) => { try { localStorage.setItem(COLA_KEY, JSON.stringify(c)); } catch (e) { console.warn("cola", e); } };
+const hidratar = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, v === ST_MARK ? serverTimestamp() : v]));
+function aCola(ruta, datos) {
+  const c = leerCola(); const marca = Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+  c[ruta] = { d: { ...(c[ruta] ? c[ruta].d : {}), ...datos }, m: marca };
+  grabarCola(c); return marca;
+}
+function deCola(ruta, marca) { const c = leerCola(); if (c[ruta] && c[ruta].m === marca) { delete c[ruta]; grabarCola(c); } pintarSync(); }
+// escribe en Firestore (merge) y deja respaldo; "respaldo" son datos planos (sin increment) que se reenvían tal cual
+function escribir(ruta, vivo, respaldo) {
+  const marca = aCola(ruta, respaldo);
+  return rastrear(setDoc(doc(db, ruta), vivo, { merge: true }).then(() => deCola(ruta, marca), (e) => { descartarSiRechazo(e, ruta, marca); throw e; }));
+}
+// si el servidor rechaza la escritura para siempre (permisos/datos inválidos) no se reintenta en bucle
+function descartarSiRechazo(e, ruta, marca) { if (e && (e.code === "permission-denied" || e.code === "invalid-argument")) deCola(ruta, marca); }
+let reenviando = false;
+function reenviarCola() {
+  if (!st.uid || !navigator.onLine || reenviando) return;
+  const c = leerCola(); const rutas = Object.keys(c); if (!rutas.length) return;
+  reenviando = true;
+  Promise.allSettled(rutas.map((r) => { const { d, m } = c[r];
+    return rastrear(setDoc(doc(db, r), { ...hidratar(d), reenviadoLocal: Date.now() }, { merge: true }).then(() => deCola(r, m), (e) => { descartarSiRechazo(e, r, m); throw e; }));
+  })).finally(() => { reenviando = false; });
+}
+addEventListener("online", reenviarCola);
 function pintarSync() {
   const el = $("#sync");
   if (!navigator.onLine) { el.className = "sync off"; el.textContent = "Sin conexión, se guarda y sube después"; return; }
   if (!st.uid) { el.className = "sync off"; el.textContent = authListo ? "Falta la clave del equipo" : "Conectando…"; return; }
-  if (st.pendientes > 0) { el.className = "sync pend"; el.textContent = `Subiendo ${st.pendientes}…`; return; }
+  const enCola = Object.keys(leerCola()).length;
+  if (st.pendientes > 0 || enCola > 0) { el.className = "sync pend"; el.textContent = `Subiendo ${Math.max(st.pendientes, enCola)}…`; return; }
   el.className = "sync ok"; el.textContent = "Sincronizado";
 }
 addEventListener("online", pintarSync);
@@ -92,6 +125,7 @@ onAuthStateChanged(auth, (u) => {
   authListo = true;
   st.uid = u ? u.uid : null; pintarSync();
   router();
+  reenviarCola();
 });
 async function entrarConClave(ev) {
   ev && ev.preventDefault();
@@ -278,41 +312,50 @@ function entrarDeposito() {
   if (depActivo === clave && st.unsub.conteos) return;
   salirDeposito(); depActivo = clave;
   escucharConteos(); escucharUsos(); resetUso();
-  const guardado = localStorage.getItem(`inv_conteo_${st.deposito}_${st.usuario}`);
-  if (guardado) abrirConteo(guardado); else verListaConteos();
+  const kG = `inv_conteo_${st.deposito}_${st.usuario}`, guardado = localStorage.getItem(kG);
+  // v14: nunca retomar un conteo de otro día (el id empieza con la fecha); si ya fue enviado, abrirConteo lo cierra
+  if (guardado && guardado.startsWith(`${hoyISO()}_${slug(st.usuario)}_`)) abrirConteo(guardado);
+  else { localStorage.removeItem(kG); verListaConteos(); }
 }
 
 // ---------- CONTEOS ----------
 const colConteos = () => collection(db, "inventario", st.deposito, "conteos");
 function escucharConteos() {
-  const q = query(colConteos(), where("estado", "==", "abierto"));
-  st.unsub.conteos = onSnapshot(q, (snap) => {
-    const arr = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.actualizadoLocal || 0) - (a.actualizadoLocal || 0));
+  // v14: solo conteos de HOY. Los abiertos de otros días ya no se pueden continuar; se empieza uno nuevo.
+  const q = query(colConteos(), where("fecha", "==", hoyISO()));
+  st.unsub.conteos = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+    const todos = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.actualizadoLocal || 0) - (a.actualizadoLocal || 0));
+    const arr = todos.filter((c) => c.estado === "abierto" && c.usuario === st.usuario);
+    const env = todos.filter((c) => c.estado === "enviado");
     const cont = $("#conteosAbiertos");
-    if (!arr.length) { cont.innerHTML = '<p class="muted">No hay conteos abiertos. Empezá uno nuevo.</p>'; return; }
-    cont.innerHTML = arr.map((c) => `<button class="res" data-c="${esc(c.id)}"><div class="n">Conteo de ${esc(c.usuario)} · ${esc(c.fecha || "")}</div><div class="m">Último cambio ${fechaHora(c.actualizadoLocal)}${snapPend(c, snap) ? ' <span class="tag pend">sin subir</span>' : ""} · tocá para continuar</div></button>`).join("");
+    cont.innerHTML = !arr.length ? '<p class="muted">No tenés conteos abiertos hoy. Empezá uno nuevo.</p>'
+      : arr.map((c) => `<button class="res" data-c="${esc(c.id)}"><div class="n">Conteo de ${esc(c.usuario)} · ${esc(c.fecha || "")}</div><div class="m">Último cambio ${fechaHora(c.actualizadoLocal)}${snapPend(c, snap) ? ' <span class="tag pend">sin subir</span>' : ""} · tocá para continuar</div></button>`).join("");
+    const ce = $("#conteosEnviados");
+    if (ce) ce.innerHTML = !env.length ? '<p class="muted">Todavía no se envió ningún conteo hoy.</p>'
+      : env.map((c) => `<div class="card item"><div><div class="n"><b>Conteo de ${esc(c.usuario)}</b>${snapPend(c, snap) ? '<span class="tag pend">sin subir</span>' : ""}</div><div class="muted small">Enviado ${fechaHora(c.enviadoLocal)}${c.productos != null ? " · " + esc(c.productos) + " productos" : ""}</div></div></div>`).join("");
   }, (e) => { console.error(e); $("#conteosAbiertos").innerHTML = '<p class="muted">No se pudo leer: ' + esc(e.code) + "</p>"; });
 }
 function snapPend(c, snap) { const d = snap.docs.find((x) => x.id === c.id); return d && d.metadata.hasPendingWrites; }
 $("#conteosAbiertos").onclick = (e) => { const b = e.target.closest("[data-c]"); if (b) abrirConteo(b.dataset.c); };
 function verListaConteos() {
   if (st.unsub.items) { st.unsub.items(); st.unsub.items = null; st.unsub.conteo && st.unsub.conteo(); st.unsub.conteo = null; }
-  st.conteoId = null; localStorage.removeItem(`inv_conteo_${st.deposito}_${st.usuario}`);
+  st.conteoId = null; st.conteoOk = false; localStorage.removeItem(`inv_conteo_${st.deposito}_${st.usuario}`);
   $("#conteoLista").classList.remove("hidden"); $("#conteoActivo").classList.add("hidden");
 }
 $("#btnSalirConteo").onclick = verListaConteos;
 $("#btnNuevoConteo").onclick = () => {
   const id = `${hoyISO()}_${slug(st.usuario)}_${Math.random().toString(36).slice(2, 7)}`;
   const ahora = Date.now();
-  rastrear(setDoc(doc(colConteos(), id), {
+  const datos = {
     usuario: st.usuario, deposito: st.deposito, depositoNombre: dep().nombre, estado: "abierto", fecha: hoyISO(),
-    creado: serverTimestamp(), actualizado: serverTimestamp(), enviado: null,
-    creadoLocal: ahora, actualizadoLocal: ahora, app: "inventario-tg",
-  })).catch(() => {});
-  abrirConteo(id);
+    creado: ST_MARK, actualizado: ST_MARK, enviado: null,
+    creadoLocal: ahora, actualizadoLocal: ahora, app: "inventario-tg", appVersion: APP_VERSION,
+  };
+  escribir(`inventario/${st.deposito}/conteos/${id}`, hidratar(datos), datos).catch(() => {});
+  abrirConteo(id, true);
 };
-function abrirConteo(id) {
-  st.conteoId = id; localStorage.setItem(`inv_conteo_${st.deposito}_${st.usuario}`, id);
+function abrirConteo(id, nuevo = false) {
+  st.conteoId = id; st.conteoOk = !!nuevo; localStorage.setItem(`inv_conteo_${st.deposito}_${st.usuario}`, id);
   $("#conteoLista").classList.add("hidden"); $("#conteoActivo").classList.remove("hidden");
   $("#panelConteo").classList.add("hidden");
   $("#conteoTitulo").textContent = id;
@@ -322,7 +365,10 @@ function abrirConteo(id) {
     const c = d.data();
     $("#conteoTitulo").textContent = `de ${c.usuario} · ${c.fecha || ""}`;
     $("#conteoMeta").textContent = `${dep().nombre} · estado: ${c.estado}`;
-    if (c.estado === "enviado") { toast("Este conteo ya fue enviado"); verListaConteos(); }
+    // v14: un conteo enviado, de otro día o de otra persona no se retoma
+    if (c.estado !== "abierto") { st.conteoOk = false; toast("Este conteo ya fue enviado. Empezá uno nuevo."); verListaConteos(); return; }
+    if ((c.fecha || "") !== hoyISO() || c.usuario !== st.usuario) { st.conteoOk = false; toast("Ese conteo es de otro día. Empezá uno nuevo."); verListaConteos(); return; }
+    st.conteoOk = true;
   });
   st.unsub.items && st.unsub.items();
   st.items = new Map();
@@ -373,6 +419,7 @@ function panelConteo(p, claveExistente) {
   const inp = $("#pcCant"); setTimeout(() => inp.focus(), 50);
   pan.scrollIntoView({ behavior: "smooth", block: "start" });
   const guardar = (modo) => {
+    if (!st.conteoId || !st.conteoOk) { toast("Este conteo ya no está abierto. Empezá uno nuevo."); verListaConteos(); return; }
     const n = parseCant(inp.value);
     if (!(n >= 0) || Number.isNaN(n)) { toast("Escribí una cantidad válida (podés usar coma)"); inp.focus(); return; }
     if (p.u === "Unidades" && !p.sinFicha && !Number.isInteger(n) && !confirm(`La ficha es por Unidades y pusiste ${fmt(n)}. ¿Está bien?`)) return;
@@ -383,7 +430,9 @@ function panelConteo(p, claveExistente) {
       actualizado: serverTimestamp(), actualizadoLocal: ahora, eliminado: false, sinFicha: !!p.sinFicha,
       cantidad: modo === "sumar" ? increment(n) : n,
     };
-    rastrear(setDoc(doc(colConteos(), st.conteoId, "items", k), data, { merge: true })).catch(() => {});
+    const base = st.items.get(k);
+    const total = modo === "sumar" ? (base && !base.eliminado ? Number(base.cantidad) || 0 : 0) + n : n;
+    escribir(`inventario/${st.deposito}/conteos/${st.conteoId}/items/${k}`, data, { ...data, actualizado: ST_MARK, cantidad: total }).catch(() => {});
     tocarConteo();
     pan.classList.add("hidden"); buscadores.conteo.limpiar();
     toast(modo === "sumar" ? `Sumado ${fmt(n)} a ${p.p}` : `Guardado: ${p.p} = ${fmt(n)}`);
@@ -395,20 +444,26 @@ function panelConteo(p, claveExistente) {
   b("#pcCancelar", () => pan.classList.add("hidden"));
   b("#pcQuitar", () => {
     if (!confirm(`¿Quitar ${p.p} de este conteo?`)) return;
-    rastrear(setDoc(doc(colConteos(), st.conteoId, "items", k), { eliminado: true, usuario: st.usuario, actualizado: serverTimestamp(), actualizadoLocal: Date.now() }, { merge: true })).catch(() => {});
+    if (!st.conteoId || !st.conteoOk) { toast("Este conteo ya no está abierto."); verListaConteos(); return; }
+    const q = { eliminado: true, usuario: st.usuario, actualizado: ST_MARK, actualizadoLocal: Date.now() };
+    escribir(`inventario/${st.deposito}/conteos/${st.conteoId}/items/${k}`, hidratar(q), q).catch(() => {});
     tocarConteo(); pan.classList.add("hidden");
   });
   inp.addEventListener("keydown", (e) => { if (e.key === "Enter") guardar(yaEsta ? "reemplazar" : "reemplazar"); });
 }
 function tocarConteo() {
-  rastrear(updateDoc(doc(colConteos(), st.conteoId), { actualizado: serverTimestamp(), actualizadoLocal: Date.now() })).catch(() => {});
+  const q = { actualizado: ST_MARK, actualizadoLocal: Date.now() };
+  escribir(`inventario/${st.deposito}/conteos/${st.conteoId}`, hidratar(q), q).catch(() => {});
 }
 $("#btnEnviarConteo").onclick = () => {
   const n = [...st.items.values()].filter((i) => !i.eliminado).length;
+  if (!st.conteoId || !st.conteoOk) { toast("Este conteo ya no está abierto."); return verListaConteos(); }
   if (!n) return toast("El conteo está vacío");
   if (!confirm(`¿Enviar el conteo con ${n} productos? Después ya no se puede cambiar.`)) return;
   const ahora = Date.now();
-  rastrear(updateDoc(doc(colConteos(), st.conteoId), { estado: "enviado", enviado: serverTimestamp(), enviadoPor: st.usuario, enviadoLocal: ahora, actualizado: serverTimestamp(), actualizadoLocal: ahora })).catch(() => {});
+  const q = { estado: "enviado", enviado: ST_MARK, enviadoPor: st.usuario, enviadoLocal: ahora, actualizado: ST_MARK, actualizadoLocal: ahora, productos: n };
+  escribir(`inventario/${st.deposito}/conteos/${st.conteoId}`, hidratar(q), q).catch(() => {});
+  st.conteoOk = false;
   toast(navigator.onLine ? "Conteo enviado. ¡Gracias!" : "Conteo enviado. Sube cuando vuelva la señal.", 3500);
   verListaConteos();
 };

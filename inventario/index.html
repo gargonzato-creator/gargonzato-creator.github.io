@@ -73,8 +73,10 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
     <div id="tConteo" class="tabpane">
       <div id="conteoLista">
         <button class="btn big primary" id="btnNuevoConteo">+ Empezar conteo nuevo</button>
-        <h2>Conteos abiertos de este depósito</h2>
+        <h2>Tus conteos abiertos de hoy</h2>
         <div id="conteosAbiertos" class="stack"><p class="muted">Cargando…</p></div>
+        <h2>Conteos enviados hoy</h2>
+        <div id="conteosEnviados" class="stack"><p class="muted">Cargando…</p></div>
       </div>
 
       <div id="conteoActivo" class="hidden">
@@ -148,6 +150,6 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
   <div class="resultados stack"></div>
 </template>
 
-<script type="module" src="app.js?v=13"></script>
+<script type="module" src="app.js?v=14"></script>
 </body>
 </html>
