@@ -16,7 +16,7 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v3.1 (27/11)";
+export const APP_VERSION = "v3.2 (27/11)";
 // Misma cuenta compartida del personal que Inventario. No se crean claves nuevas.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const TZ = "America/Asuncion";
@@ -47,7 +47,7 @@ const ESTADOS = [
   { id: "no_se_presento", nombre: "No se presentó" },
   { id: "cancelada", nombre: "Cancelada" },
 ];
-const USUARIOS_BASE = ["Tomás"];
+const USUARIOS_BASE = ["Tomás", "Cielo", "Tatiana", "Félix"];
 
 // Mapa del POS CARNES de Bims (27/11/2026). Mesa Especial no se incluye.
 // Posiciones en % del recuadro de cada sector, proporcionales al plano. Sin mesa 5 en Patio.
@@ -459,6 +459,7 @@ $("#btnCambiarNombre").onclick = () => {
 };
 
 function pintar() {
+  if ($("#vNombre") && !$("#vNombre").classList.contains("hidden")) pintarNombres();
   if (!$("#vApp") || $("#vApp").classList.contains("hidden")) return;
   $("#fechaTexto").textContent = fmtFechaLarga(st.fecha);
   $("#fechaInput").value = st.fecha;
