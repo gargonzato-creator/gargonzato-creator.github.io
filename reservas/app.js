@@ -480,6 +480,8 @@ function pintar() {
   if (aviso) aviso.classList.add("hidden");
   $("#panelDia").classList.toggle("hidden", st.editando);
   $("#panelEditar").classList.toggle("hidden", !st.editando);
+  const enMapa = !st.editando && $("#tMapa") && !$("#tMapa").classList.contains("hidden");
+  document.body.classList.toggle("mapa-foco", !!enMapa);
   if (st.editando) { pintarMapa($("#mapaEditar"), true); pintarTurnosEditar(); }
   else { pintarResumen(); pintarMapa($("#mapaZonas"), false); pintarLista(); }
   const el = $("#versionApp");
@@ -558,7 +560,7 @@ function pintarMapa(root, editando) {
 }
 function ajustarAltoMapa(scroll) {
   const top = scroll.getBoundingClientRect().top;
-  const reserva = 88 + (parseInt(getComputedStyle(document.body).paddingBottom, 10) || 0);
+  const reserva = 36 + (parseInt(getComputedStyle(document.body).paddingBottom, 10) || 0);
   const h = Math.round(window.innerHeight - top - reserva);
   const alto = Math.max(240, Math.min(h, 620));
   scroll.style.height = alto + "px";
@@ -964,6 +966,8 @@ $$(".tab").forEach((t) => t.onclick = () => {
   t.classList.add("active");
   $("#tMapa").classList.toggle("hidden", t.dataset.tab !== "tMapa");
   $("#tLista").classList.toggle("hidden", t.dataset.tab !== "tLista");
+  document.body.classList.toggle("mapa-foco", t.dataset.tab === "tMapa" && !st.editando);
+  if (t.dataset.tab === "tMapa") pintarMapa($("#mapaZonas"), false);
 });
 $("#btnEditarSalon").onclick = () => { st.editando = true; pintar(); };
 $("#btnSalirEditar").onclick = () => { st.editando = false; pintar(); };
