@@ -1,6 +1,6 @@
 // Service worker: red primero para la app y el catálogo; caché solo como respaldo sin señal.
-const VERSION = "inv-tg-v17.2";
-const LOCAL = ["./", "index.html", "app.js", "styles.css", "catalogo.json", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
+const VERSION = "inv-tg-v17.3";
+const LOCAL = ["./", "index.html", "app.js", "styles.css", "catalogo.json", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-192.png", "icon-maskable-512.png"];
 const CDN = [
   "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js",
   "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js",
