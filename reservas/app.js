@@ -16,7 +16,7 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v3 (27/11)";
+export const APP_VERSION = "v3.1 (27/11)";
 // Misma cuenta compartida del personal que Inventario. No se crean claves nuevas.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const TZ = "America/Asuncion";
@@ -34,12 +34,6 @@ const SECTORES = [
   { id: "tienda", nombre: "Tienda", corto: "Tienda" },
 ];
 const ZONAS = SECTORES.map((s) => s.nombre);
-const SECTOR_MAPA = {
-  "Salón Mayoría": { bw: 858, bh: 408, minRect: 40 },
-  "Patio": { bw: 776, bh: 492, minRect: 39 },
-  "Granero": { bw: 584, bh: 420, minRect: 43 },
-  "Tienda": { bw: 983, bh: 556, minRect: 78 },
-};
 const CANALES = [
   { id: "whatsapp", nombre: "WhatsApp" },
   { id: "llamada", nombre: "Llamada" },
@@ -528,12 +522,135 @@ function pintarSectorNav(root) {
     };
   });
 }
-function medidasMapa(zona, availW) {
-  const meta = SECTOR_MAPA[zona] || { bw: 800, bh: 400, minRect: 48 };
-  const scaleMin = 52 / (meta.minRect || 48);
-  const scaleFit = (availW || 320) / meta.bw;
-  const scale = scaleFit >= scaleMin ? scaleFit : scaleMin;
-  return { w: Math.round(meta.bw * scale), h: Math.round(meta.bh * scale) };
+const MESA_MIN_PX = 56;
+const MESA_GAP_PX = 8;
+const MESA_MARGEN_PX = 10;
+
+function cajasSeSolapan(a, b, gap) {
+  const ox = (a.w + b.w) / 2 + gap - Math.abs(b.cx - a.cx);
+  const oy = (a.h + b.h) / 2 + gap - Math.abs(b.cy - a.cy);
+  return { ox, oy, hay: ox > 0.5 && oy > 0.5 };
+}
+function separarMesas(items, gap, preferY) {
+  for (let r = 0; r < 80; r++) {
+    let movio = false;
+    for (let i = 0; i < items.length; i++) {
+      for (let j = i + 1; j < items.length; j++) {
+        const a = items[i], b = items[j];
+        const { ox, oy, hay } = cajasSeSolapan(a, b, gap);
+        if (!hay) continue;
+        if (preferY || oy <= ox) {
+          const s = (b.cy - a.cy) >= 0 ? 1 : -1;
+          a.cy -= s * oy / 2; b.cy += s * oy / 2;
+        } else {
+          const s = (b.cx - a.cx) >= 0 ? 1 : -1;
+          a.cx -= s * ox / 2; b.cx += s * ox / 2;
+        }
+        movio = true;
+      }
+    }
+    if (!movio) return;
+  }
+}
+function limitesMesas(items) {
+  return {
+    minL: Math.min(...items.map((t) => t.cx - t.w / 2)),
+    minT: Math.min(...items.map((t) => t.cy - t.h / 2)),
+    maxR: Math.max(...items.map((t) => t.cx + t.w / 2)),
+    maxB: Math.max(...items.map((t) => t.cy + t.h / 2)),
+  };
+}
+function alinearFilas(items, gap) {
+  const usados = new Set();
+  for (let i = 0; i < items.length; i++) {
+    if (usados.has(i)) continue;
+    const grupo = [i];
+    for (let j = i + 1; j < items.length; j++) {
+      if (Math.abs(items[j].cy0 - items[i].cy0) <= 4) grupo.push(j);
+    }
+    if (grupo.length < 3) continue;
+    grupo.forEach((k) => usados.add(k));
+    const cy = grupo.reduce((s, k) => s + items[k].cy, 0) / grupo.length;
+    const prueba = grupo.map((k) => ({ ...items[k], cy }));
+    let ok = true;
+    for (const p of prueba) {
+      for (let k = 0; k < items.length; k++) {
+        if (grupo.includes(k)) continue;
+        if (cajasSeSolapan(p, items[k], gap).hay) { ok = false; break; }
+      }
+      if (!ok) break;
+    }
+    if (ok) grupo.forEach((k, n) => { items[k].cy = prueba[n].cy; });
+  }
+}
+function layoutSector(mesas, availW, maxH) {
+  const MIN = MESA_MIN_PX, GAP = MESA_GAP_PX, MARGIN = MESA_MARGEN_PX;
+  const raw = mesas.map((m) => ({
+    id: m.id,
+    cx: Number(m.x) || 50,
+    cy: Number(m.y) || 50,
+    w: Number(m.w) || 10,
+    h: Number(m.h) || 10,
+  }));
+  if (!raw.length) return { w: availW, h: 200, pos: new Map() };
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const t of raw) {
+    x0 = Math.min(x0, t.cx - t.w / 2);
+    y0 = Math.min(y0, t.cy - t.h / 2);
+    x1 = Math.max(x1, t.cx + t.w / 2);
+    y1 = Math.max(y1, t.cy + t.h / 2);
+  }
+  const bw = Math.max(1, x1 - x0), bh = Math.max(1, y1 - y0);
+  const pad = 0.07;
+  const X0 = x0 - bw * pad, Y0 = y0 - bh * pad;
+  const BW = bw * (1 + 2 * pad), BH = bh * (1 + 2 * pad);
+  const mapW0 = Math.max(200, availW);
+  const mapH0 = mapW0 * (BH / BW);
+  const items = raw.map((t) => ({
+    id: t.id,
+    cx: ((t.cx - X0) / BW) * mapW0,
+    cy: ((t.cy - Y0) / BH) * mapH0,
+    w: Math.max((t.w / BW) * mapW0, MIN),
+    h: Math.max((t.h / BH) * mapH0, MIN),
+    cy0: ((t.cy - Y0) / BH) * mapH0,
+  }));
+  separarMesas(items, GAP, false);
+  let { minL, minT, maxR, maxB } = limitesMesas(items);
+  let contentW = maxR - minL, contentH = maxB - minT;
+  const innerW = mapW0 - 2 * MARGIN;
+  if (contentW > innerW + 0.5) {
+    const scaleX = innerW / contentW;
+    for (const t of items) t.cx = MARGIN + (t.cx - minL) * scaleX;
+    separarMesas(items, GAP, true);
+    alinearFilas(items, GAP);
+    ({ minL, minT, maxR, maxB } = limitesMesas(items));
+    contentW = maxR - minL; contentH = maxB - minT;
+  } else {
+    alinearFilas(items, GAP);
+    ({ minL, minT, maxR, maxB } = limitesMesas(items));
+    contentW = maxR - minL; contentH = maxB - minT;
+  }
+  const offX = (contentW <= innerW ? MARGIN + (innerW - contentW) / 2 : MARGIN) - minL;
+  const offY = MARGIN - minT;
+  for (const t of items) { t.cx += offX; t.cy += offY; }
+  ({ minL, minT, maxR, maxB } = limitesMesas(items));
+  let mapW = mapW0;
+  let mapH = Math.ceil(maxB + MARGIN);
+  if (maxH && mapH > maxH && maxH > MIN * 3) {
+    const innerH = maxH - 2 * MARGIN;
+    const ch = maxB - minT;
+    if (ch > innerH) {
+      const scaleY = innerH / ch;
+      for (const t of items) t.cy = MARGIN + (t.cy - minT) * scaleY;
+      mapH = maxH;
+    }
+  }
+  for (const t of items) {
+    t.cx = Math.min(mapW - t.w / 2 - 2, Math.max(t.w / 2 + 2, t.cx));
+    t.cy = Math.min(mapH - t.h / 2 - 2, Math.max(t.h / 2 + 2, t.cy));
+  }
+  const pos = new Map(items.map((t) => [t.id, { cx: t.cx, cy: t.cy, w: t.w, h: t.h }]));
+  return { w: Math.round(mapW), h: Math.round(mapH), pos };
 }
 function pintarMapa(root, editando) {
   if (!root) return;
@@ -548,48 +665,40 @@ function pintarMapa(root, editando) {
   </section>`;
   const scroll = root.querySelector(".zona-mapa-scroll");
   const mapa = root.querySelector(".zona-mapa");
-  const avail = (scroll && scroll.clientWidth) || root.clientWidth || 320;
-  const med = medidasMapa(zona, avail);
-  if (mapa) {
-    mapa.style.width = med.w + "px";
-    mapa.style.height = med.h + "px";
+  const avail = Math.max(200, (scroll && scroll.clientWidth) || root.clientWidth || 320);
+  const top = scroll ? scroll.getBoundingClientRect().top : 200;
+  const maxH = Math.max(260, Math.round(window.innerHeight - top - 72));
+  const lay = layoutSector(mz, avail, maxH);
+  if (scroll) {
+    scroll.style.height = lay.h + "px";
+    scroll.style.maxHeight = lay.h + "px";
+    scroll.scrollLeft = 0;
+    scroll.scrollTop = 0;
   }
-  if (scroll) ajustarAltoMapa(scroll);
-  if (scroll && mapa) encuadrarMesas(scroll, mapa);
+  if (mapa) {
+    mapa.style.width = "100%";
+    mapa.style.height = lay.h + "px";
+    mapa.querySelectorAll(".mesa").forEach((el) => {
+      const p = lay.pos.get(el.dataset.id);
+      if (!p) return;
+      el.style.left = p.cx + "px";
+      el.style.top = p.cy + "px";
+      el.style.width = p.w + "px";
+      el.style.height = p.h + "px";
+      el.dataset.w = String(p.w);
+      el.dataset.h = String(p.h);
+    });
+  }
   root.querySelectorAll(".mesa").forEach((el) => engancharMesa(el, editando));
 }
-function ajustarAltoMapa(scroll) {
-  const top = scroll.getBoundingClientRect().top;
-  const reserva = 36 + (parseInt(getComputedStyle(document.body).paddingBottom, 10) || 0);
-  const h = Math.round(window.innerHeight - top - reserva);
-  const alto = Math.max(240, Math.min(h, 620));
-  scroll.style.height = alto + "px";
-  scroll.style.maxHeight = alto + "px";
-}
-function encuadrarMesas(scroll, mapa) {
-  const mesas = [...mapa.querySelectorAll(".mesa")];
-  if (!mesas.length) return;
-  let minL = Infinity, minT = Infinity, maxR = -Infinity, maxB = -Infinity;
-  for (const el of mesas) {
-    const x = el.offsetLeft, y = el.offsetTop, w = el.offsetWidth, h = el.offsetHeight;
-    minL = Math.min(minL, x - w / 2);
-    minT = Math.min(minT, y - h / 2);
-    maxR = Math.max(maxR, x + w / 2);
-    maxB = Math.max(maxB, y + h / 2);
-  }
-  const pad = 12;
-  const boxW = maxR - minL, boxH = maxB - minT;
-  let sl = minL - pad, st = minT - pad;
-  if (boxW + pad * 2 < scroll.clientWidth) sl = minL - (scroll.clientWidth - boxW) / 2;
-  if (boxH + pad * 2 < scroll.clientHeight) st = minT - (scroll.clientHeight - boxH) / 2;
-  scroll.scrollLeft = Math.max(0, sl);
-  scroll.scrollTop = Math.max(0, st);
-}
+let resizeMapaTimer = 0;
 addEventListener("resize", () => {
-  if ($("#vApp") && !$("#vApp").classList.contains("hidden")) {
-    const scroll = document.querySelector((st.editando ? "#mapaEditar" : "#mapaZonas") + " .zona-mapa-scroll");
-    if (scroll) ajustarAltoMapa(scroll);
-  }
+  clearTimeout(resizeMapaTimer);
+  resizeMapaTimer = setTimeout(() => {
+    if ($("#vApp") && !$("#vApp").classList.contains("hidden")) {
+      pintarMapa(st.editando ? $("#mapaEditar") : $("#mapaZonas"), !!st.editando);
+    }
+  }, 120);
 });
 function htmlMesa(m, editando) {
   const est = editando ? (m.habilitada === false ? "deshabilitada" : "libre") : estadoMesa(m);
@@ -625,8 +734,8 @@ function engancharMesa(el, editando) {
     const p = ev.touches ? ev.touches[0] : ev;
     const mapa = el.parentElement.getBoundingClientRect();
     if (Math.hypot(p.clientX - px, p.clientY - py) > 6) moved = true;
-    const wr = Math.max(4, (Number(el.dataset.w) || 10) / 2);
-    const hr = Math.max(4, (Number(el.dataset.h) || 10) / 2);
+    const wr = Math.max(6, ((el.offsetWidth || 56) / 2 / Math.max(1, mapa.width)) * 100);
+    const hr = Math.max(6, ((el.offsetHeight || 56) / 2 / Math.max(1, mapa.height)) * 100);
     const x = Math.min(100 - wr, Math.max(wr, ((p.clientX - mapa.left) / mapa.width) * 100));
     const y = Math.min(100 - hr, Math.max(hr, ((p.clientY - mapa.top) / mapa.height) * 100));
     el.style.left = x + "%"; el.style.top = y + "%";
