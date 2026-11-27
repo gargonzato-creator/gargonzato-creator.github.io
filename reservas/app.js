@@ -552,8 +552,43 @@ function pintarMapa(root, editando) {
     mapa.style.width = med.w + "px";
     mapa.style.height = med.h + "px";
   }
+  if (scroll) ajustarAltoMapa(scroll);
+  if (scroll && mapa) encuadrarMesas(scroll, mapa);
   root.querySelectorAll(".mesa").forEach((el) => engancharMesa(el, editando));
 }
+function ajustarAltoMapa(scroll) {
+  const top = scroll.getBoundingClientRect().top;
+  const reserva = 88 + (parseInt(getComputedStyle(document.body).paddingBottom, 10) || 0);
+  const h = Math.round(window.innerHeight - top - reserva);
+  const alto = Math.max(240, Math.min(h, 620));
+  scroll.style.height = alto + "px";
+  scroll.style.maxHeight = alto + "px";
+}
+function encuadrarMesas(scroll, mapa) {
+  const mesas = [...mapa.querySelectorAll(".mesa")];
+  if (!mesas.length) return;
+  let minL = Infinity, minT = Infinity, maxR = -Infinity, maxB = -Infinity;
+  for (const el of mesas) {
+    const x = el.offsetLeft, y = el.offsetTop, w = el.offsetWidth, h = el.offsetHeight;
+    minL = Math.min(minL, x - w / 2);
+    minT = Math.min(minT, y - h / 2);
+    maxR = Math.max(maxR, x + w / 2);
+    maxB = Math.max(maxB, y + h / 2);
+  }
+  const pad = 12;
+  const boxW = maxR - minL, boxH = maxB - minT;
+  let sl = minL - pad, st = minT - pad;
+  if (boxW + pad * 2 < scroll.clientWidth) sl = minL - (scroll.clientWidth - boxW) / 2;
+  if (boxH + pad * 2 < scroll.clientHeight) st = minT - (scroll.clientHeight - boxH) / 2;
+  scroll.scrollLeft = Math.max(0, sl);
+  scroll.scrollTop = Math.max(0, st);
+}
+addEventListener("resize", () => {
+  if ($("#vApp") && !$("#vApp").classList.contains("hidden")) {
+    const scroll = document.querySelector((st.editando ? "#mapaEditar" : "#mapaZonas") + " .zona-mapa-scroll");
+    if (scroll) ajustarAltoMapa(scroll);
+  }
+});
 function htmlMesa(m, editando) {
   const est = editando ? (m.habilitada === false ? "deshabilitada" : "libre") : estadoMesa(m);
   const r = !editando ? reservaDeMesa(m.id) : null;
