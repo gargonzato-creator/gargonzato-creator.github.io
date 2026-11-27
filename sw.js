@@ -1,14 +1,14 @@
 /* Formulador TG (raíz). Solo atiende la raíz (/, /index.html y sus íconos); las otras apps
    (/maria-elena/, /rancho-rufino/, /finanzas/, /inventario/) quedan afuera y sus cachés no se tocan. */
-const CACHE = "formulador-tg-v15";
-const ASSETS = ["./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
+const CACHE = "formulador-tg-v16";
+const ASSETS = ["./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png", "./icon-maskable-192.png", "./icon-maskable-512.png"];
 const SDK = "https://www.gstatic.com/firebasejs/10.14.1/";
 const SDK_FILES = ["firebase-app.js", "firebase-auth.js", "firebase-firestore.js"];
 const LIBS = [
   "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
   "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"
 ];
-const PROPIAS = ["/manifest.webmanifest", "/icon-180.png", "/icon-512.png"];
+const PROPIAS = ["/manifest.webmanifest", "/icon-180.png", "/icon-192.png", "/icon-512.png", "/icon-maskable-192.png", "/icon-maskable-512.png"];
 const ESPERA_RED_MS = 4000;
 
 self.addEventListener("install", function (event) {
