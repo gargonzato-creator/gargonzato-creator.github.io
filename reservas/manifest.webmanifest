@@ -1,7 +1,7 @@
 {
-  "name": "Reservas Almaceén de Carnes",
+  "name": "Reservas Almacén de Carnes",
   "short_name": "Reservas AC",
-  "description": "Reservas y mapa de mesas de Almaceén de Carnes. No está conectado a Bims ni al calendario.",
+  "description": "Reservas y mapa de mesas de Almacén de Carnes. No está conectado a Bims ni al calendario.",
   "lang": "es-PY",
   "start_url": "https://tg-apps-bbde7.firebaseapp.com/reservas/",
   "scope": "https://tg-apps-bbde7.firebaseapp.com/reservas/",
