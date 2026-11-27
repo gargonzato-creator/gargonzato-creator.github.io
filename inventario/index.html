@@ -20,7 +20,7 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
 <header id="top">
@@ -70,6 +70,7 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
     <nav class="tabs">
       <button class="tab active" data-tab="tConteo">Conteo</button>
       <button class="tab" data-tab="tUso">Uso interno</button>
+      <button class="tab" data-tab="tXfer">Transferir</button>
     </nav>
 
     <!-- CONTEO -->
@@ -129,6 +130,38 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
       <h2>Usos internos recientes</h2>
       <div id="usosLista" class="stack"><p class="muted">Cargando…</p></div>
     </div>
+
+    <!-- TRANSFERENCIAS -->
+    <div id="tXfer" class="tabpane hidden">
+      <div class="card info">
+        <div><b>Origen:</b> <span id="xferOrigen"></span></div>
+        <p class="muted small">Se carga acá todo lo que se lleva. Esto no transfiere en Bims; lo hace el encargado.</p>
+        <label>Depósito destino
+          <select id="xferDestino" required>
+            <option value="">Elegí a dónde se lleva</option>
+          </select>
+        </label>
+      </div>
+      <div class="buscador" data-modo="xfer"></div>
+      <form id="formXferItem" class="card hidden" autocomplete="off">
+        <div id="xferProducto"></div>
+        <label>Cantidad <span id="xferUnidad" class="muted"></span>
+          <input id="xferCantidad" inputmode="decimal" placeholder="0" required></label>
+        <label>Nota <span class="muted">(opcional)</span>
+          <input id="xferNotaItem" maxlength="200" placeholder="Ej.: se lleva en la camioneta"></label>
+        <div class="row">
+          <button type="button" class="btn big" id="btnXferCancelarItem">Cancelar</button>
+          <button type="submit" class="btn big primary">Agregar a la lista</button>
+        </div>
+      </form>
+      <h2>Lo que se lleva <span id="xferListaCant" class="pill">0</span></h2>
+      <div id="xferLista" class="stack"><p class="muted">Todavía no hay ítems. Buscá un producto y agregalo.</p></div>
+      <label>Nota para el lote <span class="muted">(opcional; se usa en los ítems que no tengan nota)</span>
+        <input id="xferNotaLote" maxlength="200" placeholder="Ej.: traslado del viernes"></label>
+      <button class="btn big primary" id="btnXferGuardar" type="button">Guardar transferencia</button>
+      <h2>Transferencias recientes</h2>
+      <div id="xferRecientes" class="stack"><p class="muted">Cargando…</p></div>
+    </div>
   </section>
 </main>
 
@@ -153,6 +186,6 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
   <div class="resultados stack"></div>
 </template>
 
-<script type="module" src="app.js?v=16"></script>
+<script type="module" src="app.js?v=17"></script>
 </body>
 </html>

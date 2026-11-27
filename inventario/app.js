@@ -1,4 +1,4 @@
-// Inventario TG — conteos a ciegas y usos internos. No escribe en Bims.
+// Inventario TG — conteos a ciegas, usos internos y transferencias. No escribe en Bims.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
@@ -16,7 +16,7 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v16 (27/11)";
+export const APP_VERSION = "v17 (27/11)";
 // Cuenta compartida del personal (solo puede usar Inventario). La clave del equipo se escribe una vez por celular.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const USUARIOS = ["Tomás", "Felix", "Tatiana", "Elías", "Junior", "Belén"];
@@ -104,7 +104,7 @@ function reenviarCola() {
   reenviando = true;
   Promise.allSettled(rutas.map((r) => { const { d, m } = c[r];
     const datos = { ...hidratar(d), reenviadoLocal: Date.now() };
-    if (r.includes("/usos_internos/")) delete datos.estado; // v15: el reenvío nunca toca el estado de un uso interno
+    if (r.includes("/usos_internos/") || r.includes("/transferencias/")) delete datos.estado; // el reenvío nunca pisa el estado (usos o transferencias)
     return rastrear(setDoc(doc(db, r), datos, { merge: true }).then(() => deCola(r, m), (e) => { descartarSiRechazo(e, r, m); throw e; }));
   })).finally(() => { reenviando = false; });
 }
@@ -320,7 +320,7 @@ function entrarDeposito() {
   const clave = st.deposito + "|" + st.usuario;
   if (depActivo === clave && st.unsub.conteos) return;
   salirDeposito(); depActivo = clave;
-  escucharConteos(); escucharUsos(); resetUso();
+  escucharConteos(); escucharUsos(); resetUso(); prepararXfer(); escucharTransferencias();
   const kG = `inv_conteo_${st.deposito}_${st.usuario}`, guardado = localStorage.getItem(kG);
   // v14: nunca retomar un conteo de otro día (el id empieza con la fecha); si ya fue enviado, abrirConteo lo cierra
   if (guardado && guardado.startsWith(`${hoyISO()}_${slug(st.usuario)}_`)) abrirConteo(guardado);
@@ -544,9 +544,162 @@ function escucharUsos() {
   }, (e) => { console.error(e); $("#usosLista").innerHTML = '<p class="muted">No se pudo leer: ' + esc(e.code) + "</p>"; });
 }
 
+
+// ---------- TRANSFERENCIAS ----------
+// La app solo crea ítems en estado "pendiente". "transferido" lo marca Inventario General / BIMS
+// (bims_ref, transferido_por, transferido_at). El reenvío local nunca pisa el estado.
+// "prueba" (u otro valor que no sea pendiente/transferido) no lo debe cargar BIMS.
+const ESTADO_XFER = { pendiente: "pendiente", transferido: "transferido", prueba: "prueba" };
+const colXfer = () => collection(db, "inventario", st.deposito, "transferencias");
+let xferProd = null;
+let xferItems = []; // lista local de lo que se lleva, todavía no guardada
+
+function prepararXfer() {
+  xferItems = [];
+  xferProd = null;
+  $("#formXferItem").classList.add("hidden");
+  $("#formXferItem").reset();
+  $("#xferOrigen").textContent = dep() ? dep().nombre : "";
+  const sel = $("#xferDestino");
+  const prev = sel.value;
+  const dests = DEPOSITOS.filter((d) => d.id !== st.deposito);
+  sel.innerHTML = '<option value="">Elegí a dónde se lleva</option>' + dests.map((d) => `<option value="${esc(d.id)}">${esc(d.nombre)}</option>`).join("");
+  if (prev && dests.some((d) => d.id === prev)) sel.value = prev;
+  pintarListaXfer();
+}
+function elegirXfer(p) {
+  xferProd = p;
+  $("#formXferItem").classList.remove("hidden");
+  $("#xferProducto").innerHTML = `<div class="prod-title">${esc(p.p)} ${p.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}</div><div class="muted">${p.id ? "Ficha " + esc(p.id) + " · " : ""}${p.c ? "Cód. " + esc(p.c) + " · " : ""}Unidad: <b>${esc(p.u)}</b></div>`;
+  $("#xferUnidad").textContent = "(" + p.u + ")";
+  $("#xferCantidad").value = "";
+  $("#xferNotaItem").value = $("#xferNotaLote").value || "";
+  setTimeout(() => $("#xferCantidad").focus(), 50);
+}
+function pintarListaXfer() {
+  const box = $("#xferLista"), n = $("#xferListaCant");
+  if (n) n.textContent = String(xferItems.length);
+  if (!xferItems.length) {
+    box.innerHTML = '<p class="muted">Todavía no hay ítems. Buscá un producto y agregalo.</p>';
+    return;
+  }
+  box.innerHTML = xferItems.map((it, i) => `
+    <div class="card item xfer-item"><div>
+      <div><b>${esc(it.producto)}</b>${it.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}</div>
+      <div class="muted small">${it.producto_id ? "Ficha " + esc(it.producto_id) : "Sin ficha"}${it.nota ? " · " + esc(it.nota) : ""}</div>
+      <button type="button" class="btn mini warn quit" data-xqi="${i}">Quitar</button>
+    </div>
+    <div class="q">${fmt(it.cantidad)} <span class="small">${esc(UNIDAD_CORTA[it.unidad] || it.unidad)}</span></div></div>`).join("");
+  box.querySelectorAll("[data-xqi]").forEach((b) => b.onclick = () => { xferItems.splice(Number(b.dataset.xqi), 1); pintarListaXfer(); });
+}
+$("#btnXferCancelarItem").onclick = () => { xferProd = null; $("#formXferItem").classList.add("hidden"); $("#formXferItem").reset(); };
+$("#formXferItem").onsubmit = (e) => {
+  e.preventDefault();
+  if (!xferProd) return;
+  const n = parseCant($("#xferCantidad").value);
+  if (!(n > 0)) return toast("Escribí una cantidad mayor a cero");
+  xferItems.push({
+    producto: xferProd.p,
+    producto_id: xferProd.id ?? null,
+    codigo: xferProd.c || "",
+    unidad: xferProd.u,
+    sinFicha: !!xferProd.sinFicha,
+    cantidad: n,
+    nota: $("#xferNotaItem").value.trim(),
+  });
+  toast("Agregado a la lista");
+  xferProd = null;
+  $("#formXferItem").classList.add("hidden");
+  $("#formXferItem").reset();
+  if (buscadores.xfer) buscadores.xfer.limpiar();
+  pintarListaXfer();
+};
+$("#btnXferGuardar").onclick = () => {
+  if (!xferItems.length) return toast("Agregá al menos un producto a la lista");
+  const destId = $("#xferDestino").value;
+  if (!destId) return toast("Elegí el depósito destino");
+  if (destId === st.deposito) return toast("El destino no puede ser el mismo depósito");
+  const dest = DEPOSITOS.find((d) => d.id === destId);
+  if (!dest) return toast("Destino inválido");
+  const notaLote = $("#xferNotaLote").value.trim();
+  const ahora = Date.now();
+  const lote_id = `${hoyISO()}_${slug(st.usuario)}_${ahora.toString(36)}`;
+  for (const it of xferItems) {
+    const ref = doc(colXfer());
+    const nota = it.nota || notaLote || "";
+    const datos = {
+      deposito_origen: st.deposito,
+      deposito_destino: dest.id,
+      deposito_origen_nombre: dep().nombre,
+      deposito_destino_nombre: dest.nombre,
+      producto: it.producto,
+      producto_id: it.producto_id,
+      productoId: it.producto_id, // convención de usos_internos
+      codigo: it.codigo,
+      cantidad: it.cantidad,
+      unidad: it.unidad,
+      sinFicha: it.sinFicha,
+      fecha_hora: ST_MARK,
+      fecha_horaLocal: ahora,
+      fecha: hoyISO(),
+      usuario: st.usuario,
+      nota,
+      lote_id,
+      deposito: st.deposito,
+      depositoNombre: dep().nombre,
+      creado: ST_MARK,
+      creadoLocal: ahora,
+      app: "inventario-tg",
+      appVersion: APP_VERSION,
+    };
+    // El respaldo NO lleva "estado": si BIMS ya lo marcó, el reenvío no lo vuelve a pendiente.
+    escribir(ref.path, { ...hidratar(datos), estado: ESTADO_XFER.pendiente }, datos).catch(() => {});
+  }
+  const n = xferItems.length;
+  toast(n === 1 ? "Transferencia guardada (1 ítem)" : `Transferencia guardada (${n} ítems)`);
+  xferItems = [];
+  $("#xferNotaLote").value = "";
+  pintarListaXfer();
+};
+const xferHecha = (u) => u.estado === ESTADO_XFER.transferido;
+function etiquetaXfer(u) {
+  if (xferHecha(u)) {
+    return `<span class="tag ok">Transferido en Bims${u.bims_ref ? " " + esc(u.bims_ref) : ""}</span>${u.transferido_por || u.transferido_at ? ` <span class="muted">${esc(u.transferido_por || "")}${u.transferido_por && u.transferido_at ? " · " : ""}${esc(fechaCarga(u.transferido_at))}</span>` : ""}`;
+  }
+  if (u.estado === ESTADO_XFER.prueba) return '<span class="tag sf">Prueba (no transferir)</span>';
+  if (u.estado && u.estado !== ESTADO_XFER.pendiente) return `<span class="tag">${esc(u.estado)}</span>`;
+  return "<i>pendiente de transferir en Bims</i>";
+}
+function tarjetaXfer(d) {
+  const u = d.data();
+  const dest = u.deposito_destino_nombre || u.deposito_destino || "";
+  return `
+      <div class="card item${xferHecha(u) ? " cargado" : ""}"><div><div><b>${esc(u.producto)}</b>${u.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}${d.metadata.hasPendingWrites ? '<span class="tag pend">sin subir</span>' : ""}</div>
+      <div class="muted small">${u.producto_id || u.productoId ? "Ficha " + esc(u.producto_id || u.productoId) + " · " : ""}A ${esc(dest)} · ${esc(u.usuario)} · lote ${esc(u.lote_id || "—")}</div>
+      <div class="small">${u.nota ? esc(u.nota) + " · " : ""}${etiquetaXfer(u)}</div></div>
+      <div class="q">${fmt(u.cantidad)} <span class="small">${esc(UNIDAD_CORTA[u.unidad] || u.unidad)}</span></div></div>`;
+}
+function escucharTransferencias() {
+  const q = query(colXfer(), orderBy("creadoLocal", "desc"), limit(40));
+  st.unsub.xfer = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+    const cont = $("#xferRecientes");
+    if (snap.empty) { cont.innerHTML = '<p class="muted">Todavía no hay transferencias desde este depósito.</p>'; return; }
+    const pend = snap.docs.filter((d) => !xferHecha(d.data()) && d.data().estado !== ESTADO_XFER.prueba && (!d.data().estado || d.data().estado === ESTADO_XFER.pendiente));
+    const otras = snap.docs.filter((d) => !pend.includes(d) && !xferHecha(d.data()));
+    const hechas = snap.docs.filter((d) => xferHecha(d.data()));
+    let html = `<h3>Pendientes de transferir en Bims <span class="pill">${pend.length}</span></h3>`;
+    html += pend.length ? pend.map(tarjetaXfer).join("") : '<p class="muted">No hay transferencias pendientes.</p>';
+    if (otras.length) html += `<h3>Otras <span class="pill">${otras.length}</span></h3>` + otras.map(tarjetaXfer).join("");
+    if (hechas.length) html += `<h3>Ya transferidas en Bims <span class="pill">${hechas.length}</span></h3>` + hechas.map(tarjetaXfer).join("");
+    cont.innerHTML = html;
+  }, (e) => { console.error(e); $("#xferRecientes").innerHTML = '<p class="muted">No se pudo leer: ' + esc(e.code) + "</p>"; });
+}
+
+
 // ---------- Inicio ----------
 buscadores.conteo = montarBuscador($('.buscador[data-modo="conteo"]'), (p) => panelConteo(p));
 buscadores.uso = montarBuscador($('.buscador[data-modo="uso"]'), elegirUso);
+buscadores.xfer = montarBuscador($('.buscador[data-modo="xfer"]'), elegirXfer);
 cargarCatalogo().then(() => { window.__invReady = true; pintarVersion(); }).catch((e) => toast("No se pudo cargar el catálogo"));
 pintarSync();
 router();
