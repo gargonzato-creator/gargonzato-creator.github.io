@@ -1,4 +1,4 @@
-const CACHE = "finanzas-tg-v5"
+const CACHE = "finanzas-tg-v6"
 const BASE = "/finanzas"
 const PRECACHE_PAGINAS = [
   `${BASE}/`,
