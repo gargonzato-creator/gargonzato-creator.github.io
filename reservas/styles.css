@@ -65,7 +65,7 @@ label input,label select,label textarea{margin-top:6px;font-weight:400}
 .zona-mapa-scroll{overflow:hidden;border-radius:12px;background:#d4e4f3;touch-action:manipulation;overscroll-behavior:contain}
 .zona-mapa{position:relative;width:100%;height:240px;background:#d4e4f3;border-radius:12px;overflow:hidden;touch-action:manipulation}
 .mesa{position:absolute;min-width:56px;min-height:56px;width:56px;height:56px;margin:0;border:0;border-radius:14px;color:#fff;font:inherit;font-weight:800;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;box-shadow:0 2px 5px rgba(0,0,0,.18);transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent;user-select:none;padding:3px}
-.mesa .n{font-size:16px;text-align:center;padding:0 2px;word-break:break-word;hyphens:auto;max-width:100%}
+.mesa .n{font-size:15px;text-align:center;padding:0 2px;word-break:normal;overflow-wrap:normal;hyphens:none;max-width:100%}
 .mesa .c{font-size:11px;font-weight:600;opacity:.9;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mesa.alargada,.mesa.barra{border-radius:10px}
 .mesa.alargada .n,.mesa.barra .n,.mesa.nocli .n{font-size:11px;font-weight:700}
