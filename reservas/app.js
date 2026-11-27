@@ -16,7 +16,7 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v3.2 (27/11)";
+export const APP_VERSION = "v3.3 (27/11)";
 // Misma cuenta compartida del personal que Inventario. No se crean claves nuevas.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const TZ = "America/Asuncion";
