@@ -1,5 +1,5 @@
 // Service worker de Reservas AC: red primero; caché solo como respaldo sin señal.
-const VERSION = "res-ac-v2";
+const VERSION = "res-ac-v3";
 const LOCAL = ["./", "index.html", "app.js", "styles.css", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 const CDN = [
   "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js",

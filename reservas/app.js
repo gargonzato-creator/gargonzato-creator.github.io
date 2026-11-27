@@ -16,7 +16,7 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v2 (27/11)";
+export const APP_VERSION = "v3 (27/11)";
 // Misma cuenta compartida del personal que Inventario. No se crean claves nuevas.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const TZ = "America/Asuncion";
@@ -26,7 +26,20 @@ const PATH_MESAS = `${PATH_CONFIG}/mesas`;
 const PATH_RESERVAS = `${PATH_CONFIG}/reservas`;
 
 const TURNO_DEFAULT = { id: "sabado-noche", nombre: "Sábado noche", llegada_desde: "20:00", llegada_hasta: "22:00" };
-const ZONAS = ["Salón", "Afuera"];
+const MAPA_VERSION = "bims-pos-v3";
+const SECTORES = [
+  { id: "mayoria", nombre: "Salón Mayoría", corto: "Mayoría" },
+  { id: "patio", nombre: "Patio", corto: "Patio" },
+  { id: "granero", nombre: "Granero", corto: "Granero" },
+  { id: "tienda", nombre: "Tienda", corto: "Tienda" },
+];
+const ZONAS = SECTORES.map((s) => s.nombre);
+const SECTOR_MAPA = {
+  "Salón Mayoría": { bw: 858, bh: 408, minRect: 40 },
+  "Patio": { bw: 776, bh: 492, minRect: 39 },
+  "Granero": { bw: 584, bh: 420, minRect: 43 },
+  "Tienda": { bw: 983, bh: 556, minRect: 78 },
+};
 const CANALES = [
   { id: "whatsapp", nombre: "WhatsApp" },
   { id: "llamada", nombre: "Llamada" },
@@ -42,22 +55,75 @@ const ESTADOS = [
 ];
 const USUARIOS_BASE = ["Tomás"];
 
-// Disposición provisoria: 13 mesas, ~32 personas. Se puede reacomodar en la app.
-const MESAS_PROVISORIAS = [
-  { id: "m1", numero: "1", zona: "Salón", capacidad: 2, x: 14, y: 28 },
-  { id: "m2", numero: "2", zona: "Salón", capacidad: 4, x: 38, y: 28 },
-  { id: "m3", numero: "3", zona: "Salón", capacidad: 2, x: 62, y: 28 },
-  { id: "m4", numero: "4", zona: "Salón", capacidad: 2, x: 86, y: 28 },
-  { id: "m5", numero: "5", zona: "Salón", capacidad: 4, x: 14, y: 70 },
-  { id: "m6", numero: "6", zona: "Salón", capacidad: 2, x: 38, y: 70 },
-  { id: "m7", numero: "7", zona: "Salón", capacidad: 2, x: 62, y: 70 },
-  { id: "m8", numero: "8", zona: "Salón", capacidad: 2, x: 86, y: 70 },
-  { id: "m9", numero: "9", zona: "Afuera", capacidad: 2, x: 20, y: 30 },
-  { id: "m10", numero: "10", zona: "Afuera", capacidad: 4, x: 50, y: 30 },
-  { id: "m11", numero: "11", zona: "Afuera", capacidad: 2, x: 80, y: 30 },
-  { id: "m12", numero: "12", zona: "Afuera", capacidad: 2, x: 35, y: 72 },
-  { id: "m13", numero: "13", zona: "Afuera", capacidad: 2, x: 65, y: 72 },
+// Mapa del POS CARNES de Bims (27/11/2026). Mesa Especial no se incluye.
+// Posiciones en % del recuadro de cada sector, proporcionales al plano. Sin mesa 5 en Patio.
+const MESAS_BIMS = [
+  { id: "mayoria-13", zona: "Salón Mayoría", numero: "13", nombre: "13", forma: "rect", capacidad: 2, cliente: true, x: 8.0, y: 15.5, w: 7.7, h: 13.3, orden: 1 },
+  { id: "mayoria-12", zona: "Salón Mayoría", numero: "12", nombre: "12", forma: "alargada", capacidad: 4, cliente: true, x: 30.4, y: 14.5, w: 17.7, h: 6.4, orden: 2 },
+  { id: "mayoria-11", zona: "Salón Mayoría", numero: "11", nombre: "11", forma: "rect", capacidad: 2, cliente: true, x: 56.3, y: 25.3, w: 5.1, h: 11.8, orden: 3 },
+  { id: "mayoria-8", zona: "Salón Mayoría", numero: "8", nombre: "8", forma: "rect", capacidad: 2, cliente: true, x: 19.0, y: 59.1, w: 5.8, h: 11.5, orden: 4 },
+  { id: "mayoria-10", zona: "Salón Mayoría", numero: "10", nombre: "10", forma: "rect", capacidad: 2, cliente: true, x: 63.5, y: 57.7, w: 5.8, h: 9.8, orden: 5 },
+  { id: "mayoria-7", zona: "Salón Mayoría", numero: "7", nombre: "7", forma: "rect", capacidad: 2, cliente: true, x: 19.2, y: 85.9, w: 6.4, h: 10.6, orden: 6 },
+  { id: "mayoria-9", zona: "Salón Mayoría", numero: "9", nombre: "9", forma: "alargada", capacidad: 4, cliente: true, x: 43.0, y: 82.0, w: 15.8, h: 8.6, orden: 7 },
+  { id: "mayoria-barra", zona: "Salón Mayoría", numero: "barra", nombre: "Barra Mayoría", forma: "barra", capacidad: 6, cliente: true, x: 89.1, y: 53.5, w: 13.4, h: 64.0, orden: 8 },
+  { id: "patio-barra-parrilla", zona: "Patio", numero: "barra-parrilla", nombre: "Barra Parrilla", forma: "barra", capacidad: 6, cliente: true, x: 62.8, y: 15.0, w: 65.2, h: 15.4, orden: 1 },
+  { id: "patio-tambor", zona: "Patio", numero: "tambor", nombre: "Tambor", forma: "rect", capacidad: 2, cliente: true, x: 10.2, y: 50.8, w: 11.1, h: 11.6, orden: 2 },
+  { id: "patio-1", zona: "Patio", numero: "1", nombre: "1", forma: "rect", capacidad: 2, cliente: true, x: 31.8, y: 84.5, w: 6.4, h: 8.5, orden: 3 },
+  { id: "patio-2", zona: "Patio", numero: "2", nombre: "2", forma: "rect", capacidad: 2, cliente: true, x: 50.9, y: 63.8, w: 6.1, h: 9.3, orden: 4 },
+  { id: "patio-3", zona: "Patio", numero: "3", nombre: "3", forma: "rect", capacidad: 2, cliente: true, x: 63.9, y: 53.4, w: 7.3, h: 11.6, orden: 5 },
+  { id: "patio-4", zona: "Patio", numero: "4", nombre: "4", forma: "rect", capacidad: 2, cliente: true, x: 77.7, y: 52.2, w: 8.9, h: 18.9, orden: 6 },
+  { id: "patio-6", zona: "Patio", numero: "6", nombre: "6", forma: "rect", capacidad: 2, cliente: true, x: 61.1, y: 86.9, w: 5.0, h: 11.6, orden: 7 },
+  { id: "granero-6", zona: "Granero", numero: "6", nombre: "6", forma: "rect", capacidad: 2, cliente: true, x: 11.0, y: 15.2, w: 9.8, h: 13.3, orden: 1 },
+  { id: "granero-4", zona: "Granero", numero: "4", nombre: "4", forma: "rect", capacidad: 2, cliente: true, x: 39.9, y: 16.0, w: 10.8, h: 11.2, orden: 2 },
+  { id: "granero-5", zona: "Granero", numero: "5", nombre: "5", forma: "rect", capacidad: 2, cliente: true, x: 12.4, y: 51.9, w: 10.9, h: 14.8, orden: 3 },
+  { id: "granero-3", zona: "Granero", numero: "3", nombre: "3", forma: "rect", capacidad: 2, cliente: true, x: 37.6, y: 52.4, w: 9.4, h: 12.6, orden: 4 },
+  { id: "granero-1", zona: "Granero", numero: "1", nombre: "1", forma: "rect", capacidad: 2, cliente: true, x: 89.1, y: 51.2, w: 7.5, h: 10.2, orden: 5 },
+  { id: "granero-2", zona: "Granero", numero: "2", nombre: "2", forma: "rect", capacidad: 2, cliente: true, x: 89.1, y: 86.2, w: 9.6, h: 10.5, orden: 6 },
+  { id: "tienda-para-llevar-1", zona: "Tienda", numero: "para-llevar-1", nombre: "Para llevar 1", forma: "alargada", capacidad: 4, cliente: false, x: 11.5, y: 17.8, w: 15.0, h: 8.1, orden: 1 },
+  { id: "tienda-para-llevar-2", zona: "Tienda", numero: "para-llevar-2", nombre: "Para llevar 2", forma: "alargada", capacidad: 4, cliente: false, x: 11.3, y: 36.9, w: 15.4, h: 8.3, orden: 2 },
+  { id: "tienda-para-llevar-3", zona: "Tienda", numero: "para-llevar-3", nombre: "Para llevar 3", forma: "alargada", capacidad: 4, cliente: false, x: 11.6, y: 54.5, w: 15.9, h: 7.6, orden: 3 },
+  { id: "tienda-bebidas-interno", zona: "Tienda", numero: "bebidas-interno", nombre: "Bebidas interno", forma: "alargada", capacidad: 4, cliente: false, x: 51.4, y: 11.9, w: 18.2, h: 10.3, orden: 4 },
+  { id: "tienda-funcionarios", zona: "Tienda", numero: "funcionarios", nombre: "Funcionarios", forma: "alargada", capacidad: 4, cliente: false, x: 51.3, y: 28.6, w: 18.4, h: 9.2, orden: 5 },
+  { id: "tienda-tomas", zona: "Tienda", numero: "tomas", nombre: "Tomás", forma: "rect", capacidad: 2, cliente: false, x: 70.2, y: 13.5, w: 10.2, h: 14.0, orden: 6 },
+  { id: "tienda-butaca-1", zona: "Tienda", numero: "butaca-1", nombre: "Butaca 1", forma: "alargada", capacidad: 4, cliente: true, x: 18.6, y: 67.5, w: 10.7, h: 5.9, orden: 7 },
+  { id: "tienda-butaca-2", zona: "Tienda", numero: "butaca-2", nombre: "Butaca 2", forma: "alargada", capacidad: 4, cliente: true, x: 35.2, y: 67.5, w: 10.6, h: 6.5, orden: 8 },
+  { id: "tienda-butaca-3", zona: "Tienda", numero: "butaca-3", nombre: "Butaca 3", forma: "alargada", capacidad: 4, cliente: true, x: 53.2, y: 67.9, w: 11.1, h: 6.8, orden: 9 },
+  { id: "tienda-butaca-4", zona: "Tienda", numero: "butaca-4", nombre: "Butaca 4", forma: "alargada", capacidad: 4, cliente: true, x: 71.9, y: 67.5, w: 9.4, h: 7.0, orden: 10 },
+  { id: "tienda-butaca-5", zona: "Tienda", numero: "butaca-5", nombre: "Butaca 5", forma: "alargada", capacidad: 4, cliente: true, x: 90.7, y: 67.5, w: 11.3, h: 7.0, orden: 11 },
+  { id: "tienda-barra", zona: "Tienda", numero: "barra", nombre: "Barra Tienda", forma: "barra", capacidad: 6, cliente: true, x: 47.0, y: 85.5, w: 52.3, h: 16.0, orden: 12 },
 ];
+function cortoZona(zona) {
+  const s = SECTORES.find((x) => x.nombre === zona);
+  return s ? s.corto : (zona || "");
+}
+function idSector(zona) {
+  const s = SECTORES.find((x) => x.nombre === zona);
+  return s ? s.id : "mesa";
+}
+function etiquetaMesa(m) {
+  if (!m) return "";
+  if (m.etiqueta) return m.etiqueta;
+  const corto = cortoZona(m.zona);
+  const nom = String(m.nombre || m.numero || "").trim();
+  if (!nom) return corto || "Mesa";
+  if (/^\d+$/.test(nom)) return `${corto} ${nom}`.trim();
+  return corto ? `${corto} · ${nom}` : nom;
+}
+function textoMesaReserva(r) {
+  if (r?.mesaEtiqueta) return r.mesaEtiqueta;
+  if (r?.mesaId) {
+    const m = st.mesas.find((x) => x.id === r.mesaId);
+    if (m) return etiquetaMesa(m);
+  }
+  if (r?.mesaNumero) {
+    const c = cortoZona(r.zona);
+    return c ? `${c} ${r.mesaNumero}` : `Mesa ${r.mesaNumero}`;
+  }
+  return "Sin mesa";
+}
+function zonasActivas() {
+  return (Array.isArray(st.config?.zonas) && st.config.zonas.length) ? st.config.zonas : ZONAS;
+}
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -120,10 +186,12 @@ const st = {
   pendientes: 0,
   fecha: proximoSabadoISO(),
   turnoId: TURNO_DEFAULT.id,
+  sector: (typeof sessionStorage !== "undefined" && sessionStorage.getItem("resac_sector")) || "Salón Mayoría",
   config: null,
   mesas: [],
   reservas: [],
   editando: false,
+  sembrando: false,
   unsub: {},
   sembrado: false,
   configCargado: false,
@@ -139,7 +207,16 @@ const turnos = () => {
   return t;
 };
 const turnoActual = () => turnos().find((t) => t.id === st.turnoId) || turnos()[0];
-const mesasVivas = () => st.mesas.filter((m) => !m.deleted).sort((a, b) => Number(a.numero) - Number(b.numero) || String(a.numero).localeCompare(String(b.numero)));
+const mesasVivas = () => {
+  const zi = (z) => { const i = zonasActivas().indexOf(z); return i < 0 ? 99 : i; };
+  return st.mesas.filter((m) => !m.deleted).sort((a, b) => {
+    const za = zi(a.zona), zb = zi(b.zona);
+    if (za !== zb) return za - zb;
+    const oa = Number(a.orden), ob = Number(b.orden);
+    if (Number.isFinite(oa) && Number.isFinite(ob) && oa !== ob) return oa - ob;
+    return etiquetaMesa(a).localeCompare(etiquetaMesa(b), "es");
+  });
+};
 
 // ---------- Firebase ----------
 const app = initializeApp(firebaseConfig, "reservas-carnes");
@@ -250,28 +327,56 @@ function guardarReserva(id, datos) {
   return escribir(`${PATH_RESERVAS}/${id}`, vivo, respaldo);
 }
 
+function camposMesaBims(m) {
+  return {
+    numero: m.numero,
+    nombre: m.nombre,
+    zona: m.zona,
+    capacidad: m.capacidad,
+    forma: m.forma,
+    x: m.x, y: m.y, w: m.w, h: m.h,
+    orden: m.orden,
+    cliente: m.cliente !== false,
+    habilitada: m.cliente !== false,
+    deleted: false,
+    mapa: MAPA_VERSION,
+    provisorio: false,
+  };
+}
 async function sembrarSiFalta() {
-  if (st.sembrado || !st.uid) return;
+  if (st.sembrando || !st.uid) return;
   if (!st.configCargado || !st.mesasCargadas) return;
-  if (st.config && mesasVivas().length) { st.sembrado = true; return; }
-  st.sembrado = true;
-  if (!st.config) {
-    await guardarConfig({
-      turnos: [TURNO_DEFAULT],
-      usuarios: USUARIOS_BASE,
-      zonas: ZONAS,
-      mesas_provisorias: true,
-      capacidad_objetivo: 32,
-      calendar_sync: false, // v1: no se sincroniza con Google Calendar
-    });
-  }
-  if (!mesasVivas().length) {
-    for (const m of MESAS_PROVISORIAS) {
-      await guardarMesa(m.id, {
-        numero: m.numero, zona: m.zona, capacidad: m.capacidad, x: m.x, y: m.y,
-        habilitada: true, deleted: false, provisorio: true,
+  const versionOk = st.config?.mapa_version === MAPA_VERSION;
+  const faltan = MESAS_BIMS.filter((m) => !st.mesas.some((x) => x.id === m.id));
+  if (versionOk && !faltan.length) { st.sembrado = true; return; }
+  st.sembrando = true;
+  try {
+    if (!versionOk) {
+      const idsNuevos = new Set(MESAS_BIMS.map((m) => m.id));
+      for (const m of st.mesas) {
+        const vieja = m.provisorio === true || /^m\d+$/.test(String(m.id || ""));
+        if (!m.deleted && vieja && !idsNuevos.has(m.id)) {
+          await guardarMesa(m.id, { deleted: true, retirada_por: "mapa-bims-v3", retiradaLocal: Date.now() });
+        }
+      }
+    }
+    for (const m of faltan) {
+      await guardarMesa(m.id, camposMesaBims(m));
+    }
+    if (!st.config || !versionOk) {
+      const base = st.config ? {} : { turnos: [TURNO_DEFAULT], usuarios: USUARIOS_BASE, calendar_sync: false };
+      await guardarConfig({
+        ...base,
+        zonas: ZONAS,
+        mapa_version: MAPA_VERSION,
+        mesas_provisorias: false,
       });
     }
+  } catch (e) {
+    console.warn("sembrar", e);
+  } finally {
+    st.sembrando = false;
+    st.sembrado = true;
   }
 }
 
@@ -371,8 +476,8 @@ function pintar() {
   }
   sel.value = turnoActual().id;
   $("#labTurno").classList.toggle("hidden", ts.length <= 1 && !st.editando);
-  const prov = st.config?.mesas_provisorias !== false;
-  $("#avisoProvisorio").classList.toggle("hidden", !prov || st.editando);
+  const aviso = $("#avisoProvisorio");
+  if (aviso) aviso.classList.add("hidden");
   $("#panelDia").classList.toggle("hidden", st.editando);
   $("#panelEditar").classList.toggle("hidden", !st.editando);
   if (st.editando) { pintarMapa($("#mapaEditar"), true); pintarTurnosEditar(); }
@@ -401,27 +506,66 @@ function pintarResumen() {
   ].filter(Boolean).join("");
 }
 
+function sectorActual() {
+  const zonas = zonasActivas();
+  if (zonas.includes(st.sector)) return st.sector;
+  st.sector = zonas[0] || "Salón Mayoría";
+  return st.sector;
+}
+function pintarSectorNav(root) {
+  if (!root) return;
+  const actual = sectorActual();
+  root.innerHTML = zonasActivas().map((z) =>
+    `<button type="button" class="sector${z === actual ? " active" : ""}" data-zona="${esc(z)}">${esc(z)}</button>`
+  ).join("");
+  root.querySelectorAll("[data-zona]").forEach((b) => {
+    b.onclick = () => {
+      st.sector = b.dataset.zona;
+      try { sessionStorage.setItem("resac_sector", st.sector); } catch {}
+      pintar();
+    };
+  });
+}
+function medidasMapa(zona, availW) {
+  const meta = SECTOR_MAPA[zona] || { bw: 800, bh: 400, minRect: 48 };
+  const scaleMin = 52 / (meta.minRect || 48);
+  const scaleFit = (availW || 320) / meta.bw;
+  const scale = scaleFit >= scaleMin ? scaleFit : scaleMin;
+  return { w: Math.round(meta.bw * scale), h: Math.round(meta.bh * scale) };
+}
 function pintarMapa(root, editando) {
-  const mesas = mesasVivas();
-  const zonas = (Array.isArray(st.config?.zonas) && st.config.zonas.length ? st.config.zonas : ZONAS);
-  root.innerHTML = `<div class="zonas">${zonas.map((z) => {
-    const mz = mesas.filter((m) => (m.zona || "Salón") === z);
-    const cap = mz.filter((m) => m.habilitada !== false).reduce((a, m) => a + (Number(m.capacidad) || 0), 0);
-    return `<section class="zona" data-zona="${esc(z)}">
-      <h3>${esc(z)} <span class="cap">${mz.length} mesas · ${cap} pers.</span></h3>
-      <div class="zona-mapa" data-zona="${esc(z)}">${mz.map((m) => htmlMesa(m, editando)).join("")}</div>
-    </section>`;
-  }).join("")}</div>`;
+  if (!root) return;
+  pintarSectorNav(editando ? $("#navSectoresEditar") : $("#navSectores"));
+  const zona = sectorActual();
+  const mz = mesasVivas().filter((m) => (m.zona || "") === zona);
+  const cap = mz.filter((m) => m.habilitada !== false).reduce((a, m) => a + (Number(m.capacidad) || 0), 0);
+  const hab = mz.filter((m) => m.habilitada !== false).length;
+  root.innerHTML = `<section class="zona" data-zona="${esc(zona)}">
+    <h3>${esc(zona)} <span class="cap">${hab} habilitadas · ${cap} pers.</span></h3>
+    <div class="zona-mapa-scroll"><div class="zona-mapa" data-zona="${esc(zona)}">${mz.map((m) => htmlMesa(m, editando)).join("")}</div></div>
+  </section>`;
+  const scroll = root.querySelector(".zona-mapa-scroll");
+  const mapa = root.querySelector(".zona-mapa");
+  const avail = (scroll && scroll.clientWidth) || root.clientWidth || 320;
+  const med = medidasMapa(zona, avail);
+  if (mapa) {
+    mapa.style.width = med.w + "px";
+    mapa.style.height = med.h + "px";
+  }
   root.querySelectorAll(".mesa").forEach((el) => engancharMesa(el, editando));
 }
 function htmlMesa(m, editando) {
   const est = editando ? (m.habilitada === false ? "deshabilitada" : "libre") : estadoMesa(m);
   const r = !editando ? reservaDeMesa(m.id) : null;
   const sub = r ? (r.nombre || "Reserva") : `${m.capacidad || "?"}p`;
-  return `<button type="button" class="mesa ${est}${editando ? " editando" : ""}" data-id="${esc(m.id)}"
-    style="left:${Number(m.x) || 50}%;top:${Number(m.y) || 50}%"
-    aria-label="Mesa ${esc(m.numero)}">
-    <span class="n">${esc(m.numero)}</span>
+  const label = m.nombre || m.numero || "";
+  const forma = m.forma || "rect";
+  const nocli = m.cliente === false ? " nocli" : "";
+  return `<button type="button" class="mesa ${est} ${forma}${editando ? " editando" : ""}${nocli}" data-id="${esc(m.id)}"
+    data-w="${Number(m.w) || 10}" data-h="${Number(m.h) || 10}"
+    style="left:${Number(m.x) || 50}%;top:${Number(m.y) || 50}%;width:${Number(m.w) || 10}%;height:${Number(m.h) || 10}%"
+    aria-label="${esc(etiquetaMesa(m))}">
+    <span class="n">${esc(label)}</span>
     <span class="c">${esc(sub)}</span>
   </button>`;
 }
@@ -444,8 +588,10 @@ function engancharMesa(el, editando) {
     const p = ev.touches ? ev.touches[0] : ev;
     const mapa = el.parentElement.getBoundingClientRect();
     if (Math.hypot(p.clientX - px, p.clientY - py) > 6) moved = true;
-    const x = Math.min(92, Math.max(8, ((p.clientX - mapa.left) / mapa.width) * 100));
-    const y = Math.min(88, Math.max(12, ((p.clientY - mapa.top) / mapa.height) * 100));
+    const wr = Math.max(4, (Number(el.dataset.w) || 10) / 2);
+    const hr = Math.max(4, (Number(el.dataset.h) || 10) / 2);
+    const x = Math.min(100 - wr, Math.max(wr, ((p.clientX - mapa.left) / mapa.width) * 100));
+    const y = Math.min(100 - hr, Math.max(hr, ((p.clientY - mapa.top) / mapa.height) * 100));
     el.style.left = x + "%"; el.style.top = y + "%";
     el.dataset.x = String(Math.round(x * 10) / 10);
     el.dataset.y = String(Math.round(y * 10) / 10);
@@ -481,8 +627,8 @@ function pintarLista() {
   }
   box.innerHTML = rs.map((r) => {
     const hora = horaValida(r.hora) || "Sin hora";
-    const mesa = r.mesaNumero ? `Mesa ${r.mesaNumero}` : "Sin mesa";
-    const zona = r.zona ? ` · ${r.zona}` : "";
+    const mesa = textoMesaReserva(r);
+    const zona = (r.zona && !String(mesa).includes(r.zona) && !String(mesa).includes(cortoZona(r.zona))) ? ` · ${r.zona}` : "";
     const canal = nomCanal(r.canal);
     return `<button type="button" class="item ${esc(r.estado || "")}" data-rid="${esc(r.id)}">
       <div class="top"><span class="nom">${esc(r.nombre || "Sin nombre")}${r.ocasional ? '<span class="badge ocasional">Ocasional</span>' : ""} <span class="badge ${esc(r.estado)}">${esc(nomEstado(r.estado))}</span></span><span class="hora">${esc(hora)}</span></div>
@@ -518,12 +664,19 @@ $("#sheet").addEventListener("click", (e) => { if (e.target.id === "sheet") cerr
 function opcionesMesa(selected, zona) {
   const libres = mesasVivas().filter((m) => m.habilitada !== false);
   const opts = [`<option value="">Sin asignar (se puede después)</option>`];
+  let lastZ = null;
   for (const m of libres) {
+    if (m.zona && m.zona !== lastZ) {
+      if (lastZ) opts.push(`</optgroup>`);
+      opts.push(`<optgroup label="${esc(m.zona)}">`);
+      lastZ = m.zona;
+    }
     const est = estadoMesa(m);
     const marca = est === "libre" ? "libre" : est;
     const sel = m.id === selected ? " selected" : "";
-    opts.push(`<option value="${esc(m.id)}"${sel}>Mesa ${esc(m.numero)} · ${esc(m.zona)} · ${m.capacidad}p (${marca})</option>`);
+    opts.push(`<option value="${esc(m.id)}"${sel}>${esc(etiquetaMesa(m))} · ${m.capacidad}p (${marca})</option>`);
   }
+  if (lastZ) opts.push(`</optgroup>`);
   return opts.join("");
 }
 function radiosCanal(sel) {
@@ -553,10 +706,10 @@ function formReservaHTML(opts = {}) {
       <label>Mesa <span class="muted small">(se asigna el mismo día; puede quedar vacía)</span>
         <select id="resMesa">${opcionesMesa(r.mesaId || opts.mesaId || "")}</select>
       </label>
-      <label>Zona
+      <label>Sector
         <select id="resZona">
-          <option value="">Sin zona</option>
-          ${ZONAS.map((z) => `<option value="${esc(z)}"${(r.zona || opts.zona || "") === z ? " selected" : ""}>${esc(z)}</option>`).join("")}
+          <option value="">Sin sector</option>
+          ${zonasActivas().map((z) => `<option value="${esc(z)}"${(r.zona || opts.zona || "") === z ? " selected" : ""}>${esc(z)}</option>`).join("")}
         </select>
       </label>
       <div><div class="muted small" style="font-weight:700">Canal</div>${radiosCanal(canal)}</div>
@@ -590,7 +743,7 @@ function datosDelFormulario() {
   const ocasional = $("#resOcasional").value === "1" || canal === "sin_reserva";
   const estado = $("#resEstado").value || (ocasional ? "llego" : "confirmada");
   return {
-    nombre, personas, hora, mesaId, mesaNumero: mesa ? String(mesa.numero) : null, zona,
+    nombre, personas, hora, mesaId, mesaNumero: mesa ? String(mesa.numero || mesa.nombre || "") : null, mesaEtiqueta: mesa ? etiquetaMesa(mesa) : null, zona,
     canal, telefono, notas, ocasional, estado,
   };
 }
@@ -626,6 +779,7 @@ function engancharFormReserva() {
       hora: d.hora, // null si no la cargaron; nunca se inventa
       mesaId: d.mesaId,
       mesaNumero: d.mesaNumero,
+      mesaEtiqueta: d.mesaEtiqueta,
       zona: d.zona,
       canal: d.canal,
       telefono: d.telefono,
@@ -648,8 +802,8 @@ function abrirMesa(mesaId) {
   const r = reservaDeMesa(mesa.id);
   if (r) { abrirReserva(r.id, mesa); return; }
   if (est === "deshabilitada") {
-    abrirSheet(`<h2>Mesa ${esc(mesa.numero)}</h2>
-      <p class="muted">Esta mesa está deshabilitada.</p>
+    abrirSheet(`<h2>${esc(etiquetaMesa(mesa))}</h2>
+      <p class="muted">Esta mesa está deshabilitada${mesa.cliente === false ? " (en el POS no es una mesa de cliente)" : ""}.</p>
       <div class="stack">
         <button class="btn big primary" type="button" id="btnHab">Habilitar mesa</button>
         <button class="btn big" type="button" data-close>Cerrar</button>
@@ -657,8 +811,8 @@ function abrirMesa(mesaId) {
     $("#btnHab").onclick = () => { guardarMesa(mesa.id, { habilitada: true }); cerrarSheet(); };
     return;
   }
-  abrirSheet(`<h2>Mesa ${esc(mesa.numero)} · ${esc(mesa.zona)}</h2>
-    <p class="muted">${mesa.capacidad} personas · Libre</p>
+  abrirSheet(`<h2>${esc(etiquetaMesa(mesa))}</h2>
+    <p class="muted">${esc(mesa.zona || "")} · ${mesa.capacidad} personas · Libre</p>
     <div class="stack">
       <button class="btn big primary" type="button" id="btnOc">Ocasional en esta mesa</button>
       <button class="btn big" type="button" id="btnRv">Cargar reserva</button>
@@ -673,10 +827,10 @@ function abrirMesa(mesaId) {
 function abrirReserva(id) {
   const r = st.reservas.find((x) => x.id === id);
   if (!r) return;
-  const mesaTxt = r.mesaNumero ? `Mesa ${r.mesaNumero}` : "Sin mesa asignada";
+  const mesaTxt = (textoMesaReserva(r) === "Sin mesa") ? "Sin mesa asignada" : textoMesaReserva(r);
   const horaTxt = horaValida(r.hora) || "Sin hora";
   abrirSheet(`<h2>${esc(r.nombre || "Reserva")}</h2>
-    <p>${esc(String(r.personas || "?"))} pers. · ${esc(horaTxt)} · ${esc(mesaTxt)}${r.zona ? " · " + esc(r.zona) : ""}</p>
+    <p>${esc(String(r.personas || "?"))} pers. · ${esc(horaTxt)} · ${esc(mesaTxt)}${(r.zona && !String(mesaTxt).includes(r.zona) && !String(mesaTxt).includes(cortoZona(r.zona))) ? " · " + esc(r.zona) : ""}</p>
     <p class="muted small">${esc(nomCanal(r.canal))}${r.telefono ? " · " + esc(r.telefono) : ""}${r.notas ? " · " + esc(r.notas) : ""}</p>
     <p><span class="badge ${esc(r.estado)}">${esc(nomEstado(r.estado))}</span>${r.ocasional ? ' <span class="badge ocasional">Ocasional</span>' : ""}</p>
     <div class="stack">
@@ -707,20 +861,33 @@ function abrirReserva(id) {
 function abrirEditarMesa(mesaId) {
   const mesa = st.mesas.find((m) => m.id === mesaId);
   if (!mesa) return;
-  abrirSheet(`<h2>Editar mesa</h2>
+  const zonas = zonasActivas();
+  const forma = mesa.forma || "rect";
+  abrirSheet(`<h2>${esc(etiquetaMesa(mesa))}</h2>
     <form id="formMesa" class="stack" autocomplete="off">
-      <label>Número (igual al QR del Waiter)
-        <input id="mesaNumero" required value="${esc(mesa.numero)}" maxlength="12">
+      <label>Nombre en el mapa
+        <input id="mesaNumero" required value="${esc(mesa.nombre || mesa.numero)}" maxlength="40">
       </label>
       <label>Capacidad
         <input id="mesaCap" required inputmode="numeric" pattern="[0-9]*" value="${esc(mesa.capacidad || "")}">
       </label>
-      <label>Zona
-        <select id="mesaZona">${ZONAS.map((z) => `<option${mesa.zona === z ? " selected" : ""}>${esc(z)}</option>`).join("")}</select>
+      <label>Sector
+        <select id="mesaZona">${zonas.map((z) => `<option value="${esc(z)}"${mesa.zona === z ? " selected" : ""}>${esc(z)}</option>`).join("")}</select>
+      </label>
+      <label>Forma
+        <select id="mesaForma">
+          <option value="rect"${forma === "rect" ? " selected" : ""}>Rectángulo</option>
+          <option value="alargada"${forma === "alargada" ? " selected" : ""}>Alargada</option>
+          <option value="barra"${forma === "barra" ? " selected" : ""}>Barra</option>
+        </select>
       </label>
       <label class="row" style="align-items:center;font-weight:600">
         <input type="checkbox" id="mesaHab" ${mesa.habilitada === false ? "" : "checked"} style="width:auto"> Habilitada
       </label>
+      <label class="row" style="align-items:center;font-weight:600">
+        <input type="checkbox" id="mesaCli" ${mesa.cliente === false ? "" : "checked"} style="width:auto"> Es mesa de cliente
+      </label>
+      ${mesa.cliente === false ? `<p class="muted small">En el POS esto no es una mesa de cliente. Se puede habilitar si hace falta.</p>` : ""}
       <div class="row">
         <button type="button" class="btn big" data-close>Cerrar</button>
         <button type="submit" class="btn big primary">Guardar</button>
@@ -729,14 +896,21 @@ function abrirEditarMesa(mesaId) {
     </form>`);
   $("#formMesa").addEventListener("submit", (ev) => {
     ev.preventDefault();
-    const numero = String($("#mesaNumero").value || "").trim();
+    const nombre = String($("#mesaNumero").value || "").trim();
     const capacidad = parseInt($("#mesaCap").value, 10);
-    if (!numero || !capacidad) { toast("Faltan el número o la capacidad."); return; }
-    guardarMesa(mesa.id, { numero, capacidad, zona: $("#mesaZona").value, habilitada: $("#mesaHab").checked, deleted: false })
-      .then(() => { toast("Mesa actualizada"); cerrarSheet(); });
+    if (!nombre || !capacidad) { toast("Faltan el nombre o la capacidad."); return; }
+    const numero = /^\d+$/.test(nombre) ? nombre : (mesa.numero || nombre);
+    guardarMesa(mesa.id, {
+      numero, nombre, capacidad,
+      zona: $("#mesaZona").value,
+      forma: $("#mesaForma").value || "rect",
+      habilitada: $("#mesaHab").checked,
+      cliente: $("#mesaCli").checked,
+      deleted: false,
+    }).then(() => { toast("Mesa actualizada"); cerrarSheet(); });
   });
   $("#btnBorrarMesa").onclick = () => {
-    if (!confirm(`¿Quitamos la mesa ${mesa.numero} del mapa? Las reservas no se borran.`)) return;
+    if (!confirm(`¿Quitamos ${etiquetaMesa(mesa)} del mapa? Las reservas no se borran.`)) return;
     guardarMesa(mesa.id, { deleted: true }).then(() => { toast("Mesa quitada del mapa"); cerrarSheet(); });
   };
 }
@@ -759,11 +933,17 @@ $$(".tab").forEach((t) => t.onclick = () => {
 $("#btnEditarSalon").onclick = () => { st.editando = true; pintar(); };
 $("#btnSalirEditar").onclick = () => { st.editando = false; pintar(); };
 $("#btnAgregarMesa").onclick = () => {
-  const nums = mesasVivas().map((m) => parseInt(m.numero, 10)).filter((n) => Number.isFinite(n));
+  const zona = sectorActual();
+  const delSector = mesasVivas().filter((m) => m.zona === zona);
+  const nums = delSector.map((m) => parseInt(m.numero, 10)).filter((n) => Number.isFinite(n));
   const n = String((nums.length ? Math.max(...nums) : 0) + 1);
-  const id = "m" + Date.now().toString(36);
-  guardarMesa(id, { numero: n, zona: "Salón", capacidad: 2, x: 50, y: 50, habilitada: true, deleted: false, provisorio: false })
-    .then(() => toast(`Mesa ${n} agregada`));
+  const id = idSector(zona) + "-" + Date.now().toString(36);
+  guardarMesa(id, {
+    numero: n, nombre: n, zona, capacidad: 2, forma: "rect",
+    x: 50, y: 50, w: 10, h: 14,
+    habilitada: true, cliente: true, deleted: false, provisorio: false, mapa: MAPA_VERSION,
+    orden: delSector.length + 1,
+  }).then(() => toast(`${cortoZona(zona)} ${n} agregada`));
 };
 $("#formTurno").addEventListener("submit", (ev) => {
   ev.preventDefault();

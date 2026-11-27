@@ -19,7 +19,7 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 <header id="top">
@@ -74,7 +74,7 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
       <label class="turno-lab" id="labTurno">Turno
         <select id="selTurno"></select>
       </label>
-      <p id="avisoProvisorio" class="aviso hidden">Disposición provisoria: 13 mesas, unas 32 personas, en Salón y Afuera. Tocá «Editar salón» para acomodarlas, renombrarlas o cambiar la capacidad.</p>
+      <p id="avisoProvisorio" class="aviso hidden"></p>
       <div id="resumen" class="resumen"></div>
       <div class="row acciones-top">
         <button class="btn big primary" id="btnOcasional" type="button">Ocasional</button>
@@ -85,7 +85,9 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
         <button class="tab" data-tab="tLista" type="button">Lista</button>
       </nav>
       <div id="tMapa" class="tabpane">
+        <nav class="sectores" id="navSectores" aria-label="Sector del mapa"></nav>
         <div id="mapaZonas"></div>
+        <p class="muted small mapa-hint">Deslizá el mapa si no entra entero. Los números se repiten entre sectores: se muestra el sector (ej. Patio 3).</p>
         <div class="leyenda">
           <span><i class="dot libre"></i> Libre</span>
           <span><i class="dot reservada"></i> Reservada</span>
@@ -101,12 +103,13 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
     <div id="panelEditar" class="hidden">
       <div class="card info">
         <b>Editar salón</b>
-        <p class="muted small">Arrastrá las mesas para acomodarlas. Tocá una mesa para cambiar número, zona o capacidad. La disposición arranca provisoria.</p>
+        <p class="muted small">El mapa sigue el POS de Bims (Salón Mayoría, Patio, Granero y Tienda). Arrastrá las mesas para acomodarlas y tocá una para cambiar el nombre, el sector o la capacidad. En Tienda, Para llevar, Bebidas interno, Funcionarios y Tomás arrancan deshabilitados: no son mesas de cliente, pero se pueden habilitar.</p>
         <div class="row">
           <button class="btn" id="btnAgregarMesa" type="button">+ Mesa</button>
           <button class="btn primary" id="btnSalirEditar" type="button">Listo</button>
         </div>
       </div>
+      <nav class="sectores" id="navSectoresEditar" aria-label="Sector a editar"></nav>
       <div id="mapaEditar"></div>
       <div class="card stack" id="cardTurnos">
         <h2>Turnos</h2>
@@ -136,6 +139,6 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
 </div>
 <div id="toast" class="toast hidden"></div>
 <footer>Esto no está conectado a Bims ni a Google Calendar.<div id="versionApp" class="ver"></div></footer>
-<script type="module" src="app.js?v=3"></script>
+<script type="module" src="app.js?v=4"></script>
 </body>
 </html>
