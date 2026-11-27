@@ -16,7 +16,7 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v15 (25/11)";
+export const APP_VERSION = "v16 (27/11)";
 // Cuenta compartida del personal (solo puede usar Inventario). La clave del equipo se escribe una vez por celular.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const USUARIOS = ["Tomás", "Felix", "Tatiana", "Elías", "Junior", "Belén"];
@@ -147,6 +147,13 @@ async function entrarConClave(ev) {
   } finally { btn.disabled = false; }
 }
 $("#formClave").addEventListener("submit", entrarConClave);
+$("#btnVerClave")?.addEventListener("click", () => {
+  const inp = $("#claveEquipo"), btn = $("#btnVerClave");
+  const mostrar = inp.type === "password";
+  inp.type = mostrar ? "text" : "password";
+  btn.textContent = mostrar ? "Ocultar" : "Ver";
+  btn.setAttribute("aria-pressed", mostrar ? "true" : "false");
+});
 
 // ---------- Catálogo ----------
 async function cargarCatalogo() {

@@ -58,3 +58,7 @@ footer{position:fixed;bottom:0;left:0;right:0;background:#fff8e1;color:#5b4500;t
 
 .tag.ok{background:#d9f2e3;color:#1e4634}
 .card.item.cargado{opacity:.75}
+
+.clave-row{display:flex;gap:8px;align-items:stretch}
+.clave-row input{flex:1;min-width:0;font-size:1.4rem;padding:.8rem;border-radius:10px}
+.clave-row #btnVerClave{flex:0 0 auto;min-width:88px}

@@ -20,7 +20,7 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 <header id="top">
@@ -34,7 +34,10 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
     <h1>Clave del equipo</h1>
     <p class="muted">Escribí la clave que te pasó Tomás. Se pide una sola vez en este celular.</p>
     <form id="formClave" class="stack" autocomplete="off">
-      <input id="claveEquipo" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Clave" style="font-size:1.4rem;padding:.8rem;border-radius:10px;border:1px solid #bbb">
+      <div class="clave-row">
+        <input id="claveEquipo" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="Clave">
+        <button class="btn" type="button" id="btnVerClave" aria-pressed="false">Ver</button>
+      </div>
       <button class="btn big primary" id="btnClave" type="submit">Entrar</button>
       <p id="claveMsg" class="muted"></p>
     </form>
@@ -150,6 +153,6 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
   <div class="resultados stack"></div>
 </template>
 
-<script type="module" src="app.js?v=15"></script>
+<script type="module" src="app.js?v=16"></script>
 </body>
 </html>
