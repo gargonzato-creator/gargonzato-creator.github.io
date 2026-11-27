@@ -391,7 +391,7 @@ function pintarItems() {
   $("#conteoCant").textContent = arr.length;
   $("#conteoItems").innerHTML = arr.length ? arr.map(([k, it]) => `
     <div class="card item" data-k="${esc(k)}">
-      <div><div class="n"><b>${esc(it.producto)}</b>${it.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}${it._pend ? '<span class="tag pend">sin subir</span>' : ""}</div>
+      <div><div class="n"><b>${esc(it.producto)}</b> ${it.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}${it._pend ? '<span class="tag pend">sin subir</span>' : ""}</div>
       <div class="muted small">${it.id ? "Ficha " + esc(it.id) + " · " : ""}${it.codigo ? "Cód. " + esc(it.codigo) + " · " : ""}${esc(it.usuario || "")}</div></div>
       <div class="q">${fmt(it.cantidad)} <span class="small">${esc(UNIDAD_CORTA[it.unidad] || it.unidad)}</span></div>
     </div>`).join("") : '<p class="muted">Todavía no cargaste nada. Buscá o escaneá un producto.</p>';
@@ -527,7 +527,7 @@ function tarjetaUso(d) {
     ? `<span class="tag ok">Cargado en Bims${u.bims_ref ? " " + esc(u.bims_ref) : ""}</span>${u.cargado_por || u.cargado_at ? ` <span class="muted">${esc(u.cargado_por || "")}${u.cargado_por && u.cargado_at ? " · " : ""}${esc(fechaCarga(u.cargado_at))}</span>` : ""}`
     : "<i>pendiente de cargar en Bims</i>";
   return `
-      <div class="card item${carg ? " cargado" : ""}"><div><div><b>${esc(u.producto)}</b>${u.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}${d.metadata.hasPendingWrites ? '<span class="tag pend">sin subir</span>' : ""}</div>
+      <div class="card item${carg ? " cargado" : ""}"><div><div><b>${esc(u.producto)}</b> ${u.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}${d.metadata.hasPendingWrites ? '<span class="tag pend">sin subir</span>' : ""}</div>
       <div class="muted small">${u.productoId ? "Ficha " + esc(u.productoId) + " · " : ""}${esc(u.fecha)} · ${esc(u.usuario)} · ${esc(u.centroCosto)} · ${esc(u.concepto)}</div>
       <div class="small">${esc(u.motivo)} · ${estado}</div></div>
       <div class="q">${fmt(u.cantidad)} <span class="small">${esc(UNIDAD_CORTA[u.unidad] || u.unidad)}</span></div></div>`;
@@ -585,7 +585,7 @@ function pintarListaXfer() {
   }
   box.innerHTML = xferItems.map((it, i) => `
     <div class="card item xfer-item"><div>
-      <div><b>${esc(it.producto)}</b>${it.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}</div>
+      <div><b>${esc(it.producto)}</b> ${it.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}</div>
       <div class="muted small">${it.producto_id ? "Ficha " + esc(it.producto_id) : "Sin ficha"}${it.nota ? " · " + esc(it.nota) : ""}</div>
       <button type="button" class="btn mini warn quit" data-xqi="${i}">Quitar</button>
     </div>
@@ -674,7 +674,7 @@ function tarjetaXfer(d) {
   const u = d.data();
   const dest = u.deposito_destino_nombre || u.deposito_destino || "";
   return `
-      <div class="card item${xferHecha(u) ? " cargado" : ""}"><div><div><b>${esc(u.producto)}</b>${u.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}${d.metadata.hasPendingWrites ? '<span class="tag pend">sin subir</span>' : ""}</div>
+      <div class="card item${xferHecha(u) ? " cargado" : ""}"><div><div><b>${esc(u.producto)}</b> ${u.sinFicha ? '<span class="tag sf">sin ficha</span>' : ""}${d.metadata.hasPendingWrites ? '<span class="tag pend">sin subir</span>' : ""}</div>
       <div class="muted small">${u.producto_id || u.productoId ? "Ficha " + esc(u.producto_id || u.productoId) + " · " : ""}A ${esc(dest)} · ${esc(u.usuario)} · lote ${esc(u.lote_id || "—")}</div>
       <div class="small">${u.nota ? esc(u.nota) + " · " : ""}${etiquetaXfer(u)}</div></div>
       <div class="q">${fmt(u.cantidad)} <span class="small">${esc(UNIDAD_CORTA[u.unidad] || u.unidad)}</span></div></div>`;
@@ -684,9 +684,13 @@ function escucharTransferencias() {
   st.unsub.xfer = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
     const cont = $("#xferRecientes");
     if (snap.empty) { cont.innerHTML = '<p class="muted">Todavía no hay transferencias desde este depósito.</p>'; return; }
-    const pend = snap.docs.filter((d) => !xferHecha(d.data()) && d.data().estado !== ESTADO_XFER.prueba && (!d.data().estado || d.data().estado === ESTADO_XFER.pendiente));
-    const otras = snap.docs.filter((d) => !pend.includes(d) && !xferHecha(d.data()));
+    const pend = snap.docs.filter((d) => {
+      const e = d.data().estado;
+      return !xferHecha(d.data()) && (!e || e === ESTADO_XFER.pendiente);
+    });
+    const pendIds = new Set(pend.map((d) => d.id));
     const hechas = snap.docs.filter((d) => xferHecha(d.data()));
+    const otras = snap.docs.filter((d) => !pendIds.has(d.id) && !xferHecha(d.data()));
     let html = `<h3>Pendientes de transferir en Bims <span class="pill">${pend.length}</span></h3>`;
     html += pend.length ? pend.map(tarjetaXfer).join("") : '<p class="muted">No hay transferencias pendientes.</p>';
     if (otras.length) html += `<h3>Otras <span class="pill">${otras.length}</span></h3>` + otras.map(tarjetaXfer).join("");
