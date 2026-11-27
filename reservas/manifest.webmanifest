@@ -1,0 +1,26 @@
+{
+  "name": "Reservas Almaceén de Carnes",
+  "short_name": "Reservas AC",
+  "description": "Reservas y mapa de mesas de Almaceén de Carnes. No está conectado a Bims ni al calendario.",
+  "lang": "es-PY",
+  "start_url": "https://tg-apps-bbde7.firebaseapp.com/reservas/",
+  "scope": "https://tg-apps-bbde7.firebaseapp.com/reservas/",
+  "display": "standalone",
+  "background_color": "#f7f3ee",
+  "theme_color": "#3c1e1e",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "/reservas/"
+}
