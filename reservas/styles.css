@@ -98,3 +98,7 @@ footer{background:#fff6e8;color:#5b4500;text-align:center;font-size:14px;padding
   .overlay{align-items:center;padding:20px}
   .sheet{border-radius:20px;max-height:88vh}
 }
+
+.clave-row{display:flex;gap:8px;align-items:stretch}
+.clave-row input{flex:1;min-width:0}
+.clave-row #btnVerClave{flex:0 0 auto;min-width:88px}

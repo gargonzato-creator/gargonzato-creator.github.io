@@ -19,7 +19,7 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="styles.css?v=2">
+<link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 <header id="top">
@@ -32,7 +32,10 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
     <h1>Clave del equipo</h1>
     <p class="muted">Escribí la misma clave que usás en Inventario. Se pide una sola vez en este celular.</p>
     <form id="formClave" class="stack" autocomplete="off">
-      <input id="claveEquipo" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Clave">
+      <div class="clave-row">
+        <input id="claveEquipo" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="Clave">
+        <button class="btn" type="button" id="btnVerClave" aria-pressed="false">Ver</button>
+      </div>
       <button class="btn big primary" id="btnClave" type="submit">Entrar</button>
       <p id="claveMsg" class="muted"></p>
     </form>
@@ -133,6 +136,6 @@ fs.forEach(function(x){var r=indexedDB.open(x.name);r.onsuccess=function(){var d
 </div>
 <div id="toast" class="toast hidden"></div>
 <footer>Esto no está conectado a Bims ni a Google Calendar.<div id="versionApp" class="ver"></div></footer>
-<script type="module" src="app.js?v=2"></script>
+<script type="module" src="app.js?v=3"></script>
 </body>
 </html>

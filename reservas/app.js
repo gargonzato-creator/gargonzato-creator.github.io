@@ -16,7 +16,7 @@ const firebaseConfig = {
   appId: "1:1058376237664:web:b3d63e5d6de5c759b57905"
 };
 
-export const APP_VERSION = "v1 (26/11)";
+export const APP_VERSION = "v2 (27/11)";
 // Misma cuenta compartida del personal que Inventario. No se crean claves nuevas.
 const CUENTA_PERSONAL = "personal.inventario@tg-apps-bbde7.firebaseapp.com";
 const TZ = "America/Asuncion";
@@ -222,6 +222,13 @@ async function entrarConClave(ev) {
   } finally { btn.disabled = false; }
 }
 $("#formClave").addEventListener("submit", entrarConClave);
+$("#btnVerClave")?.addEventListener("click", () => {
+  const inp = $("#claveEquipo"), btn = $("#btnVerClave");
+  const mostrar = inp.type === "password";
+  inp.type = mostrar ? "text" : "password";
+  btn.textContent = mostrar ? "Ocultar" : "Ver";
+  btn.setAttribute("aria-pressed", mostrar ? "true" : "false");
+});
 
 function guardarConfig(cambios) {
   const vivo = { ...cambios, updatedAt: serverTimestamp(), por: st.usuario || "" };
